@@ -1,73 +1,280 @@
-# React + TypeScript + Vite
+# IP-NFT 管理平台前端
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+基于 React 19 + TypeScript + Vite 构建的企业知识产权 NFT 资产管理平台前端应用。
 
-Currently, two official plugins are available:
+## 📋 项目简介
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+本项目是 IP-NFT 管理系统的前端部分，提供企业知识产权资产的数字化管理界面，支持：
+- 用户认证与钱包绑定
+- IP 资产信息录入与管理
+- NFT 铸造与转移
+- 权属看板与历史溯源
+- 商业化授权管理
 
-## React Compiler
+## 🛠️ 技术栈
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| 技术 | 版本 | 说明 |
+|------|------|------|
+| React | 19.x | 前端框架 |
+| TypeScript | 5.9.x | 类型安全 |
+| Vite | 7.x | 构建工具 |
+| Zustand | 5.x | 轻量级状态管理 |
+| React Router | 7.x | 路由管理 |
+| Axios | 1.x | HTTP 请求库 |
+| Ethers.js | 6.x | 以太坊交互库 |
+| ESLint | 9.x | 代码检查 |
+| Prettier | 3.x | 代码格式化 |
 
-## Expanding the ESLint configuration
+## 📁 目录结构
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+frontend/
+├── public/                    # 静态资源目录
+│   └── vite.svg              # Vite 图标
+├── src/                       # 源代码目录
+│   ├── assets/               # 项目资源文件
+│   │   └── react.svg         # React 图标
+│   ├── components/           # React 组件（按业务模块划分）
+│   │   ├── asset/            # 资产管理组件
+│   │   │   └── .gitkeep      # - 资产录入表单
+│   │   │                     # - 资产列表
+│   │   │                     # - 资产详情
+│   │   ├── auth/             # 认证组件
+│   │   │   └── .gitkeep      # - 登录页面
+│   │   │                     # - 注册页面
+│   │   │                     # - 钱包绑定
+│   │   ├── common/           # 通用组件
+│   │   │   └── .gitkeep      # - 按钮、输入框等基础组件
+│   │   │                     # - 布局组件
+│   │   │                     # - 加载、错误提示
+│   │   ├── dashboard/        # 仪表盘组件
+│   │   │   └── .gitkeep      # - 权属看板
+│   │   │                     # - 资产统计
+│   │   │                     # - 筛选器
+│   │   └── nft/              # NFT 操作组件
+│   │       └── .gitkeep      # - 铸造确认
+│   │                         # - 转移表单
+│   │                         # - 历史时间线
+│   ├── hooks/                # 自定义 React Hooks
+│   │   ├── useAsset.ts       # 资产管理逻辑
+│   │   ├── useAuth.ts        # 用户认证逻辑
+│   │   ├── useNFT.ts         # NFT 操作逻辑
+│   │   └── useWeb3.ts        # Web3 钱包连接逻辑
+│   ├── services/             # API 服务层
+│   │   ├── api.ts            # Axios 实例配置
+│   │   ├── auth.ts           # 认证相关 API
+│   │   └── blockchain.ts     # 区块链交互服务
+│   ├── store/                # Zustand 状态管理
+│   │   └── index.ts          # 全局状态定义
+│   │                         # - useAuthStore: 用户认证状态
+│   │                         # - useWeb3Store: Web3 连接状态
+│   ├── types/                # TypeScript 类型定义
+│   │   └── index.ts          # 全局类型声明
+│   │                         # - Asset, NFT 相关类型
+│   │                         # - API 响应类型
+│   │                         # - 用户、企业类型
+│   ├── utils/                # 工具函数
+│   │   └── index.ts          # 通用工具方法
+│   │                         # - 日期格式化
+│   │                         # - 地址截断
+│   │                         # - IPFS URL 生成
+│   ├── App.tsx               # 应用根组件
+│   ├── App.css               # 应用全局样式
+│   ├── main.tsx              # 应用入口文件
+│   ├── index.css             # 全局基础样式
+│   └── vite-env.d.ts         # Vite 环境类型声明
+├── dist/                      # 构建输出目录（git忽略）
+├── index.html                 # HTML 入口模板
+├── package.json               # 项目依赖配置
+├── package-lock.json          # 依赖锁定文件
+├── tsconfig.json              # TypeScript 主配置
+├── tsconfig.app.json          # 应用 TS 配置
+├── tsconfig.node.json         # Node 环境 TS 配置
+├── vite.config.ts             # Vite 构建配置
+├── eslint.config.js           # ESLint 配置
+└── .prettierrc                # Prettier 配置
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🚀 快速开始
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### 环境要求
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- **Node.js**: >= 18.0.0
+- **npm**: >= 9.0.0
+- **浏览器**: 支持 ES2020 的现代浏览器
+
+### 安装依赖
+
+```bash
+cd frontend
+npm install
 ```
+
+### 环境变量配置
+
+创建 `.env.local` 文件（可选）：
+
+```env
+# API 基础地址
+VITE_API_BASE_URL=http://localhost:8000/api/v1
+
+# 其他配置...
+```
+
+### 开发模式
+
+```bash
+npm run dev
+```
+
+启动后访问：http://localhost:5173
+
+### 生产构建
+
+```bash
+npm run build
+```
+
+构建产物输出至 `dist/` 目录。
+
+### 预览构建结果
+
+```bash
+npm run preview
+```
+
+### 代码检查
+
+```bash
+npm run lint
+```
+
+## 📦 核心模块说明
+
+### Hooks（自定义钩子）
+
+| Hook | 功能 | 主要方法 |
+|------|------|----------|
+| `useAuth` | 用户认证 | `login`, `logout`, `isAuthenticated` |
+| `useWeb3` | 钱包连接 | `connect`, `disconnect`, `signMessage` |
+| `useAsset` | 资产管理 | `fetchAssets`, `createAsset`, `updateAsset` |
+| `useNFT` | NFT 操作 | `mint`, `transfer`, `getHistory` |
+
+### Services（服务层）
+
+| 服务 | 功能 | 说明 |
+|------|------|------|
+| `api.ts` | HTTP 客户端 | Axios 实例，自动携带 Token，统一错误处理 |
+| `auth.ts` | 认证服务 | 登录、注册、钱包绑定、Token 刷新 |
+| `blockchain.ts` | 区块链服务 | MetaMask 连接、消息签名、交易发送 |
+
+### Store（状态管理）
+
+| Store | 状态 | 说明 |
+|-------|------|------|
+| `useAuthStore` | 用户认证状态 | 用户信息、Token、登录状态 |
+| `useWeb3Store` | Web3 状态 | 钱包地址、连接状态、链 ID |
+
+### Types（类型定义）
+
+```typescript
+// 资产类型
+type AssetType = 'PATENT' | 'TRADEMARK' | 'COPYRIGHT' | 'TRADE_SECRET' | 'DIGITAL_WORK';
+
+// 资产状态
+type AssetStatus = 'DRAFT' | 'MINTED' | 'TRANSFERRED' | 'LICENSED' | 'STAKED';
+
+// NFT 事件类型
+type NFTEventType = 'MINT' | 'TRANSFER' | 'LICENSE' | 'STAKE' | 'UNSTAKE';
+```
+
+### Utils（工具函数）
+
+| 函数 | 功能 | 示例 |
+|------|------|------|
+| `formatDate` | 日期格式化 | `2024年1月15日` |
+| `truncateAddress` | 地址截断 | `0x1234...5678` |
+| `formatFileSize` | 文件大小格式化 | `1.5 MB` |
+| `getIPFSUrl` | IPFS URL 生成 | `https://ipfs.io/ipfs/Qm...` |
+| `getExplorerUrl` | 区块浏览器链接 | `https://polygonscan.com/tx/...` |
+
+## 🔗 与后端集成
+
+前端通过 RESTful API 与后端通信：
+
+```
+后端地址: http://localhost:8000/api/v1
+
+主要接口:
+├── /auth          # 认证接口
+│   ├── POST /login
+│   ├── POST /register
+│   └── POST /bind-wallet
+├── /assets        # 资产接口
+│   ├── GET /
+│   ├── POST /
+│   └── GET /{id}
+├── /nft           # NFT 接口
+│   ├── POST /mint
+│   ├── POST /transfer
+│   └── GET /{token_id}/history
+└── /dashboard     # 看板接口
+    └── GET /assets
+```
+
+## 🔐 Web3 集成
+
+支持的钱包：
+- MetaMask
+- WalletConnect（计划中）
+
+支持的网络：
+- Ethereum Sepolia 测试网
+- Polygon Mumbai/Amoy 测试网
+- BSC 测试网
+
+## 📝 开发规范
+
+### 代码风格
+
+- 使用 ESLint + Prettier 保持代码一致性
+- 组件使用函数式组件 + Hooks
+- 类型定义使用 TypeScript interface/type
+
+### 提交规范
+
+```
+feat: 新功能
+fix: 修复 bug
+docs: 文档更新
+style: 代码格式调整
+refactor: 代码重构
+test: 测试相关
+chore: 构建/工具相关
+```
+
+## 🐛 常见问题
+
+### 1. MetaMask 连接失败
+
+确保：
+- 已安装 MetaMask 浏览器扩展
+- MetaMask 已解锁
+- 已切换到正确的网络
+
+### 2. API 请求 401 错误
+
+Token 已过期，需要重新登录或刷新 Token。
+
+### 3. 构建失败
+
+```bash
+# 清除缓存后重新构建
+rm -rf node_modules dist
+npm install
+npm run build
+```
+
+## 📄 许可证
+
+MIT License

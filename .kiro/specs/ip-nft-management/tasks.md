@@ -2,7 +2,7 @@
 
 ## Phase 1: 项目基础架构
 
-- [-] 1. 初始化项目结构
+- [x] 1. 初始化项目结构
 
 
 
@@ -22,15 +22,15 @@
     - _Requirements: 全局_
 
 
-  - [ ] 1.3 配置PostgreSQL数据库
+  - [x] 1.3 配置PostgreSQL数据库
     - 创建数据库和用户
     - 配置SQLAlchemy连接
-
-
     - 设置Alembic迁移工具
     - _Requirements: 全局_
-  - [ ] 1.4 初始化智能合约项目
+  - [x] 1.4 初始化智能合约项目
+
     - 使用Hardhat初始化Solidity项目
+
     - 配置多链部署（Ethereum, Polygon, BSC测试网）
     - 安装OpenZeppelin合约库
     - _Requirements: 5.1_
