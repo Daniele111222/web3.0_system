@@ -4,8 +4,14 @@ import { persist } from 'zustand/middleware';
 interface User {
   id: string;
   email: string;
-  name: string;
+  username: string;
+  full_name?: string;
+  avatar_url?: string;
   wallet_address?: string;
+  is_active: boolean;
+  is_verified: boolean;
+  created_at: string;
+  last_login_at?: string;
 }
 
 interface AuthState {
@@ -14,6 +20,7 @@ interface AuthState {
   refreshToken: string | null;
   isAuthenticated: boolean;
   setAuth: (user: User, accessToken: string, refreshToken: string) => void;
+  updateUser: (user: User) => void;
   clearAuth: () => void;
 }
 
@@ -24,20 +31,25 @@ export const useAuthStore = create<AuthState>()(
       accessToken: null,
       refreshToken: null,
       isAuthenticated: false,
-      setAuth: (user, accessToken, refreshToken) =>
+      setAuth: (user, accessToken, refreshToken) => {
+        localStorage.setItem('access_token', accessToken);
         set({
           user,
           accessToken,
           refreshToken,
           isAuthenticated: true,
-        }),
-      clearAuth: () =>
+        });
+      },
+      updateUser: (user) => set({ user }),
+      clearAuth: () => {
+        localStorage.removeItem('access_token');
         set({
           user: null,
           accessToken: null,
           refreshToken: null,
           isAuthenticated: false,
-        }),
+        });
+      },
     }),
     {
       name: 'auth-storage',

@@ -1,4 +1,4 @@
-"""Authentication schemas for request/response validation."""
+"""用于请求/响应验证的身份验证架构。"""
 from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, EmailStr, Field, field_validator
@@ -6,119 +6,155 @@ import re
 
 
 class UserRegisterRequest(BaseModel):
-    """Schema for user registration request."""
+    """用户注册请求的架构。"""
     
-    email: EmailStr = Field(..., description="User email address")
+    email: EmailStr = Field(..., description="用户电子邮箱地址")
     username: str = Field(
         ...,
         min_length=3,
         max_length=50,
-        description="Username (3-50 characters, alphanumeric and underscore)",
+        description="用户名（3-50 个字符，字母数字和下划线）",
     )
     password: str = Field(
         ...,
         min_length=8,
         max_length=128,
-        description="Password (8-128 characters)",
+        description="密码（8-128 个字符）",
     )
     full_name: Optional[str] = Field(
         None,
         max_length=100,
-        description="User's full name",
+        description="用户全名",
     )
     
     @field_validator("username")
     @classmethod
     def validate_username(cls, v: str) -> str:
+        """
+        验证用户名格式。
+        
+        Args:
+            v (str): 待验证的用户名。
+            
+        Returns:
+            str: 验证通过并转为小写的用户名。
+            
+        Raises:
+            ValueError: 如果用户名格式不正确。
+        """
         if not re.match(r"^[a-zA-Z][a-zA-Z0-9_]*$", v):
             raise ValueError(
-                "Username must start with a letter and contain only letters, numbers, and underscores"
+                "用户名必须以字母开头，且只能包含字母、数字和下划线"
             )
         return v.lower()
     
     @field_validator("password")
     @classmethod
     def validate_password(cls, v: str) -> str:
+        """
+        验证密码强度。
+        
+        Args:
+            v (str): 待验证的密码。
+            
+        Returns:
+            str: 验证通过的密码。
+            
+        Raises:
+            ValueError: 如果密码强度不足。
+        """
         if not re.search(r"[A-Z]", v):
-            raise ValueError("Password must contain at least one uppercase letter")
+            raise ValueError("密码必须包含至少一个大写字母")
         if not re.search(r"[a-z]", v):
-            raise ValueError("Password must contain at least one lowercase letter")
+            raise ValueError("密码必须包含至少一个小写字母")
         if not re.search(r"\d", v):
-            raise ValueError("Password must contain at least one digit")
+            raise ValueError("密码必须包含至少一个数字")
         if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", v):
-            raise ValueError("Password must contain at least one special character")
+            raise ValueError("密码必须包含至少一个特殊字符")
         return v
 
 
 class UserLoginRequest(BaseModel):
-    """Schema for user login request."""
+    """用户登录请求的架构。"""
     
-    email: EmailStr = Field(..., description="User email address")
-    password: str = Field(..., description="User password")
+    email: EmailStr = Field(..., description="用户电子邮箱地址")
+    password: str = Field(..., description="用户密码")
 
 
 class TokenResponse(BaseModel):
-    """Schema for token response."""
+    """令牌响应的架构。"""
     
-    access_token: str = Field(..., description="JWT access token")
-    refresh_token: str = Field(..., description="JWT refresh token")
-    token_type: str = Field(default="bearer", description="Token type")
-    expires_in: int = Field(..., description="Access token expiration time in seconds")
+    access_token: str = Field(..., description="JWT 访问令牌")
+    refresh_token: str = Field(..., description="JWT 刷新令牌")
+    token_type: str = Field(default="bearer", description="令牌类型")
+    expires_in: int = Field(..., description="访问令牌有效期（秒）")
 
 
 class RefreshTokenRequest(BaseModel):
-    """Schema for token refresh request."""
+    """令牌刷新请求的架构。"""
     
-    refresh_token: str = Field(..., description="Refresh token")
+    refresh_token: str = Field(..., description="刷新令牌")
 
 
 class UserResponse(BaseModel):
-    """Schema for user response."""
+    """用户响应的架构。"""
     
-    id: str = Field(..., description="User ID")
-    email: str = Field(..., description="User email")
-    username: str = Field(..., description="Username")
-    full_name: Optional[str] = Field(None, description="Full name")
-    avatar_url: Optional[str] = Field(None, description="Avatar URL")
-    wallet_address: Optional[str] = Field(None, description="Bound wallet address")
-    is_active: bool = Field(..., description="Account active status")
-    is_verified: bool = Field(..., description="Email verified status")
-    created_at: datetime = Field(..., description="Account creation time")
-    last_login_at: Optional[datetime] = Field(None, description="Last login time")
+    id: str = Field(..., description="用户 ID")
+    email: str = Field(..., description="用户邮箱")
+    username: str = Field(..., description="用户名")
+    full_name: Optional[str] = Field(None, description="全名")
+    avatar_url: Optional[str] = Field(None, description="头像 URL")
+    wallet_address: Optional[str] = Field(None, description="绑定的钱包地址")
+    is_active: bool = Field(..., description="账户激活状态")
+    is_verified: bool = Field(..., description="邮箱验证状态")
+    created_at: datetime = Field(..., description="账户创建时间")
+    last_login_at: Optional[datetime] = Field(None, description="最后登录时间")
     
     class Config:
         from_attributes = True
 
 
 class AuthResponse(BaseModel):
-    """Schema for authentication response with user info."""
+    """包含用户信息和令牌的认证响应架构。"""
     
-    user: UserResponse = Field(..., description="User information")
-    tokens: TokenResponse = Field(..., description="Authentication tokens")
+    user: UserResponse = Field(..., description="用户信息")
+    tokens: TokenResponse = Field(..., description="认证令牌")
 
 
 class WalletBindRequest(BaseModel):
-    """Schema for wallet binding request."""
+    """钱包绑定请求的架构。"""
     
     wallet_address: str = Field(
         ...,
         min_length=42,
         max_length=42,
-        description="Ethereum wallet address",
+        description="以太坊钱包地址",
     )
-    signature: str = Field(..., description="Signed message for verification")
-    message: str = Field(..., description="Original message that was signed")
+    signature: str = Field(..., description="用于验证的签名消息")
+    message: str = Field(..., description="被签名的原始消息")
     
     @field_validator("wallet_address")
     @classmethod
     def validate_wallet_address(cls, v: str) -> str:
+        """
+        验证以太坊钱包地址格式。
+        
+        Args:
+            v (str): 待验证的钱包地址。
+            
+        Returns:
+            str: 验证通过并转为小写的钱包地址。
+            
+        Raises:
+            ValueError: 如果钱包地址格式无效。
+        """
         if not re.match(r"^0x[a-fA-F0-9]{40}$", v):
-            raise ValueError("Invalid Ethereum wallet address format")
+            raise ValueError("无效的以太坊钱包地址格式")
         return v.lower()
 
 
 class MessageResponse(BaseModel):
-    """Generic message response."""
+    """通用的消息响应架构。"""
     
-    message: str = Field(..., description="Response message")
-    success: bool = Field(default=True, description="Operation success status")
+    message: str = Field(..., description="响应消息")
+    success: bool = Field(default=True, description="操作成功状态")

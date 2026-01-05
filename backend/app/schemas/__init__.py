@@ -1,4 +1,4 @@
-"""Pydantic schemas."""
+"""Pydantic 请求/响应架构。"""
 from app.schemas.auth import (
     UserRegisterRequest,
     UserLoginRequest,
@@ -9,8 +9,20 @@ from app.schemas.auth import (
     WalletBindRequest,
     MessageResponse,
 )
+from app.schemas.enterprise import (
+    EnterpriseCreateRequest,
+    EnterpriseUpdateRequest,
+    EnterpriseResponse,
+    EnterpriseDetailResponse,
+    EnterpriseListResponse,
+    MemberResponse,
+    InviteMemberRequest,
+    UpdateMemberRoleRequest,
+    BindWalletRequest,
+)
 
 __all__ = [
+    # 认证相关
     "UserRegisterRequest",
     "UserLoginRequest",
     "TokenResponse",
@@ -19,4 +31,14 @@ __all__ = [
     "AuthResponse",
     "WalletBindRequest",
     "MessageResponse",
+    # 企业相关
+    "EnterpriseCreateRequest",
+    "EnterpriseUpdateRequest",
+    "EnterpriseResponse",
+    "EnterpriseDetailResponse",
+    "EnterpriseListResponse",
+    "MemberResponse",
+    "InviteMemberRequest",
+    "UpdateMemberRoleRequest",
+    "BindWalletRequest",
 ]
