@@ -3,34 +3,23 @@
 ## Phase 1: 项目基础架构
 
 - [x] 1. 初始化项目结构
-
-
-
-
   - [x] 1.1 创建前端React+TypeScript项目
-
     - 使用Vite创建React项目，配置TypeScript
     - 安装核心依赖：react-router-dom, axios, zustand, ethers.js
     - 配置ESLint和Prettier
     - _Requirements: 全局_
-
   - [x] 1.2 创建后端FastAPI项目
-
     - 初始化Python项目结构，配置Poetry/pip
     - 安装核心依赖：fastapi, uvicorn, sqlalchemy, alembic, web3.py, python-jose
     - 配置项目目录结构（api, core, models, schemas, services, repositories）
     - _Requirements: 全局_
-
-
   - [x] 1.3 配置PostgreSQL数据库
     - 创建数据库和用户
     - 配置SQLAlchemy连接
     - 设置Alembic迁移工具
     - _Requirements: 全局_
   - [x] 1.4 初始化智能合约项目
-
     - 使用Hardhat初始化Solidity项目
-
     - 配置多链部署（Ethereum, Polygon, BSC测试网）
     - 安装OpenZeppelin合约库
     - _Requirements: 5.1_
@@ -38,43 +27,52 @@
 ## Phase 2: 用户认证系统
 
 - [ ] 2. 实现用户认证模块
-  - [ ] 2.1 创建用户数据模型
+  - [x] 2.1 创建用户数据模型
     - 实现User SQLAlchemy模型（id, email, password_hash, name, wallet_address, email_verified）
-    - 创建数据库迁移脚本
+    - 实现RefreshToken模型用于令牌管理
     - _Requirements: 1.1, 1.3_
-  - [ ] 2.2 实现密码哈希和JWT工具
+  - [ ] 2.2 创建数据库迁移脚本
+    - 生成User和RefreshToken表的Alembic迁移
+    - 执行迁移创建数据库表
+    - _Requirements: 1.1, 1.3_
+  - [x] 2.3 实现密码哈希和JWT工具
     - 实现密码哈希函数（bcrypt）
     - 实现JWT令牌生成和验证函数
     - 配置令牌过期时间和刷新机制
     - _Requirements: 1.1, 1.5_
-  - [ ]* 2.3 编写属性测试：认证凭据验证一致性
+  - [ ]* 2.4 编写属性测试：认证凭据验证一致性
     - **Property 1: 认证凭据验证一致性**
     - **Validates: Requirements 1.1, 1.2**
-  - [ ]* 2.4 编写属性测试：JWT令牌有效性
+  - [ ]* 2.5 编写属性测试：JWT令牌有效性
     - **Property 2: JWT令牌有效性**
     - **Validates: Requirements 1.5**
-  - [ ] 2.5 实现注册API端点
+  - [x] 2.6 实现注册API端点
     - POST /api/v1/auth/register
     - 邮箱唯一性验证
     - 密码强度验证
     - _Requirements: 1.3_
-  - [ ]* 2.6 编写属性测试：用户注册唯一性
+  - [ ]* 2.7 编写属性测试：用户注册唯一性
     - **Property 3: 用户注册唯一性**
     - **Validates: Requirements 1.3**
-  - [ ] 2.7 实现登录API端点
+  - [x] 2.8 实现登录API端点
     - POST /api/v1/auth/login
     - 返回access_token和refresh_token
     - _Requirements: 1.1, 1.2_
-  - [ ] 2.8 实现钱包绑定API端点
+  - [x] 2.9 实现钱包绑定API端点
     - POST /api/v1/auth/bind-wallet
     - 验证钱包签名
     - _Requirements: 1.4_
-  - [ ] 2.9 实现前端认证页面
+  - [x] 2.10 实现前端认证页面
+
+
+
+
+
     - 登录页面组件
     - 注册页面组件
     - 钱包绑定组件
     - _Requirements: 1.1, 1.3, 1.4_
-  - [ ]* 2.10 编写认证模块单元测试
+  - [ ]* 2.11 编写认证模块单元测试
     - 测试登录成功和失败场景
     - 测试注册流程
     - 测试令牌刷新
@@ -85,20 +83,20 @@
 
 ## Phase 3: 企业与组织管理
 
-- [ ] 4. 实现企业管理模块
-  - [ ] 4.1 创建企业数据模型
+- [x] 4. 实现企业管理模块
+  - [x] 4.1 创建企业数据模型
     - 实现Enterprise和EnterpriseUser SQLAlchemy模型
     - 创建数据库迁移脚本
     - _Requirements: 2.1, 2.2_
-  - [ ] 4.2 实现企业CRUD API
-    - POST /api/v1/enterprises（创建企业）
+  - [x] 4.2 实现企业CRUD API
+    - POST /api/v1/enterprises（创建企业）        
     - GET /api/v1/enterprises/{id}（查询企业）
     - PUT /api/v1/enterprises/{id}（更新企业）
     - _Requirements: 2.1, 2.4_
   - [ ]* 4.3 编写属性测试：企业标识唯一性
     - **Property 4: 企业标识唯一性**
     - **Validates: Requirements 2.1**
-  - [ ] 4.4 实现成员管理API
+  - [x] 4.4 实现成员管理API
     - POST /api/v1/enterprises/{id}/members（邀请成员）
     - PUT /api/v1/enterprises/{id}/members/{user_id}（设置角色）
     - DELETE /api/v1/enterprises/{id}/members/{user_id}（移除成员）
@@ -106,7 +104,7 @@
   - [ ]* 4.5 编写属性测试：角色权限一致性
     - **Property 5: 角色权限一致性**
     - **Validates: Requirements 2.3**
-  - [ ] 4.6 实现前端企业管理页面
+  - [x] 4.6 实现前端企业管理页面
     - 企业创建表单
     - 企业详情页面
     - 成员管理组件
@@ -162,24 +160,24 @@
 
 ## Phase 5: 智能合约开发
 
-- [ ] 7. 实现IP-NFT智能合约
-  - [ ] 7.1 实现ERC-721基础合约
+- [x] 7. 实现IP-NFT智能合约
+  - [x] 7.1 实现ERC-721基础合约
     - 继承OpenZeppelin ERC721URIStorage
     - 实现mint函数
     - 实现tokenURI函数
     - _Requirements: 5.1, 5.2, 5.4_
-  - [ ] 7.2 实现版税支持（ERC-2981）
+  - [x] 7.2 实现版税支持（ERC-2981）
     - 继承OpenZeppelin ERC2981
     - 实现setTokenRoyalty函数
     - _Requirements: 10.1（选做）_
   - [ ] 7.3 实现NFT元数据序列化工具
-    - 创建元数据JSON生成函数
+    - 创建元数据JSON生成函数（后端Python实现）
     - 创建元数据解析函数
     - _Requirements: 5.5, 5.6_
   - [ ]* 7.4 编写属性测试：NFT元数据序列化Round-Trip
     - **Property 8: NFT元数据序列化Round-Trip**
     - **Validates: Requirements 5.5, 5.6**
-  - [ ] 7.5 编写智能合约测试
+  - [x] 7.5 编写智能合约测试
     - 测试铸造功能
     - 测试转移功能
     - 测试tokenURI查询
@@ -349,10 +347,10 @@
     - 实现导航菜单
     - 实现权限路由守卫
     - _Requirements: 全局_
-  - [ ] 16.2 实现前端状态管理
+  - [x] 16.2 实现前端状态管理
     - 配置Zustand store
     - 实现用户状态管理
-    - 实现资产状态管理
+    - 实现Web3连接状态管理
     - _Requirements: 全局_
   - [ ] 16.3 实现API错误处理
     - 统一错误响应格式

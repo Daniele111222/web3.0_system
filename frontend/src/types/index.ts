@@ -60,19 +60,67 @@ export interface User {
 }
 
 // Enterprise types
+export type MemberRole = 'owner' | 'admin' | 'member' | 'viewer';
+
+export interface EnterpriseMember {
+  id: string;
+  user_id: string;
+  username: string;
+  email: string;
+  full_name?: string;
+  avatar_url?: string;
+  role: MemberRole;
+  joined_at: string;
+}
+
 export interface Enterprise {
   id: string;
   name: string;
   description?: string;
   logo_url?: string;
+  website?: string;
+  contact_email?: string;
+  wallet_address?: string;
+  is_active: boolean;
+  is_verified: boolean;
   created_at: string;
   updated_at: string;
+  member_count: number;
 }
 
-export interface EnterpriseUser {
-  id: string;
+export interface EnterpriseDetail extends Enterprise {
+  members: EnterpriseMember[];
+}
+
+export interface EnterpriseListResponse {
+  items: Enterprise[];
+  total: number;
+  page: number;
+  page_size: number;
+  pages: number;
+}
+
+export interface EnterpriseCreateRequest {
+  name: string;
+  description?: string;
+  logo_url?: string;
+  website?: string;
+  contact_email?: string;
+}
+
+export interface EnterpriseUpdateRequest {
+  name?: string;
+  description?: string;
+  logo_url?: string;
+  website?: string;
+  contact_email?: string;
+}
+
+export interface InviteMemberRequest {
   user_id: string;
-  enterprise_id: string;
-  role: 'ADMIN' | 'MEMBER' | 'VIEWER';
-  joined_at: string;
+  role: MemberRole;
+}
+
+export interface UpdateMemberRoleRequest {
+  role: MemberRole;
 }

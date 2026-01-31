@@ -82,3 +82,34 @@ export const useWeb3Store = create<Web3State>()((set) => ({
       chainId: null,
     }),
 }));
+
+
+// Enterprise Store
+interface EnterpriseState {
+  enterprises: import('../types').Enterprise[];
+  currentEnterprise: import('../types').EnterpriseDetail | null;
+  isLoading: boolean;
+  error: string | null;
+  setEnterprises: (enterprises: import('../types').Enterprise[]) => void;
+  setCurrentEnterprise: (enterprise: import('../types').EnterpriseDetail | null) => void;
+  setLoading: (loading: boolean) => void;
+  setError: (error: string | null) => void;
+  clearEnterprise: () => void;
+}
+
+export const useEnterpriseStore = create<EnterpriseState>()((set) => ({
+  enterprises: [],
+  currentEnterprise: null,
+  isLoading: false,
+  error: null,
+  setEnterprises: (enterprises) => set({ enterprises }),
+  setCurrentEnterprise: (enterprise) => set({ currentEnterprise: enterprise }),
+  setLoading: (loading) => set({ isLoading: loading }),
+  setError: (error) => set({ error }),
+  clearEnterprise: () =>
+    set({
+      enterprises: [],
+      currentEnterprise: null,
+      error: null,
+    }),
+}));
