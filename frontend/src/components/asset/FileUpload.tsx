@@ -41,7 +41,7 @@ export function FileUpload({
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
   };
 
   /**
@@ -180,9 +180,7 @@ export function FileUpload({
         <p>
           拖拽文件到此处，或点击选择文件
           <br />
-          <small>
-            支持 PDF、图片、视频、压缩包等格式，单个文件最大 100MB
-          </small>
+          <small>支持 PDF、图片、视频、压缩包等格式，单个文件最大 100MB</small>
         </p>
       </div>
 
@@ -192,9 +190,7 @@ export function FileUpload({
             <div key={index} className="file-item">
               <div className="file-item-info">
                 <span className="file-item-name">{fileInfo.name}</span>
-                <span className="file-item-size">
-                  {formatFileSize(fileInfo.size)}
-                </span>
+                <span className="file-item-size">{formatFileSize(fileInfo.size)}</span>
               </div>
               <button
                 type="button"

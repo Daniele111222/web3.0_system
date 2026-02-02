@@ -17,14 +17,7 @@ export function AssetPage({ enterpriseId }: AssetPageProps) {
   const [showForm, setShowForm] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const {
-    assets,
-    isLoading,
-    error,
-    createAsset,
-    getAssets,
-    clearError,
-  } = useAsset();
+  const { assets, isLoading, error, createAsset, getAssets, clearError } = useAsset();
 
   /**
    * 加载资产列表
@@ -81,10 +74,7 @@ export function AssetPage({ enterpriseId }: AssetPageProps) {
       <div className="asset-header">
         <h1>资产管理</h1>
         {!showForm && (
-          <button
-            className="btn btn-primary"
-            onClick={() => setShowForm(true)}
-          >
+          <button className="btn btn-primary" onClick={() => setShowForm(true)}>
             + 创建资产
           </button>
         )}
@@ -103,11 +93,7 @@ export function AssetPage({ enterpriseId }: AssetPageProps) {
           />
         </div>
       ) : (
-        <AssetList
-          assets={assets}
-          isLoading={isLoading}
-          onAssetClick={handleAssetClick}
-        />
+        <AssetList assets={assets} isLoading={isLoading} onAssetClick={handleAssetClick} />
       )}
     </div>
   );

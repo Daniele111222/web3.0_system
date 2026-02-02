@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { EnterpriseMember, MemberRole } from '../../types';
 import './Enterprise.css';
 

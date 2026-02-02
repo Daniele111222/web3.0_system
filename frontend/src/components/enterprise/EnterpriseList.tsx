@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useEnterprise } from '../../hooks/useEnterprise';
 import { EnterpriseForm } from './EnterpriseForm';
-import type { Enterprise, EnterpriseCreateRequest } from '../../types';
+import type { Enterprise, EnterpriseCreateRequest, EnterpriseUpdateRequest } from '../../types';
 import './Enterprise.css';
 
 interface EnterpriseListProps {
@@ -18,8 +18,8 @@ export function EnterpriseList({ onSelectEnterprise }: EnterpriseListProps) {
     fetchEnterprises();
   }, [fetchEnterprises]);
 
-  const handleCreate = async (data: EnterpriseCreateRequest) => {
-    const enterprise = await createEnterprise(data);
+  const handleCreate = async (data: EnterpriseCreateRequest | EnterpriseUpdateRequest) => {
+    const enterprise = await createEnterprise(data as EnterpriseCreateRequest);
     setShowCreateForm(false);
     onSelectEnterprise(enterprise.id);
   };
@@ -91,9 +91,7 @@ function EnterpriseCard({ enterprise, onClick }: EnterpriseCardProps) {
       </div>
       <div className="card-body">
         <h3 className="card-title">{enterprise.name}</h3>
-        {enterprise.description && (
-          <p className="card-description">{enterprise.description}</p>
-        )}
+        {enterprise.description && <p className="card-description">{enterprise.description}</p>}
         <div className="card-meta">
           <span>{enterprise.member_count} 位成员</span>
           <span>创建于 {new Date(enterprise.created_at).toLocaleDateString('zh-CN')}</span>

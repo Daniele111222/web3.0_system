@@ -83,7 +83,6 @@ export const useWeb3Store = create<Web3State>()((set) => ({
     }),
 }));
 
-
 // Enterprise Store
 interface EnterpriseState {
   enterprises: import('../types').Enterprise[];

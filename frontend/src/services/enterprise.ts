@@ -1,6 +1,5 @@
 import apiClient from './api';
 import type {
-  Enterprise,
   EnterpriseDetail,
   EnterpriseListResponse,
   EnterpriseCreateRequest,
@@ -54,10 +53,7 @@ export const enterpriseService = {
   },
 
   // 邀请成员
-  async inviteMember(
-    enterpriseId: string,
-    data: InviteMemberRequest
-  ): Promise<EnterpriseMember> {
+  async inviteMember(enterpriseId: string, data: InviteMemberRequest): Promise<EnterpriseMember> {
     const response = await apiClient.post<EnterpriseMember>(
       `/enterprises/${enterpriseId}/members`,
       data

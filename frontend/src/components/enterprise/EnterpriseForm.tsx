@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
-import type { EnterpriseCreateRequest, EnterpriseUpdateRequest, EnterpriseDetail } from '../../types';
+import type {
+  EnterpriseCreateRequest,
+  EnterpriseUpdateRequest,
+  EnterpriseDetail,
+} from '../../types';
 import './Enterprise.css';
 
 interface EnterpriseFormProps {

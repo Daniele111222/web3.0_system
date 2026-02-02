@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import type { AssetType, LegalStatus } from '../../types';
 import type { AssetCreateRequest } from '../../services/asset';
 import './Asset.css';
@@ -135,9 +135,7 @@ export function AssetForm({ onSubmit, onCancel, isLoading = false }: AssetFormPr
           placeholder="请详细描述资产内容、特点和用途"
           disabled={isLoading}
         />
-        {errors.description && (
-          <span className="error-text">{errors.description}</span>
-        )}
+        {errors.description && <span className="error-text">{errors.description}</span>}
       </div>
 
       <div className="form-row">
@@ -153,9 +151,7 @@ export function AssetForm({ onSubmit, onCancel, isLoading = false }: AssetFormPr
             placeholder="请输入创作人姓名"
             disabled={isLoading}
           />
-          {errors.creator_name && (
-            <span className="error-text">{errors.creator_name}</span>
-          )}
+          {errors.creator_name && <span className="error-text">{errors.creator_name}</span>}
         </div>
 
         <div className="form-group">
@@ -170,9 +166,7 @@ export function AssetForm({ onSubmit, onCancel, isLoading = false }: AssetFormPr
             max={new Date().toISOString().split('T')[0]}
             disabled={isLoading}
           />
-          {errors.creation_date && (
-            <span className="error-text">{errors.creation_date}</span>
-          )}
+          {errors.creation_date && <span className="error-text">{errors.creation_date}</span>}
         </div>
       </div>
 
@@ -184,9 +178,7 @@ export function AssetForm({ onSubmit, onCancel, isLoading = false }: AssetFormPr
           <select
             id="legal_status"
             value={formData.legal_status}
-            onChange={(e) =>
-              handleChange('legal_status', e.target.value as LegalStatus)
-            }
+            onChange={(e) => handleChange('legal_status', e.target.value as LegalStatus)}
             disabled={isLoading}
           >
             <option value="PENDING">待审批</option>
@@ -209,12 +201,7 @@ export function AssetForm({ onSubmit, onCancel, isLoading = false }: AssetFormPr
       </div>
 
       <div className="form-actions">
-        <button
-          type="button"
-          className="btn btn-secondary"
-          onClick={onCancel}
-          disabled={isLoading}
-        >
+        <button type="button" className="btn btn-secondary" onClick={onCancel} disabled={isLoading}>
           取消
         </button>
         <button type="submit" className="btn btn-primary" disabled={isLoading}>

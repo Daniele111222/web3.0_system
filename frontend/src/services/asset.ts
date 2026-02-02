@@ -77,10 +77,7 @@ class AssetService {
   /**
    * 创建资产草稿
    */
-  async createAsset(
-    enterpriseId: string,
-    data: AssetCreateRequest
-  ): Promise<Asset> {
+  async createAsset(enterpriseId: string, data: AssetCreateRequest): Promise<Asset> {
     const response = await api.post<Asset>('/assets', data, {
       params: { enterprise_id: enterpriseId },
     });
@@ -106,10 +103,7 @@ class AssetService {
   /**
    * 更新资产草稿
    */
-  async updateAsset(
-    assetId: string,
-    data: AssetUpdateRequest
-  ): Promise<Asset> {
+  async updateAsset(assetId: string, data: AssetUpdateRequest): Promise<Asset> {
     const response = await api.put<Asset>(`/assets/${assetId}`, data);
     return response.data;
   }
@@ -124,14 +118,8 @@ class AssetService {
   /**
    * 上传附件
    */
-  async uploadAttachment(
-    assetId: string,
-    data: AttachmentUploadRequest
-  ): Promise<Attachment> {
-    const response = await api.post<Attachment>(
-      `/assets/${assetId}/attachments`,
-      data
-    );
+  async uploadAttachment(assetId: string, data: AttachmentUploadRequest): Promise<Attachment> {
+    const response = await api.post<Attachment>(`/assets/${assetId}/attachments`, data);
     return response.data;
   }
 }

@@ -1,11 +1,12 @@
 import { useState, useCallback } from 'react';
 import assetService, {
-  AssetCreateRequest,
-  AssetUpdateRequest,
-  AssetFilterParams,
-  AttachmentUploadRequest,
+  type AssetCreateRequest,
+  type AssetUpdateRequest,
+  type AssetFilterParams,
+  type AttachmentUploadRequest,
+  type AssetListResponse,
 } from '../services/asset';
-import type { Asset, AssetListResponse, Attachment } from '../types';
+import type { Asset, Attachment } from '../types';
 
 interface UseAssetReturn {
   assets: Asset[];
@@ -14,21 +15,12 @@ interface UseAssetReturn {
   totalPages: number;
   isLoading: boolean;
   error: string | null;
-  createAsset: (
-    enterpriseId: string,
-    data: AssetCreateRequest
-  ) => Promise<Asset | null>;
+  createAsset: (enterpriseId: string, data: AssetCreateRequest) => Promise<Asset | null>;
   getAssets: (params: AssetFilterParams) => Promise<void>;
   getAsset: (assetId: string) => Promise<Asset | null>;
-  updateAsset: (
-    assetId: string,
-    data: AssetUpdateRequest
-  ) => Promise<Asset | null>;
+  updateAsset: (assetId: string, data: AssetUpdateRequest) => Promise<Asset | null>;
   deleteAsset: (assetId: string) => Promise<boolean>;
-  uploadAttachment: (
-    assetId: string,
-    data: AttachmentUploadRequest
-  ) => Promise<Attachment | null>;
+  uploadAttachment: (assetId: string, data: AttachmentUploadRequest) => Promise<Attachment | null>;
   clearError: () => void;
 }
 
@@ -60,10 +52,7 @@ export function useAsset(): UseAssetReturn {
    * 创建资产
    */
   const createAsset = useCallback(
-    async (
-      enterpriseId: string,
-      data: AssetCreateRequest
-    ): Promise<Asset | null> => {
+    async (enterpriseId: string, data: AssetCreateRequest): Promise<Asset | null> => {
       setIsLoading(true);
       setError(null);
       try {
@@ -83,58 +72,47 @@ export function useAsset(): UseAssetReturn {
   /**
    * 获取资产列表
    */
-  const getAssets = useCallback(
-    async (params: AssetFilterParams): Promise<void> => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const response: AssetListResponse = await assetService.getAssets(
-          params
-        );
-        setAssets(response.items);
-        setTotal(response.total);
-        setTotalPages(response.total_pages);
-      } catch (err: unknown) {
-        const errorMessage = extractErrorMessage(err);
-        setError(errorMessage);
-        setAssets([]);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    []
-  );
+  const getAssets = useCallback(async (params: AssetFilterParams): Promise<void> => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response: AssetListResponse = await assetService.getAssets(params);
+      setAssets(response.items);
+      setTotal(response.total);
+      setTotalPages(response.total_pages);
+    } catch (err: unknown) {
+      const errorMessage = extractErrorMessage(err);
+      setError(errorMessage);
+      setAssets([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   /**
    * 获取资产详情
    */
-  const getAsset = useCallback(
-    async (assetId: string): Promise<Asset | null> => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const asset = await assetService.getAsset(assetId);
-        setCurrentAsset(asset);
-        return asset;
-      } catch (err: unknown) {
-        const errorMessage = extractErrorMessage(err);
-        setError(errorMessage);
-        return null;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    []
-  );
+  const getAsset = useCallback(async (assetId: string): Promise<Asset | null> => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const asset = await assetService.getAsset(assetId);
+      setCurrentAsset(asset);
+      return asset;
+    } catch (err: unknown) {
+      const errorMessage = extractErrorMessage(err);
+      setError(errorMessage);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   /**
    * 更新资产
    */
   const updateAsset = useCallback(
-    async (
-      assetId: string,
-      data: AssetUpdateRequest
-    ): Promise<Asset | null> => {
+    async (assetId: string, data: AssetUpdateRequest): Promise<Asset | null> => {
       setIsLoading(true);
       setError(null);
       try {
@@ -174,10 +152,7 @@ export function useAsset(): UseAssetReturn {
    * 上传附件
    */
   const uploadAttachment = useCallback(
-    async (
-      assetId: string,
-      data: AttachmentUploadRequest
-    ): Promise<Attachment | null> => {
+    async (assetId: string, data: AttachmentUploadRequest): Promise<Attachment | null> => {
       setIsLoading(true);
       setError(null);
       try {
@@ -217,4 +192,3 @@ export function useAsset(): UseAssetReturn {
     clearError,
   };
 }
-

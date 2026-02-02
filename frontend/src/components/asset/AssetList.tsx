@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import type { Asset } from '../../types';
 import './Asset.css';
 
@@ -82,11 +81,7 @@ export function AssetList({ assets, isLoading, onAssetClick }: AssetListProps) {
   return (
     <div className="asset-list">
       {assets.map((asset) => (
-        <div
-          key={asset.id}
-          className="asset-card"
-          onClick={() => onAssetClick(asset)}
-        >
+        <div key={asset.id} className="asset-card" onClick={() => onAssetClick(asset)}>
           <div className="asset-card-header">
             <h3 className="asset-card-title">{asset.name}</h3>
             <span className={getStatusBadgeClass(asset.status)}>
