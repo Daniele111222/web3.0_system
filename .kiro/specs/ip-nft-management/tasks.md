@@ -23,7 +23,7 @@
     - 配置多链部署（Ethereum, Polygon, BSC测试网）
     - 安装OpenZeppelin合约库
     - _Requirements: 5.1_
-
+  
 ## Phase 2: 用户认证系统
 
 - [ ] 2. 实现用户认证模块
@@ -116,12 +116,12 @@
 
 ## Phase 4: IP资产录入
 
-- [ ] 5. 实现资产录入模块
-  - [ ] 5.1 创建资产数据模型
+- [x] 5. 实现资产录入模块
+  - [x] 5.1 创建资产数据模型
     - 实现Asset和Attachment SQLAlchemy模型
     - 创建数据库迁移脚本
     - _Requirements: 3.2, 3.3_
-  - [ ] 5.2 实现IPFS存储服务
+  - [x] 5.2 实现IPFS存储服务
     - 配置IPFS客户端连接
     - 实现文件上传函数
     - 实现CID验证函数
@@ -129,7 +129,7 @@
   - [ ]* 5.3 编写属性测试：IPFS存储一致性
     - **Property 7: IPFS存储一致性**
     - **Validates: Requirements 3.1**
-  - [ ] 5.4 实现资产元数据验证
+  - [x] 5.4 实现资产元数据验证
     - 定义Pydantic模式
     - 实现必填字段验证
     - 实现文件格式验证
@@ -137,14 +137,14 @@
   - [ ]* 5.5 编写属性测试：资产元数据验证完整性
     - **Property 6: 资产元数据验证完整性**
     - **Validates: Requirements 3.2, 3.3**
-  - [ ] 5.6 实现资产CRUD API
+  - [x] 5.6 实现资产CRUD API
     - POST /api/v1/assets（创建资产草稿）
     - GET /api/v1/assets（列表查询）
     - GET /api/v1/assets/{id}（详情查询）
     - PUT /api/v1/assets/{id}（更新草稿）
     - POST /api/v1/assets/{id}/attachments（上传附件）
     - _Requirements: 3.1, 3.2, 3.3, 3.4_
-  - [ ] 5.7 实现前端资产录入页面
+  - [x] 5.7 实现前端资产录入页面
     - 资产信息表单组件
     - 文件上传组件
     - 资产草稿列表

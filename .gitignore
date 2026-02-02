@@ -1,3 +1,130 @@
-# kiro
-.kiro
-# kiro/*
+# ============================================
+# Kiro IDE
+# ============================================
+.kiro/
+.kiro/*
+AGENTS
+
+# ============================================
+# Python / FastAPI (Backend)
+# ============================================
+# Environment files
+backend/.env
+backend/.env.local
+backend/.env.*.local
+!backend/.env.example
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+
+# Testing
+tests/__pycache__/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# ============================================
+# Node.js / React / TypeScript (Frontend)
+# ============================================
+# Dependencies
+frontend/node_modules/
+node_modules/
+
+# Build outputs
+frontend/dist/
+frontend/build/
+frontend/.vite/
+
+# Environment files
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+!frontend/.env.example
+
+# Testing
+frontend/coverage/
+
+# TypeScript
+*.tsbuildinfo
+
+# ============================================
+# Hardhat / Solidity (Contracts)
+# ============================================
+# Dependencies
+contracts/node_modules/
+
+# Build outputs
+contracts/artifacts/
+contracts/cache/
+contracts/typechain-types/
+contracts/dist/
+contracts/build/
+
+# Environment files
+contracts/.env
+contracts/.env.local
+contracts/.env.*.local
+!contracts/.env.example
+
+# Coverage
+contracts/coverage/
+contracts/coverage.json
+
+# Hardhat
+contracts/hardhat.config.js
+contracts/hardhat.config.ts
+
+# ============================================
+# OS Generated Files
+# ============================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ============================================
+# Misc
+# ============================================
+*.bak
+*.tmp
+*.temp
+.cache/

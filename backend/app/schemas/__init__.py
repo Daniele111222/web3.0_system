@@ -20,6 +20,15 @@ from app.schemas.enterprise import (
     UpdateMemberRoleRequest,
     BindWalletRequest,
 )
+from app.schemas.asset import (
+    AssetCreateRequest,
+    AssetUpdateRequest,
+    AssetResponse,
+    AssetListResponse,
+    AssetFilterParams,
+    AttachmentResponse,
+    AttachmentUploadRequest,
+)
 
 __all__ = [
     # 认证相关
@@ -41,4 +50,12 @@ __all__ = [
     "InviteMemberRequest",
     "UpdateMemberRoleRequest",
     "BindWalletRequest",
+    # 资产相关
+    "AssetCreateRequest",
+    "AssetUpdateRequest",
+    "AssetResponse",
+    "AssetListResponse",
+    "AssetFilterParams",
+    "AttachmentResponse",
+    "AttachmentUploadRequest",
 ]
