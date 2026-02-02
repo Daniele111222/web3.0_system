@@ -1,7 +1,7 @@
-// Utility functions
+// 工具函数
 
 /**
- * Format a date string to a localized format
+ * 将日期字符串格式化为本地格式
  */
 export const formatDate = (dateString: string): string => {
   return new Date(dateString).toLocaleDateString('zh-CN', {
@@ -12,7 +12,7 @@ export const formatDate = (dateString: string): string => {
 };
 
 /**
- * Truncate an Ethereum address for display
+ * 截断以太坊地址用于显示
  */
 export const truncateAddress = (address: string, chars = 4): string => {
   if (!address) return '';
@@ -20,7 +20,7 @@ export const truncateAddress = (address: string, chars = 4): string => {
 };
 
 /**
- * Format file size to human readable format
+ * 将文件大小格式化为人类可读的格式
  */
 export const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 Bytes';
@@ -31,14 +31,14 @@ export const formatFileSize = (bytes: number): string => {
 };
 
 /**
- * Generate IPFS gateway URL from CID
+ * 根据 CID 生成 IPFS 网关 URL
  */
 export const getIPFSUrl = (cid: string): string => {
   return `https://ipfs.io/ipfs/${cid}`;
 };
 
 /**
- * Get block explorer URL for a transaction
+ * 获取交易的区块浏览器 URL
  */
 export const getExplorerUrl = (
   txHash: string,

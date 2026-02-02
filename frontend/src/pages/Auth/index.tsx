@@ -1,17 +1,17 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LoginForm } from './LoginForm';
-import { RegisterForm } from './RegisterForm';
-import './AuthPage.css';
+import { LoginForm } from '../../components/auth/LoginForm';
+import { RegisterForm } from '../../components/auth/RegisterForm';
+import './index.css';
 
 type AuthMode = 'login' | 'register';
 
-interface AuthPageProps {
+interface AuthProps {
   initialMode?: AuthMode;
   onAuthSuccess?: () => void;
 }
 
-export const AuthPage = ({ initialMode = 'login', onAuthSuccess }: AuthPageProps) => {
+const Auth = ({ initialMode = 'login', onAuthSuccess }: AuthProps) => {
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const navigate = useNavigate();
   const location = useLocation();
@@ -20,7 +20,6 @@ export const AuthPage = ({ initialMode = 'login', onAuthSuccess }: AuthPageProps
     if (onAuthSuccess) {
       onAuthSuccess();
     } else {
-      // 登录成功后重定向到之前尝试访问的页面，或默认到看板页面
       const from =
         (location.state as { from?: { pathname: string } })?.from?.pathname || '/dashboard';
       navigate(from, { replace: true });
@@ -45,4 +44,4 @@ export const AuthPage = ({ initialMode = 'login', onAuthSuccess }: AuthPageProps
   );
 };
 
-export default AuthPage;
+export default Auth;

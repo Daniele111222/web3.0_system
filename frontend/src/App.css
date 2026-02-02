@@ -1,108 +1,31 @@
-/* 全局应用样式 */
-* {
-  box-sizing: border-box;
-}
+/* ===== App.css - Main Style Entry Point ===== */
+/* Imports all modular stylesheets */
 
-body {
-  margin: 0;
-  padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
-    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+/* 1. Design Tokens (CSS Variables) */
+@import './styles/variables.css';
 
-#root {
-  min-height: 100vh;
-}
+/* 2. Base Styles & Reset */
+@import './styles/base.css';
 
-/* 通用按钮样式 */
-.btn {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
+/* 3. Component Styles */
+@import './styles/components/buttons.css';
+@import './styles/components/messages.css';
+@import './styles/components/loading.css';
 
-.btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
+/* 4. Utility Classes */
+@import './styles/utilities.css';
 
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
+/* 5. Animations */
+@import './styles/animations.css';
 
-.btn-secondary {
-  background: #f5f7fa;
-  color: #333;
-  border: 1px solid #e1e8ed;
-}
+/* 6. Responsive Design */
+@import './styles/responsive.css';
 
-.btn-secondary:hover {
-  background: #e1e8ed;
-}
+/* 7. Dark Mode */
+@import './styles/dark-mode.css';
 
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* 消息提示样式 */
-.error-message {
-  padding: 1rem;
-  background: #fee;
-  border: 1px solid #fcc;
-  border-radius: 8px;
-  color: #c33;
-  margin-bottom: 1rem;
-}
-
-.success-message {
-  padding: 1rem;
-  background: #efe;
-  border: 1px solid #cfc;
-  border-radius: 8px;
-  color: #3c3;
-  margin-bottom: 1rem;
-}
-
-.info-message {
-  padding: 2rem;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  text-align: center;
-}
-
-.info-message h2 {
-  color: #333;
-  margin-bottom: 1rem;
-}
-
-.info-message p {
-  color: #666;
-  line-height: 1.6;
-}
-
-/* 加载状态 */
-.loading {
-  text-align: center;
-  padding: 2rem;
-  color: #666;
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .btn {
-    padding: 0.6rem 1.2rem;
-    font-size: 0.9rem;
-  }
-}
+/* ========================================
+   App-Specific Styles (if needed)
+   ======================================== */
+/* Add any app-level specific styles below,
+   or keep this file as just an entry point */

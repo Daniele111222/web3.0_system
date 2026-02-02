@@ -45,11 +45,11 @@ export const WalletBind = ({ onSuccess }: WalletBindProps) => {
     clearError();
 
     try {
-      // Generate message to sign
+      // 生成待签名消息
       const timestamp = Date.now();
       const message = `IP-NFT 平台钱包绑定验证\n\n钱包地址: ${account}\n时间戳: ${timestamp}\n\n请签名以验证您对此钱包的所有权。`;
 
-      // Sign the message
+      // 签名消息
       const signature = await signMessage(message);
       if (!signature) {
         setBindError('签名失败，请重试');
@@ -57,7 +57,7 @@ export const WalletBind = ({ onSuccess }: WalletBindProps) => {
         return;
       }
 
-      // Bind wallet
+      // 绑定钱包
       const success = await bindWallet({
         wallet_address: account,
         signature,
@@ -78,7 +78,7 @@ export const WalletBind = ({ onSuccess }: WalletBindProps) => {
   const isLoading = isConnecting || isAuthLoading || isBinding;
   const hasWalletBound = !!user?.wallet_address;
 
-  // Format address for display
+  // 格式化地址用于显示
   const formatAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };

@@ -1,20 +1,144 @@
+/* ========================================
+   布局样式 - Layout Styles
+   主布局组件样式，包含导航栏和内容区域
+   ======================================== */
+
+/* CSS 变量定义 - 支持深色模式 */
+:root {
+  --layout-bg: #f5f7fa;
+  --content-bg: #ffffff;
+  --content-padding: 2rem;
+  --content-max-width: 1400px;
+  --transition-speed: 0.3s;
+}
+
+/* 深色模式变量 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --layout-bg: #0f172a;
+    --content-bg: #1e293b;
+  }
+}
+
+/* 应用主布局 */
 .app-layout {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #f5f7fa;
+  background: var(--layout-bg);
+  transition: background-color var(--transition-speed) ease;
 }
 
+/* 主内容区域 */
 .app-content {
   flex: 1;
-  max-width: 1400px;
+  max-width: var(--content-max-width);
   width: 100%;
   margin: 0 auto;
-  padding: 2rem;
+  padding: var(--content-padding);
+  background: var(--content-bg);
+  min-height: calc(100vh - 70px); /* 减去导航栏高度 */
+  transition:
+    padding var(--transition-speed) ease,
+    background-color var(--transition-speed) ease;
+  animation: fadeIn 0.4s ease-out;
 }
 
-@media (max-width: 768px) {
+/* 内容淡入动画 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================================
+   响应式断点
+   ======================================== */
+
+/* 平板设备 */
+@media (max-width: 1023px) {
+  :root {
+    --content-padding: 1.5rem;
+  }
+
   .app-content {
-    padding: 1rem;
+    min-height: calc(100vh - 70px);
+  }
+}
+
+/* 移动端设备 */
+@media (max-width: 767px) {
+  :root {
+    --content-padding: 1rem;
+  }
+
+  .app-content {
+    min-height: calc(100vh - 60px); /* 移动端导航栏高度为 60px */
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+}
+
+/* 超小屏幕 */
+@media (max-width: 359px) {
+  :root {
+    --content-padding: 0.75rem;
+  }
+
+  .app-content {
+    padding: 0.75rem;
+  }
+}
+
+/* 大屏幕设备 */
+@media (min-width: 1401px) {
+  :root {
+    --content-padding: 3rem;
+    --content-max-width: 1600px;
+  }
+
+  .app-content {
+    padding: 3rem;
+  }
+}
+
+/* ========================================
+   辅助功能
+   ======================================== */
+
+/* 减少动画偏好 */
+@media (prefers-reduced-motion: reduce) {
+  .app-content {
+    animation: none;
+  }
+
+  .app-layout,
+  .app-content {
+    transition: none;
+  }
+}
+
+/* 高对比度模式 */
+@media (prefers-contrast: high) {
+  .app-content {
+    border: 1px solid currentColor;
+  }
+}
+
+/* 打印样式 */
+@media print {
+  .app-layout {
+    background: white;
+  }
+
+  .app-content {
+    max-width: none;
+    padding: 0;
+    animation: none;
   }
 }

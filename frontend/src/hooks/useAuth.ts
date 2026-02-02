@@ -65,7 +65,7 @@ export const useAuth = (): UseAuthReturn => {
         await authService.logout(refreshToken);
       }
     } catch {
-      // Ignore logout errors
+      // 忽略登出错误
     } finally {
       clearAuth();
       setIsLoading(false);

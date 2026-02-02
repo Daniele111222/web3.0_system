@@ -19,7 +19,7 @@ export const useWeb3 = (): UseWeb3Return => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Listen for account changes
+  // 监听账户变化
   useEffect(() => {
     const ethereum = window.ethereum;
     if (typeof ethereum !== 'undefined') {
@@ -56,7 +56,7 @@ export const useWeb3 = (): UseWeb3Return => {
     try {
       const connectedAccount = await blockchainService.connect();
 
-      // Get chain ID
+      // 获取链 ID
       let currentChainId = 1;
       const ethereum = window.ethereum;
       if (typeof ethereum !== 'undefined') {

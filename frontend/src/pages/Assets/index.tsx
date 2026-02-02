@@ -1,73 +1,69 @@
 import { useState, useEffect } from 'react';
 import { useAsset } from '../../hooks/useAsset';
-import { AssetForm } from './AssetForm';
-import { AssetList } from './AssetList';
+import { AssetForm } from '../../components/asset/AssetForm';
+import { AssetList } from '../../components/asset/AssetList';
+import { useEnterpriseStore } from '../../store';
 import type { Asset } from '../../types';
 import type { AssetCreateRequest } from '../../services/asset';
-import './Asset.css';
-
-interface AssetPageProps {
-  enterpriseId: string;
-}
+import './index.css';
 
 /**
  * 资产管理页面
  */
-export function AssetPage({ enterpriseId }: AssetPageProps) {
+const Assets = () => {
+  const { currentEnterprise } = useEnterpriseStore();
   const [showForm, setShowForm] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const { assets, isLoading, error, createAsset, getAssets, clearError } = useAsset();
 
-  /**
-   * 加载资产列表
-   */
   useEffect(() => {
-    if (enterpriseId) {
+    if (currentEnterprise) {
       getAssets({
-        enterprise_id: enterpriseId,
+        enterprise_id: currentEnterprise.id,
         page: 1,
         page_size: 20,
       });
     }
-  }, [enterpriseId, getAssets]);
+  }, [currentEnterprise, getAssets]);
 
-  /**
-   * 处理创建资产
-   */
   const handleCreateAsset = async (data: AssetCreateRequest) => {
-    const asset = await createAsset(enterpriseId, data);
+    if (!currentEnterprise) return;
+
+    const asset = await createAsset(currentEnterprise.id, data);
     if (asset) {
       setSuccessMessage('资产创建成功！');
       setShowForm(false);
-      // 刷新列表
       getAssets({
-        enterprise_id: enterpriseId,
+        enterprise_id: currentEnterprise.id,
         page: 1,
         page_size: 20,
       });
-      // 3秒后清除成功消息
       setTimeout(() => setSuccessMessage(null), 3000);
     }
   };
 
-  /**
-   * 处理资产点击
-   */
   const handleAssetClick = (asset: Asset) => {
-    // TODO: 导航到资产详情页面
     console.log('Asset clicked:', asset);
   };
 
-  /**
-   * 清除消息
-   */
   useEffect(() => {
     if (error) {
       const timer = setTimeout(() => clearError(), 5000);
       return () => clearTimeout(timer);
     }
   }, [error, clearError]);
+
+  if (!currentEnterprise) {
+    return (
+      <div className="asset-page">
+        <div className="info-message">
+          <h2>请先选择企业</h2>
+          <p>您需要先在企业管理页面选择或创建一个企业，才能管理资产。</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="asset-page">
@@ -97,4 +93,6 @@ export function AssetPage({ enterpriseId }: AssetPageProps) {
       )}
     </div>
   );
-}
+};
+
+export default Assets;

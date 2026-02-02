@@ -1,0 +1,15 @@
+.nft-page {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.nft-page h1 {
+  font-size: 24px;
+  color: #1a1a1a;
+  margin-bottom: 16px;
+}
+
+.nft-page p {
+  color: #666;
+}

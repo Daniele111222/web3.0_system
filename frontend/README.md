@@ -1,98 +1,326 @@
-# IP-NFT 管理平台前端
+# IP-NFT 管理平台 - 前端
 
 基于 React 19 + TypeScript + Vite 构建的企业知识产权 NFT 资产管理平台前端应用。
 
 ## 📋 项目简介
 
-本项目是 IP-NFT 管理系统的前端部分，提供企业知识产权资产的数字化管理界面，支持：
-- 用户认证与钱包绑定
-- IP 资产信息录入与管理
-- NFT 铸造与转移
-- 权属看板与历史溯源
-- 商业化授权管理
+本项目是 IP-NFT 管理系统的前端部分，提供企业知识产权资产的数字化管理界面。支持用户认证、企业管理、知识产权资产管理和 NFT 铸造等功能。
 
 ## 🛠️ 技术栈
 
-| 技术 | 版本 | 说明 |
-|------|------|------|
-| React | 19.x | 前端框架 |
-| TypeScript | 5.9.x | 类型安全 |
-| Vite | 7.x | 构建工具 |
-| Zustand | 5.x | 轻量级状态管理 |
-| React Router | 7.x | 路由管理 |
-| Axios | 1.x | HTTP 请求库 |
-| Ethers.js | 6.x | 以太坊交互库 |
-| ESLint | 9.x | 代码检查 |
-| Prettier | 3.x | 代码格式化 |
+| 技术         | 版本  | 说明           |
+| ------------ | ----- | -------------- |
+| React        | 19.x  | 前端框架       |
+| TypeScript   | 5.9.x | 类型安全       |
+| Vite         | 7.x   | 构建工具       |
+| Zustand      | 5.x   | 轻量级状态管理 |
+| React Router | 7.x   | 路由管理       |
+| Axios        | 1.x   | HTTP 请求库    |
+| Ethers.js    | 6.x   | 以太坊交互库   |
+| ESLint       | 9.x   | 代码检查       |
+| Prettier     | 3.x   | 代码格式化     |
 
-## 📁 目录结构
+## ✅ 已实现功能
+
+### 1. 用户认证模块
+
+| 功能           | 状态 | 说明                         |
+| -------------- | ---- | ---------------------------- |
+| 用户注册       | ✅   | 邮箱、密码注册               |
+| 用户登录       | ✅   | 邮箱密码登录，JWT 认证       |
+| 令牌刷新       | ✅   | 自动刷新过期令牌             |
+| 登录状态持久化 | ✅   | localStorage 保存认证状态    |
+| 受保护路由     | ✅   | 未登录用户自动重定向到登录页 |
+| Web3 钱包绑定  | ⏳   | 规划中                       |
+
+### 2. 企业管理模块
+
+| 功能     | 状态 | 说明                           |
+| -------- | ---- | ------------------------------ |
+| 企业列表 | ✅   | 卡片式展示所有企业             |
+| 创建企业 | ✅   | 表单创建新企业                 |
+| 企业详情 | ✅   | 查看企业完整信息               |
+| 编辑企业 | ✅   | 修改企业名称和描述             |
+| 删除企业 | ✅   | 删除企业（需二次确认）         |
+| 成员管理 | ✅   | 查看、邀请、修改角色、移除成员 |
+| 企业切换 | ✅   | 全局状态管理当前企业           |
+
+### 3. 资产管理模块
+
+| 功能         | 状态 | 说明                               |
+| ------------ | ---- | ---------------------------------- |
+| 资产列表     | ✅   | 按企业筛选展示资产                 |
+| 创建资产     | ✅   | 表单创建资产草稿                   |
+| 资产类型     | ✅   | 支持专利/商标/著作权/商业秘密/其他 |
+| 文件上传     | ✅   | 支持上传相关附件                   |
+| 资产筛选     | ✅   | 按类型、状态筛选                   |
+| 资产详情     | ⏳   | 规划中                             |
+| 资产编辑     | ⏳   | 规划中                             |
+| 资产状态流转 | ⏳   | 草稿→审核→确权→铸造                |
+
+### 4. NFT 铸造模块
+
+| 功能     | 状态 | 说明   |
+| -------- | ---- | ------ |
+| NFT 铸造 | ⏳   | 规划中 |
+| NFT 列表 | ⏳   | 规划中 |
+| NFT 转让 | ⏳   | 规划中 |
+| NFT 授权 | ⏳   | 规划中 |
+
+### 5. 权属看板模块
+
+| 功能       | 状态 | 说明   |
+| ---------- | ---- | ------ |
+| 资产统计   | ⏳   | 规划中 |
+| 数据可视化 | ⏳   | 规划中 |
+| 快捷筛选   | ⏳   | 规划中 |
+
+## 📄 页面列表及功能详解
+
+### 1. 认证页面 (`/auth`)
+
+**组件文件**: `src/components/auth/AuthPage.tsx`
+
+**功能描述**:
+
+- **登录/注册切换**: 支持在登录和注册模式间切换
+- **登录表单**:
+  - 邮箱地址输入
+  - 密码输入
+  - 表单验证（邮箱格式、密码长度）
+  - 登录成功后跳转至之前访问的页面或看板
+- **注册表单**:
+  - 邮箱地址输入
+  - 密码输入（最少 8 位）
+  - 确认密码（需与密码一致）
+  - 注册成功后自动登录
+- **平台介绍**: 页面顶部展示 IP-NFT 管理平台标题和描述
+- **智能重定向**: 登录成功后自动回到原本尝试访问的受保护页面
+
+**访问权限**: 公开访问（无需登录）
+
+---
+
+### 2. 权属看板页面 (`/dashboard`)
+
+**组件文件**: `src/components/dashboard/DashboardPage.tsx`
+
+**功能描述**:
+
+- **资产统计概览** (⏳ 规划中):
+  - 总资产数量
+  - 各状态资产分布
+  - 近期新增资产
+- **数据可视化** (⏳ 规划中):
+  - 资产类型分布图表
+  - 资产状态流转趋势
+- **快捷操作** (⏳ 规划中):
+  - 快速创建资产入口
+  - 待审核资产提醒
+
+**当前状态**: 占位页面，显示"资产统计和管理功能即将推出..."
+
+**访问权限**: 需登录
+
+---
+
+### 3. 企业管理页面 (`/enterprises`)
+
+**组件文件**:
+
+- `src/components/enterprise/EnterprisePage.tsx` - 主页面
+- `src/components/enterprise/EnterpriseList.tsx` - 列表组件
+- `src/components/enterprise/EnterpriseDetail.tsx` - 详情组件
+
+**功能描述**:
+
+#### 企业列表视图
+
+- **企业卡片展示**:
+  - 企业名称和描述
+  - 创建时间
+  - 成员数量
+  - 当前选中状态标识
+- **创建企业**:
+  - 点击"创建企业"按钮打开表单
+  - 输入企业名称（必填）
+  - 输入企业描述（可选）
+  - 提交后自动刷新列表
+- **选择企业**:
+  - 点击卡片上的"选择"按钮设置当前企业
+  - 选中后自动跳转到资产管理页面
+- **查看详情**:
+  - 点击企业卡片进入详情视图
+
+#### 企业详情视图
+
+- **企业信息**:
+  - 展示企业名称和描述
+  - 编辑按钮（修改名称和描述）
+  - 删除按钮（二次确认后删除）
+  - 返回列表按钮
+- **成员管理**:
+  - **成员列表**: 显示成员邮箱、角色、加入时间
+  - **邀请成员**: 输入邮箱地址，选择角色（管理员/成员），发送邀请
+  - **角色管理**: 修改现有成员的角色
+  - **移除成员**: 将成员从企业中移除
+
+**访问权限**: 需登录
+
+---
+
+### 4. 资产管理页面 (`/assets`)
+
+**组件文件**:
+
+- `src/components/asset/AssetPageWrapper.tsx` - 企业检查包装器
+- `src/components/asset/AssetPage.tsx` - 主页面
+- `src/components/asset/AssetList.tsx` - 列表组件
+- `src/components/asset/AssetForm.tsx` - 表单组件
+
+**功能描述**:
+
+#### 企业检查
+
+- **未选择企业提示**: 若用户未在企业管理页面选择企业，显示提示信息
+- **引导选择**: 提示用户先到企业管理页面选择或创建企业
+
+#### 资产列表视图
+
+- **资产列表展示**:
+  - 资产名称
+  - 资产类型（专利/商标/著作权/商业秘密/其他）
+  - 法律状态（草稿/审核中/已确权/已铸造）
+  - 估值金额
+  - 更新时间
+- **状态标识**: 不同状态显示不同颜色标签
+- **创建资产按钮**: 点击后切换到创建表单视图
+- **加载状态**: 显示加载动画
+- **错误处理**: 显示错误信息（5秒后自动消失）
+- **空状态**: 无资产时显示引导创建
+
+#### 创建资产视图
+
+- **资产表单**:
+  - 资产名称（必填）
+  - 资产类型选择（必填）：专利/商标/著作权/商业秘密/其他
+  - 资产描述（可选）
+  - 法律状态选择（必填）：草稿/审核中/已确权/已铸造
+  - 估值输入（可选）：支持小数金额
+  - 标签输入（可选）：逗号分隔多个标签
+  - 相关文件上传（可选）：支持选择本地文件
+- **操作按钮**:
+  - 提交：创建资产草稿
+  - 取消：返回列表视图
+- **成功提示**: 创建成功后显示提示（3秒后消失），并刷新列表
+
+**访问权限**: 需登录，需先选择企业
+
+---
+
+### 5. NFT 铸造页面 (`/nft`)
+
+**组件文件**: `src/components/nft/NFTPage.tsx`
+
+**功能描述** (⏳ 全部规划中):
+
+- **可铸造资产列表**: 显示已确权的待铸造资产
+- **铸造表单**: 选择资产，配置 NFT 参数
+- **钱包连接**: 连接 MetaMask 等 Web3 钱包
+- **铸造确认**: 确认铸造交易并签名
+- **NFT 列表**: 展示已铸造的 NFT
+- **NFT 详情**: 查看 NFT 元数据和链上信息
+- **转让功能**: 将 NFT 转让给其他地址
+- **授权功能**: 设置 NFT 使用授权
+
+**当前状态**: 占位页面，显示"NFT 铸造功能即将推出..."
+
+**访问权限**: 需登录
+
+## 🗺️ 路由结构
+
+```
+路由路径              组件                      访问权限
+─────────────────────────────────────────────────────────
+/                    Navigate to /dashboard      公开
+/auth                AuthPage                   公开
+/dashboard           DashboardPage              需登录
+/enterprises         EnterprisePage             需登录
+/assets              AssetPageWrapper           需登录 + 需选择企业
+/nft                 NFTPage                    需登录
+*                    Navigate to /dashboard     公开
+```
+
+**受保护路由机制**:
+
+- 使用 `ProtectedRoute` 组件包装需要登录的页面
+- 未登录用户访问受保护路由时自动重定向到 `/auth`
+- 登录成功后自动回到原本访问的页面
+
+## 📁 项目结构
 
 ```
 frontend/
-├── public/                    # 静态资源目录
-│   └── vite.svg              # Vite 图标
-├── src/                       # 源代码目录
-│   ├── assets/               # 项目资源文件
-│   │   └── react.svg         # React 图标
-│   ├── components/           # React 组件（按业务模块划分）
-│   │   ├── asset/            # 资产管理组件
-│   │   │   └── .gitkeep      # - 资产录入表单
-│   │   │                     # - 资产列表
-│   │   │                     # - 资产详情
-│   │   ├── auth/             # 认证组件
-│   │   │   └── .gitkeep      # - 登录页面
-│   │   │                     # - 注册页面
-│   │   │                     # - 钱包绑定
-│   │   ├── common/           # 通用组件
-│   │   │   └── .gitkeep      # - 按钮、输入框等基础组件
-│   │   │                     # - 布局组件
-│   │   │                     # - 加载、错误提示
-│   │   ├── dashboard/        # 仪表盘组件
-│   │   │   └── .gitkeep      # - 权属看板
-│   │   │                     # - 资产统计
-│   │   │                     # - 筛选器
-│   │   └── nft/              # NFT 操作组件
-│   │       └── .gitkeep      # - 铸造确认
-│   │                         # - 转移表单
-│   │                         # - 历史时间线
-│   ├── hooks/                # 自定义 React Hooks
-│   │   ├── useAsset.ts       # 资产管理逻辑
-│   │   ├── useAuth.ts        # 用户认证逻辑
-│   │   ├── useNFT.ts         # NFT 操作逻辑
-│   │   └── useWeb3.ts        # Web3 钱包连接逻辑
-│   ├── services/             # API 服务层
-│   │   ├── api.ts            # Axios 实例配置
-│   │   ├── auth.ts           # 认证相关 API
-│   │   └── blockchain.ts     # 区块链交互服务
+├── public/                    # 静态资源
+├── src/
+│   ├── components/            # React 组件
+│   │   ├── asset/            # 资产管理
+│   │   │   ├── AssetPage.tsx
+│   │   │   ├── AssetPageWrapper.tsx
+│   │   │   ├── AssetList.tsx
+│   │   │   ├── AssetForm.tsx
+│   │   │   └── FileUpload.tsx
+│   │   ├── auth/             # 认证模块
+│   │   │   ├── AuthPage.tsx
+│   │   │   ├── AuthPage.css
+│   │   │   ├── LoginForm.tsx
+│   │   │   └── RegisterForm.tsx
+│   │   ├── common/           # 通用组件（占位）
+│   │   ├── dashboard/        # 权属看板
+│   │   │   └── DashboardPage.tsx
+│   │   ├── enterprise/       # 企业管理
+│   │   │   ├── Enterprise.css
+│   │   │   ├── EnterprisePage.tsx
+│   │   │   ├── EnterpriseList.tsx
+│   │   │   ├── EnterpriseDetail.tsx
+│   │   │   ├── EnterpriseForm.tsx
+│   │   │   ├── MemberList.tsx
+│   │   │   └── InviteMemberDialog.tsx
+│   │   ├── layout/           # 布局组件
+│   │   │   ├── Layout.tsx
+│   │   │   └── Navigation.tsx
+│   │   ├── nft/              # NFT 模块
+│   │   │   └── NFTPage.tsx
+│   │   └── routes/           # 路由组件
+│   │       └── ProtectedRoute.tsx
+│   ├── hooks/                # 自定义 Hooks
+│   │   ├── useAsset.ts
+│   │   ├── useAuth.ts
+│   │   ├── useEnterprise.ts
+│   │   └── useWeb3.ts
+│   ├── services/             # API 服务
+│   │   ├── api.ts           # Axios 配置
+│   │   ├── auth.ts          # 认证 API
+│   │   ├── enterprise.ts    # 企业 API
+│   │   └── asset.ts         # 资产 API
 │   ├── store/                # Zustand 状态管理
-│   │   └── index.ts          # 全局状态定义
-│   │                         # - useAuthStore: 用户认证状态
-│   │                         # - useWeb3Store: Web3 连接状态
-│   ├── types/                # TypeScript 类型定义
-│   │   └── index.ts          # 全局类型声明
-│   │                         # - Asset, NFT 相关类型
-│   │                         # - API 响应类型
-│   │                         # - 用户、企业类型
+│   │   ├── authStore.ts
+│   │   ├── enterpriseStore.ts
+│   │   └── web3Store.ts
+│   ├── types/                # TypeScript 类型
+│   │   └── index.ts
 │   ├── utils/                # 工具函数
-│   │   └── index.ts          # 通用工具方法
-│   │                         # - 日期格式化
-│   │                         # - 地址截断
-│   │                         # - IPFS URL 生成
+│   │   └── index.ts
 │   ├── App.tsx               # 应用根组件
-│   ├── App.css               # 应用全局样式
-│   ├── main.tsx              # 应用入口文件
-│   ├── index.css             # 全局基础样式
-│   └── vite-env.d.ts         # Vite 环境类型声明
-├── dist/                      # 构建输出目录（git忽略）
-├── index.html                 # HTML 入口模板
-├── package.json               # 项目依赖配置
-├── package-lock.json          # 依赖锁定文件
-├── tsconfig.json              # TypeScript 主配置
-├── tsconfig.app.json          # 应用 TS 配置
-├── tsconfig.node.json         # Node 环境 TS 配置
-├── vite.config.ts             # Vite 构建配置
-├── eslint.config.js           # ESLint 配置
-└── .prettierrc                # Prettier 配置
+│   ├── router.tsx            # 路由配置
+│   ├── main.tsx              # 入口文件
+│   ├── App.css               # 应用样式
+│   └── index.css             # 全局样式
+├── dist/                     # 构建输出
+├── index.html
+├── package.json
+├── tsconfig.json
+└── vite.config.ts
 ```
 
 ## 🚀 快速开始
@@ -101,7 +329,6 @@ frontend/
 
 - **Node.js**: >= 18.0.0
 - **npm**: >= 9.0.0
-- **浏览器**: 支持 ES2020 的现代浏览器
 
 ### 安装依赖
 
@@ -112,93 +339,32 @@ npm install
 
 ### 环境变量配置
 
-创建 `.env.local` 文件（可选）：
+创建 `.env.local` 文件：
 
 ```env
-# API 基础地址
 VITE_API_BASE_URL=http://localhost:8000/api/v1
-
-# 其他配置...
 ```
 
-### 开发模式
+### 开发命令
 
 ```bash
+# 启动开发服务器
 npm run dev
-```
 
-启动后访问：http://localhost:5173
-
-### 生产构建
-
-```bash
+# 构建生产版本
 npm run build
-```
 
-构建产物输出至 `dist/` 目录。
+# 代码检查
+npm run lint
 
-### 预览构建结果
+# 类型检查
+tsc -b
 
-```bash
+# 预览生产构建
 npm run preview
 ```
 
-### 代码检查
-
-```bash
-npm run lint
-```
-
-## 📦 核心模块说明
-
-### Hooks（自定义钩子）
-
-| Hook | 功能 | 主要方法 |
-|------|------|----------|
-| `useAuth` | 用户认证 | `login`, `logout`, `isAuthenticated` |
-| `useWeb3` | 钱包连接 | `connect`, `disconnect`, `signMessage` |
-| `useAsset` | 资产管理 | `fetchAssets`, `createAsset`, `updateAsset` |
-| `useNFT` | NFT 操作 | `mint`, `transfer`, `getHistory` |
-
-### Services（服务层）
-
-| 服务 | 功能 | 说明 |
-|------|------|------|
-| `api.ts` | HTTP 客户端 | Axios 实例，自动携带 Token，统一错误处理 |
-| `auth.ts` | 认证服务 | 登录、注册、钱包绑定、Token 刷新 |
-| `blockchain.ts` | 区块链服务 | MetaMask 连接、消息签名、交易发送 |
-
-### Store（状态管理）
-
-| Store | 状态 | 说明 |
-|-------|------|------|
-| `useAuthStore` | 用户认证状态 | 用户信息、Token、登录状态 |
-| `useWeb3Store` | Web3 状态 | 钱包地址、连接状态、链 ID |
-
-### Types（类型定义）
-
-```typescript
-// 资产类型
-type AssetType = 'PATENT' | 'TRADEMARK' | 'COPYRIGHT' | 'TRADE_SECRET' | 'DIGITAL_WORK';
-
-// 资产状态
-type AssetStatus = 'DRAFT' | 'MINTED' | 'TRANSFERRED' | 'LICENSED' | 'STAKED';
-
-// NFT 事件类型
-type NFTEventType = 'MINT' | 'TRANSFER' | 'LICENSE' | 'STAKE' | 'UNSTAKE';
-```
-
-### Utils（工具函数）
-
-| 函数 | 功能 | 示例 |
-|------|------|------|
-| `formatDate` | 日期格式化 | `2024年1月15日` |
-| `truncateAddress` | 地址截断 | `0x1234...5678` |
-| `formatFileSize` | 文件大小格式化 | `1.5 MB` |
-| `getIPFSUrl` | IPFS URL 生成 | `https://ipfs.io/ipfs/Qm...` |
-| `getExplorerUrl` | 区块浏览器链接 | `https://polygonscan.com/tx/...` |
-
-## 🔗 与后端集成
+## 🔗 API 集成
 
 前端通过 RESTful API 与后端通信：
 
@@ -206,32 +372,53 @@ type NFTEventType = 'MINT' | 'TRANSFER' | 'LICENSE' | 'STAKE' | 'UNSTAKE';
 后端地址: http://localhost:8000/api/v1
 
 主要接口:
-├── /auth          # 认证接口
-│   ├── POST /login
-│   ├── POST /register
-│   └── POST /bind-wallet
-├── /assets        # 资产接口
-│   ├── GET /
-│   ├── POST /
-│   └── GET /{id}
-├── /nft           # NFT 接口
-│   ├── POST /mint
-│   ├── POST /transfer
-│   └── GET /{token_id}/history
-└── /dashboard     # 看板接口
-    └── GET /assets
+├── /auth                    # 认证接口
+│   ├── POST /register      # 用户注册
+│   ├── POST /login         # 用户登录
+│   ├── POST /refresh       # 刷新令牌
+│   └── POST /bind-wallet   # 绑定钱包（规划中）
+├── /enterprises             # 企业接口
+│   ├── GET /               # 获取企业列表
+│   ├── POST /              # 创建企业
+│   ├── GET /{id}           # 获取企业详情
+│   ├── PUT /{id}           # 更新企业
+│   ├── DELETE /{id}        # 删除企业
+│   ├── POST /{id}/members  # 邀请成员
+│   └── DELETE /{id}/members/{user_id}  # 移除成员
+└── /assets                  # 资产接口
+    ├── GET /               # 获取资产列表
+    ├── POST /              # 创建资产
+    └── GET /{id}           # 获取资产详情
 ```
 
-## 🔐 Web3 集成
+## 🔐 认证机制
 
-支持的钱包：
-- MetaMask
-- WalletConnect（计划中）
+- **JWT 认证**: 使用 JSON Web Token 进行身份验证
+- **自动刷新**: 令牌过期前自动刷新
+- **持久化**: 登录状态保存到 localStorage
+- **请求拦截**: Axios 自动附加认证头到每个请求
+- **路由守卫**: 未认证用户无法访问受保护页面
 
-支持的网络：
-- Ethereum Sepolia 测试网
-- Polygon Mumbai/Amoy 测试网
-- BSC 测试网
+## 🎨 界面特性
+
+### 响应式设计
+
+- 适配桌面端和移动端
+- 导航菜单自动适配屏幕尺寸
+- 卡片布局响应式调整
+
+### 交互反馈
+
+- 加载状态指示器
+- 错误消息自动消失（5秒）
+- 成功提示自动消失（3秒）
+- 表单验证实时反馈
+
+### 状态管理
+
+- **全局状态**: 使用 Zustand 管理全局状态
+- **企业上下文**: 当前选中企业在全局状态中管理
+- **认证状态**: 用户登录状态全局共享
 
 ## 📝 开发规范
 
@@ -240,6 +427,13 @@ type NFTEventType = 'MINT' | 'TRANSFER' | 'LICENSE' | 'STAKE' | 'UNSTAKE';
 - 使用 ESLint + Prettier 保持代码一致性
 - 组件使用函数式组件 + Hooks
 - 类型定义使用 TypeScript interface/type
+
+### 组件规范
+
+- 组件文件使用 PascalCase 命名
+- 组件使用默认导出
+- Props 使用 interface 定义
+- 事件处理函数使用 handle 前缀
 
 ### 提交规范
 
@@ -253,20 +447,48 @@ test: 测试相关
 chore: 构建/工具相关
 ```
 
+## 📋 开发计划
+
+### 第一阶段（已完成）
+
+- ✅ 用户认证（登录/注册）
+- ✅ 企业管理（CRUD + 成员管理）
+- ✅ 资产管理（列表 + 创建）
+
+### 第二阶段（进行中）
+
+- ⏳ 资产详情页面
+- ⏳ 资产编辑与删除
+- ⏳ 资产状态流转
+- ⏳ 文件上传优化
+
+### 第三阶段（规划中）
+
+- ⏳ 权属看板（数据统计）
+- ⏳ Web3 钱包集成
+- ⏳ NFT 铸造功能
+- ⏳ NFT 转让与授权
+
 ## 🐛 常见问题
 
-### 1. MetaMask 连接失败
+### 1. 登录后页面还是显示未登录
 
-确保：
-- 已安装 MetaMask 浏览器扩展
-- MetaMask 已解锁
-- 已切换到正确的网络
+- 检查浏览器 localStorage 是否有 auth 数据
+- 检查后端 API 是否正常运行
+- 查看浏览器控制台是否有错误
 
-### 2. API 请求 401 错误
+### 2. 无法创建资产
 
-Token 已过期，需要重新登录或刷新 Token。
+- 确认已先在企业管理页面选择了企业
+- 检查网络连接是否正常
+- 查看错误提示信息
 
-### 3. 构建失败
+### 3. API 请求 401 错误
+
+- Token 已过期，尝试重新登录
+- 检查 localStorage 中的令牌是否存在
+
+### 4. 构建失败
 
 ```bash
 # 清除缓存后重新构建

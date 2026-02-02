@@ -1,4 +1,4 @@
-// Asset types
+// 资产类型
 export type AssetType = 'PATENT' | 'TRADEMARK' | 'COPYRIGHT' | 'TRADE_SECRET' | 'DIGITAL_WORK';
 export type LegalStatus = 'PENDING' | 'GRANTED' | 'EXPIRED';
 export type AssetStatus = 'DRAFT' | 'MINTED' | 'TRANSFERRED' | 'LICENSED' | 'STAKED';
@@ -30,7 +30,7 @@ export interface Asset {
   updated_at: string;
 }
 
-// NFT types
+// NFT 类型
 export type NFTEventType = 'MINT' | 'TRANSFER' | 'LICENSE' | 'STAKE' | 'UNSTAKE';
 
 export interface NFTEvent {
@@ -42,7 +42,7 @@ export interface NFTEvent {
   details: Record<string, unknown>;
 }
 
-// API response types
+// API 响应类型
 export interface PaginatedResponse<T> {
   items: T[];
   total: number;
@@ -50,7 +50,7 @@ export interface PaginatedResponse<T> {
   page_size: number;
 }
 
-// User types
+// 用户类型
 export interface User {
   id: string;
   email: string;
@@ -59,7 +59,7 @@ export interface User {
   email_verified: boolean;
 }
 
-// Enterprise types
+// 企业类型
 export type MemberRole = 'owner' | 'admin' | 'member' | 'viewer';
 
 export interface EnterpriseMember {

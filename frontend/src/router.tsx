@@ -1,11 +1,11 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { Layout } from './components/layout';
 import { ProtectedRoute } from './components/routes';
-import { AuthPage } from './components/auth';
-import { DashboardPage } from './components/dashboard';
-import { EnterprisePage } from './components/enterprise';
-import { AssetPageWrapper } from './components/asset';
-import { NFTPage } from './components/nft';
+import Auth from './pages/Auth';
+import Dashboard from './pages/Dashboard';
+import Enterprise from './pages/Enterprise';
+import Assets from './pages/Assets';
+import NFT from './pages/NFT';
 
 /**
  * 应用路由配置
@@ -17,7 +17,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/auth',
-    element: <AuthPage />,
+    element: <Auth />,
   },
   {
     path: '/',
@@ -29,19 +29,19 @@ export const router = createBrowserRouter([
     children: [
       {
         path: 'dashboard',
-        element: <DashboardPage />,
+        element: <Dashboard />,
       },
       {
         path: 'enterprises',
-        element: <EnterprisePage />,
+        element: <Enterprise />,
       },
       {
         path: 'assets',
-        element: <AssetPageWrapper />,
+        element: <Assets />,
       },
       {
         path: 'nft',
-        element: <NFTPage />,
+        element: <NFT />,
       },
     ],
   },

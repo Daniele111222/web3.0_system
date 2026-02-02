@@ -9,7 +9,7 @@ export const apiClient = axios.create({
   },
 });
 
-// Request interceptor for adding auth token
+// 请求拦截器 - 添加认证令牌
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('access_token');
@@ -21,7 +21,7 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor for handling errors
+// 响应拦截器 - 处理错误
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {

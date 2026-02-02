@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { EnterpriseList } from './EnterpriseList';
-import { EnterpriseDetail } from './EnterpriseDetail';
-import './Enterprise.css';
+import { EnterpriseList } from '../../components/enterprise/EnterpriseList';
+import { EnterpriseDetail } from '../../components/enterprise/EnterpriseDetail';
+import './index.css';
 
-export function EnterprisePage() {
+const Enterprise = () => {
   const [selectedEnterpriseId, setSelectedEnterpriseId] = useState<string | null>(null);
 
   if (selectedEnterpriseId) {
@@ -16,6 +16,6 @@ export function EnterprisePage() {
   }
 
   return <EnterpriseList onSelectEnterprise={setSelectedEnterpriseId} />;
-}
+};
 
-export default EnterprisePage;
+export default Enterprise;

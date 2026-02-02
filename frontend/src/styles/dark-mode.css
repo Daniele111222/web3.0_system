@@ -1,0 +1,456 @@
+/* ===== Dark Mode Styles ===== */
+/* Automatic and manual dark mode support */
+
+/* ========================================
+   CSS Variables for Dark Mode
+   ======================================== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Adjust shadows for dark backgrounds */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+    --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* ========================================
+   Base Dark Mode Styles
+   ======================================== */
+@media (prefers-color-scheme: dark) {
+  body {
+    color: var(--color-gray-200);
+    background-color: var(--color-gray-900);
+  }
+
+  /* Typography */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--color-gray-100);
+  }
+
+  strong,
+  b {
+    color: var(--color-gray-100);
+  }
+
+  /* Links */
+  a {
+    color: var(--color-primary-400);
+  }
+
+  a:hover {
+    color: var(--color-primary-300);
+  }
+
+  /* Code */
+  code {
+    background: var(--color-gray-800);
+    color: var(--color-gray-200);
+  }
+
+  pre {
+    background: var(--color-gray-800);
+    color: var(--color-gray-200);
+  }
+
+  /* Horizontal rule */
+  hr {
+    background: var(--color-gray-700);
+  }
+
+  /* Blockquotes */
+  blockquote {
+    border-left-color: var(--color-primary-600);
+    color: var(--color-gray-400);
+  }
+
+  /* Tables */
+  th {
+    background: var(--color-gray-800);
+    color: var(--color-gray-300);
+  }
+
+  td {
+    border-bottom-color: var(--color-gray-700);
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar-track {
+    background: var(--color-gray-800);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-gray-600);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-gray-500);
+  }
+
+  * {
+    scrollbar-color: var(--color-gray-600) var(--color-gray-800);
+  }
+
+  /* Selection */
+  ::selection {
+    background: var(--color-primary-700);
+    color: var(--color-primary-100);
+  }
+}
+
+/* ========================================
+   Button Dark Mode
+   ======================================== */
+@media (prefers-color-scheme: dark) {
+  .btn-secondary {
+    background: var(--color-gray-800);
+    color: var(--color-gray-200);
+    border-color: var(--color-gray-700);
+  }
+
+  .btn-secondary:hover:not(:disabled) {
+    background: var(--color-gray-700);
+    border-color: var(--color-gray-600);
+  }
+
+  .btn-ghost {
+    color: var(--color-gray-400);
+  }
+
+  .btn-ghost:hover:not(:disabled) {
+    background: var(--color-gray-800);
+    color: var(--color-gray-200);
+  }
+
+  .btn-outline {
+    border-color: var(--color-primary-700);
+    color: var(--color-primary-400);
+  }
+
+  .btn-outline:hover:not(:disabled) {
+    background: rgba(99, 102, 241, 0.1);
+    border-color: var(--color-primary-500);
+  }
+}
+
+/* ========================================
+   Message Dark Mode
+   ======================================== */
+@media (prefers-color-scheme: dark) {
+  .message-error,
+  .error-message {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.1) 100%);
+    border-color: var(--color-error-800);
+    color: var(--color-error-300);
+  }
+
+  .message-success,
+  .success-message {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.1) 100%);
+    border-color: var(--color-success-800);
+    color: var(--color-success-300);
+  }
+
+  .message-warning,
+  .warning-message {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(245, 158, 11, 0.1) 100%);
+    border-color: var(--color-warning-800);
+    color: var(--color-warning-300);
+  }
+
+  .message-info,
+  .info-message {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%);
+    border-color: var(--color-info-800);
+    color: var(--color-info-300);
+  }
+
+  .message-solid.message-error {
+    background: linear-gradient(135deg, var(--color-error-600) 0%, var(--color-error-700) 100%);
+  }
+
+  .message-solid.message-success {
+    background: linear-gradient(135deg, var(--color-success-600) 0%, var(--color-success-700) 100%);
+  }
+
+  .message-solid.message-warning {
+    background: linear-gradient(135deg, var(--color-warning-600) 0%, var(--color-warning-700) 100%);
+  }
+
+  .message-solid.message-info {
+    background: linear-gradient(135deg, var(--color-info-600) 0%, var(--color-info-700) 100%);
+  }
+
+  .info-card {
+    background: var(--color-gray-800);
+    border-color: var(--color-gray-700);
+  }
+
+  .info-card h2,
+  .info-card h3 {
+    color: var(--color-gray-100);
+  }
+
+  .info-card p {
+    color: var(--color-gray-400);
+  }
+}
+
+/* ========================================
+   Loading & Skeleton Dark Mode
+   ======================================== */
+@media (prefers-color-scheme: dark) {
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      var(--color-gray-800) 25%,
+      var(--color-gray-700) 50%,
+      var(--color-gray-800) 75%
+    );
+  }
+
+  .skeleton-wave {
+    background: var(--color-gray-800);
+  }
+
+  .skeleton-wave::after {
+    background-image: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0,
+      rgba(255, 255, 255, 0.05) 20%,
+      rgba(255, 255, 255, 0.1) 60%,
+      rgba(255, 255, 255, 0)
+    );
+  }
+
+  .spinner {
+    border-color: var(--color-gray-700);
+  }
+
+  .loading-text {
+    color: var(--color-gray-500);
+  }
+
+  .progress {
+    background: var(--color-gray-800);
+  }
+
+  .progress-circle-bg {
+    stroke: var(--color-gray-700);
+  }
+
+  .progress-circle-text {
+    color: var(--color-gray-300);
+  }
+
+  .page-loader {
+    background: rgba(15, 23, 42, 0.9);
+  }
+}
+
+/* ========================================
+   Form Dark Mode
+   ======================================== */
+@media (prefers-color-scheme: dark) {
+  input,
+  textarea,
+  select {
+    background: var(--color-gray-800);
+    border-color: var(--color-gray-700);
+    color: var(--color-gray-200);
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-gray-500);
+  }
+
+  input:focus,
+  textarea:focus,
+  select:focus {
+    border-color: var(--color-primary-500);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+  }
+
+  input:disabled,
+  textarea:disabled,
+  select:disabled {
+    background: var(--color-gray-900);
+    color: var(--color-gray-600);
+  }
+
+  label {
+    color: var(--color-gray-300);
+  }
+}
+
+/* ========================================
+   Utility Dark Mode
+   ======================================== */
+@media (prefers-color-scheme: dark) {
+  .text-gray-400 {
+    color: var(--color-gray-500);
+  }
+  .text-gray-500 {
+    color: var(--color-gray-400);
+  }
+  .text-gray-600 {
+    color: var(--color-gray-300);
+  }
+  .text-gray-700 {
+    color: var(--color-gray-300);
+  }
+  .text-gray-800 {
+    color: var(--color-gray-200);
+  }
+  .text-gray-900 {
+    color: var(--color-gray-100);
+  }
+
+  .bg-white {
+    background-color: var(--color-gray-800);
+  }
+  .bg-gray-50 {
+    background-color: var(--color-gray-900);
+  }
+  .bg-gray-100 {
+    background-color: var(--color-gray-800);
+  }
+  .bg-gray-200 {
+    background-color: var(--color-gray-700);
+  }
+
+  .border-gray-200 {
+    border-color: var(--color-gray-700);
+  }
+  .border-gray-300 {
+    border-color: var(--color-gray-600);
+  }
+}
+
+/* ========================================
+   Manual Dark Mode Class
+   ======================================== */
+/* Use .dark class on html or body element for manual toggle */
+.dark {
+  color-scheme: dark;
+}
+
+.dark body {
+  color: var(--color-gray-200);
+  background-color: var(--color-gray-900);
+}
+
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6 {
+  color: var(--color-gray-100);
+}
+
+.dark strong,
+.dark b {
+  color: var(--color-gray-100);
+}
+
+.dark a {
+  color: var(--color-primary-400);
+}
+
+.dark a:hover {
+  color: var(--color-primary-300);
+}
+
+.dark code {
+  background: var(--color-gray-800);
+  color: var(--color-gray-200);
+}
+
+.dark pre {
+  background: var(--color-gray-800);
+  color: var(--color-gray-200);
+}
+
+.dark hr {
+  background: var(--color-gray-700);
+}
+
+.dark blockquote {
+  border-left-color: var(--color-primary-600);
+  color: var(--color-gray-400);
+}
+
+.dark th {
+  background: var(--color-gray-800);
+  color: var(--color-gray-300);
+}
+
+.dark td {
+  border-bottom-color: var(--color-gray-700);
+}
+
+.dark .btn-secondary {
+  background: var(--color-gray-800);
+  color: var(--color-gray-200);
+  border-color: var(--color-gray-700);
+}
+
+.dark .btn-secondary:hover:not(:disabled) {
+  background: var(--color-gray-700);
+  border-color: var(--color-gray-600);
+}
+
+.dark .btn-ghost {
+  color: var(--color-gray-400);
+}
+
+.dark .btn-ghost:hover:not(:disabled) {
+  background: var(--color-gray-800);
+  color: var(--color-gray-200);
+}
+
+.dark .skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-gray-800) 25%,
+    var(--color-gray-700) 50%,
+    var(--color-gray-800) 75%
+  );
+}
+
+.dark input,
+.dark textarea,
+.dark select {
+  background: var(--color-gray-800);
+  border-color: var(--color-gray-700);
+  color: var(--color-gray-200);
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: var(--color-gray-500);
+}
+
+.dark .bg-white {
+  background-color: var(--color-gray-800);
+}
+.dark .bg-gray-50 {
+  background-color: var(--color-gray-900);
+}
+.dark .bg-gray-100 {
+  background-color: var(--color-gray-800);
+}
+.dark .text-gray-800 {
+  color: var(--color-gray-200);
+}
+.dark .text-gray-900 {
+  color: var(--color-gray-100);
+}

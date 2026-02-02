@@ -1,11 +1,19 @@
+/* ========================================
+   导航栏样式 - Navigation Styles
+   支持响应式设计和移动端汉堡菜单
+   ======================================== */
+
+/* 基础导航栏样式 */
 .navigation {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
   z-index: 1000;
+  transition: all 0.3s ease;
 }
 
+/* 导航容器 */
 .nav-container {
   max-width: 1400px;
   margin: 0 auto;
@@ -14,15 +22,28 @@
   align-items: center;
   justify-content: space-between;
   height: 70px;
+  position: relative;
 }
 
-.nav-brand h2 {
+/* 品牌 Logo */
+.nav-brand {
+  flex-shrink: 0;
+}
+
+.brand-link {
+  text-decoration: none;
+  display: block;
+}
+
+.nav-brand h1 {
   color: white;
   margin: 0;
   font-size: 1.5rem;
   font-weight: 600;
+  white-space: nowrap;
 }
 
+/* 桌面端导航菜单 */
 .nav-menu {
   display: flex;
   list-style: none;
@@ -47,11 +68,13 @@
   border-radius: 8px;
   transition: all 0.3s ease;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .nav-menu a:hover {
   background: rgba(255, 255, 255, 0.15);
   color: white;
+  transform: translateY(-1px);
 }
 
 .nav-menu a.active {
@@ -62,12 +85,15 @@
 
 .nav-icon {
   font-size: 1.2rem;
+  line-height: 1;
 }
 
-.nav-user {
+/* 用户信息 - 桌面端 */
+.nav-user-desktop {
   display: flex;
   align-items: center;
   gap: 1rem;
+  flex-shrink: 0;
 }
 
 .user-info {
@@ -81,14 +107,20 @@
   color: white;
   font-weight: 500;
   font-size: 0.95rem;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .wallet-address {
   color: rgba(255, 255, 255, 0.8);
   font-size: 0.85rem;
   font-family: 'Courier New', monospace;
+  letter-spacing: 0.5px;
 }
 
+/* 登出按钮 - 桌面端 */
 .btn-logout {
   padding: 0.5rem 1.25rem;
   background: rgba(255, 255, 255, 0.2);
@@ -97,52 +129,335 @@
   border-radius: 6px;
   cursor: pointer;
   font-weight: 500;
+  font-size: 0.9rem;
   transition: all 0.3s ease;
+  white-space: nowrap;
 }
 
 .btn-logout:hover {
   background: rgba(255, 255, 255, 0.3);
   border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
 }
 
-/* 响应式设计 */
-@media (max-width: 1024px) {
+.btn-logout:active {
+  transform: translateY(0);
+}
+
+.btn-logout:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ========================================
+   移动端汉堡菜单按钮
+   ======================================== */
+.mobile-menu-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  gap: 5px;
+  z-index: 1001;
+}
+
+.hamburger-line {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: white;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+  transform-origin: center;
+}
+
+/* 汉堡菜单动画 */
+.mobile-menu-toggle.active .hamburger-line:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+
+.mobile-menu-toggle.active .hamburger-line:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.mobile-menu-toggle.active .hamburger-line:nth-child(3) {
+  transform: rotate(-45deg) translate(5px, -5px);
+}
+
+/* ========================================
+   移动端菜单
+   ======================================== */
+.mobile-menu {
+  display: none;
+  position: fixed;
+  top: 70px;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 999;
+  transform: translateY(-100%);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  max-height: calc(100vh - 70px);
+  overflow-y: auto;
+}
+
+.mobile-menu.open {
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+}
+
+/* 移动端用户信息 */
+.mobile-user-info {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  text-align: center;
+}
+
+.mobile-user-info .user-name {
+  display: block;
+  max-width: none;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.mobile-user-info .wallet-address {
+  display: block;
+  font-size: 0.9rem;
+}
+
+/* 移动端导航列表 */
+.mobile-nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.mobile-nav-list li {
+  margin: 0;
+}
+
+.mobile-nav-list a {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 1.1rem;
+  transition: all 0.2s ease;
+}
+
+.mobile-nav-list a:hover,
+.mobile-nav-list a.active {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.mobile-nav-list .nav-icon {
+  font-size: 1.4rem;
+}
+
+/* 移动端登出区域 */
+.mobile-logout {
+  padding: 1rem 1.5rem 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-logout-mobile {
+  width: 100%;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.btn-logout-mobile:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.btn-logout-mobile:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 移动端遮罩层 */
+.mobile-overlay {
+  position: fixed;
+  top: 70px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ========================================
+   响应式设计断点
+   ======================================== */
+
+/* 平板设备 (768px - 1023px) */
+@media (max-width: 1023px) {
   .nav-container {
-    flex-wrap: wrap;
-    height: auto;
-    padding: 1rem 2rem;
+    padding: 0 1rem;
   }
 
-  .nav-brand {
-    width: 100%;
-    text-align: center;
-    margin-bottom: 1rem;
-  }
-
-  .nav-menu {
-    width: 100%;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-
-  .nav-user {
-    width: 100%;
-    justify-content: center;
-    margin-top: 1rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .nav-menu a {
-    padding: 0.5rem 1rem;
+  .nav-menu-desktop a {
+    padding: 0.6rem 1rem;
     font-size: 0.9rem;
   }
 
   .nav-icon {
-    font-size: 1rem;
+    font-size: 1.1rem;
   }
 
   .user-info {
+    display: none; /* 平板隐藏用户信息，只保留登出按钮 */
+  }
+}
+
+/* 移动端设备 (小于 768px) */
+@media (max-width: 767px) {
+  .nav-container {
+    padding: 0 1rem;
+    height: 60px;
+  }
+
+  .nav-brand h1 {
+    font-size: 1.25rem;
+  }
+
+  /* 隐藏桌面端元素 */
+  .nav-menu-desktop,
+  .nav-user-desktop {
     display: none;
+  }
+
+  /* 显示移动端菜单按钮 */
+  .mobile-menu-toggle {
+    display: flex;
+  }
+
+  /* 显示移动端菜单 */
+  .mobile-menu {
+    display: block;
+  }
+
+  /* 调整导航栏阴影 */
+  .navigation {
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* 超小屏幕 (小于 360px) */
+@media (max-width: 359px) {
+  .nav-brand h1 {
+    font-size: 1.1rem;
+  }
+
+  .mobile-menu-toggle {
+    width: 36px;
+    height: 36px;
+  }
+
+  .hamburger-line {
+    width: 20px;
+  }
+}
+
+/* 大屏幕设备 (大于 1400px) */
+@media (min-width: 1401px) {
+  .nav-container {
+    padding: 0 3rem;
+  }
+
+  .nav-menu {
+    gap: 1rem;
+  }
+
+  .nav-menu a {
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+  }
+}
+
+/* ========================================
+   无障碍和焦点样式
+   ======================================== */
+
+/* 焦点样式 */
+.nav-menu a:focus,
+.mobile-nav-list a:focus,
+.btn-logout:focus,
+.btn-logout-mobile:focus,
+.mobile-menu-toggle:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 2px;
+}
+
+/* 减少动画偏好 */
+@media (prefers-reduced-motion: reduce) {
+  .navigation,
+  .nav-menu a,
+  .btn-logout,
+  .btn-logout-mobile,
+  .hamburger-line,
+  .mobile-menu {
+    transition: none;
+  }
+
+  .mobile-overlay {
+    animation: none;
+  }
+}
+
+/* 深色模式支持 (可选) */
+@media (prefers-color-scheme: dark) {
+  /* 导航栏已经有深色渐变背景，不需要额外调整 */
+}
+
+/* 高对比度模式支持 */
+@media (prefers-contrast: high) {
+  .nav-menu a,
+  .mobile-nav-list a {
+    border: 1px solid transparent;
+  }
+
+  .nav-menu a:hover,
+  .nav-menu a.active,
+  .mobile-nav-list a:hover,
+  .mobile-nav-list a.active {
+    border-color: white;
   }
 }

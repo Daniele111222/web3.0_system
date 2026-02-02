@@ -83,7 +83,7 @@ export const useWeb3Store = create<Web3State>()((set) => ({
     }),
 }));
 
-// Enterprise Store
+// 企业状态管理
 interface EnterpriseState {
   enterprises: import('../types').Enterprise[];
   currentEnterprise: import('../types').EnterpriseDetail | null;
