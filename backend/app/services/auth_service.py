@@ -220,8 +220,8 @@ class AuthService:
             InvalidTokenError: 如果令牌无效、已过期或已被撤销。
         """
         # 解码并验证令牌
-        payload = decode_token(refresh_token)
-        if not payload or payload.get("type") != "refresh":
+        payload = decode_token(refresh_token, expected_type="refresh")
+        if not payload:
             raise InvalidTokenError()
         
         # 获取令牌哈希

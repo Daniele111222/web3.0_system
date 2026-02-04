@@ -165,6 +165,58 @@ pytest tests/test_auth.py::test_login
 pytest --cov=app --cov-report=html
 ```
 
+## 分层测试清单
+
+按底层架构建议的逐一测试文件路径如下：
+
+### 1. 应用入口与装配
+- app/main.py
+- app/api/v1/router.py
+
+### 2. 核心基础组件
+- app/core/config.py
+- app/core/database.py
+- app/core/security.py
+- app/core/rate_limiter.py
+- app/core/ipfs.py
+- app/core/blockchain.py
+
+### 3. 依赖注入与鉴权入口
+- app/api/deps.py
+
+### 4. 数据模型层
+- app/models/user.py
+- app/models/enterprise.py
+- app/models/refresh_token.py
+- app/models/asset.py
+
+### 5. 数据访问层
+- app/repositories/user_repository.py
+- app/repositories/token_repository.py
+- app/repositories/enterprise_repository.py
+- app/repositories/asset_repository.py
+
+### 6. 业务服务层
+- app/services/auth_service.py
+- app/services/enterprise_service.py
+- app/services/asset_service.py
+
+### 7. API 路由层
+- app/api/v1/auth.py
+- app/api/v1/enterprises.py
+- app/api/v1/assets.py
+- app/api/v1/users.py
+- app/api/v1/nft.py
+- app/api/v1/dashboard.py
+
+## 测试注意事项与关联文件
+
+- 配置与数据库相关测试需确保 .env 和 app/core/config.py 对齐，连接配置来自 app/core/database.py
+- 认证链路测试需要同时覆盖 app/core/security.py、app/api/deps.py 与 app/services/auth_service.py
+- 企业/资产相关接口需要串联 app/models、app/repositories 与 app/services 的对应文件
+- 速率限制与中间件行为需验证 app/core/rate_limiter.py 及 app/main.py 中间件装配
+- IPFS 与区块链相关能力测试需配置 app/core/ipfs.py 与 app/core/blockchain.py 的外部依赖
+
 ## 项目结构
 
 ```

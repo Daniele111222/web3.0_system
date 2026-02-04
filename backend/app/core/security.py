@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone
-from typing import Any
+from typing import Any, Iterable
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from app.core.config import settings
@@ -39,10 +39,21 @@ def create_refresh_token(data: dict[str, Any]) -> str:
     return encoded_jwt
 
 
-def decode_token(token: str) -> dict[str, Any] | None:
+def decode_token(
+    token: str,
+    expected_type: str | None = None,
+    require_claims: Iterable[str] = ("exp", "sub", "type"),
+) -> dict[str, Any] | None:
     """Decode and validate a JWT token."""
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        return payload
+        payload = jwt.decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
+            options={"require": list(require_claims)},
+        )
     except JWTError:
         return None
+    if expected_type and payload.get("type") != expected_type:
+        return None
+    return payload

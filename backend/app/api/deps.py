@@ -28,7 +28,7 @@ async def get_current_user_id(
         )
 
     token = credentials.credentials
-    payload = decode_token(token)
+    payload = decode_token(token, expected_type="access")
     
     if payload is None:
         raise HTTPException(
