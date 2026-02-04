@@ -62,7 +62,7 @@ async def create_asset(
         )
     
     # 验证用户是企业成员
-    member = await enterprise_repo.get_member(enterprise_id, current_user_id)
+    member = await enterprise_repo.get_member(enterprise_id, UUID(current_user_id))
     if not member:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -74,7 +74,7 @@ async def create_asset(
     asset_service = AssetService(asset_repo)
     asset = await asset_service.create_asset(
         enterprise_id=enterprise_id,
-        creator_user_id=current_user_id,
+        creator_user_id=UUID(current_user_id),
         data=data,
     )
     
@@ -131,7 +131,7 @@ async def get_assets(
             detail="企业不存在",
         )
     
-    member = await enterprise_repo.get_member(enterprise_id, current_user_id)
+    member = await enterprise_repo.get_member(enterprise_id, UUID(current_user_id))
     if not member:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -198,7 +198,7 @@ async def get_asset(
     
     # 验证用户是企业成员
     enterprise_repo = EnterpriseRepository(db)
-    member = await enterprise_repo.get_member(asset.enterprise_id, current_user_id)
+    member = await enterprise_repo.get_member(asset.enterprise_id, UUID(current_user_id))
     if not member:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -243,7 +243,7 @@ async def update_asset(
     
     # 验证用户是企业成员
     enterprise_repo = EnterpriseRepository(db)
-    member = await enterprise_repo.get_member(asset.enterprise_id, current_user_id)
+    member = await enterprise_repo.get_member(asset.enterprise_id, UUID(current_user_id))
     if not member:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -293,7 +293,7 @@ async def delete_asset(
     
     # 验证用户是企业成员
     enterprise_repo = EnterpriseRepository(db)
-    member = await enterprise_repo.get_member(asset.enterprise_id, current_user_id)
+    member = await enterprise_repo.get_member(asset.enterprise_id, UUID(current_user_id))
     if not member:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

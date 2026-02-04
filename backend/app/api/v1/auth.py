@@ -60,13 +60,17 @@ async def register(
     
     try:
         auth_service = AuthService(db)
-        return await auth_service.register(data, ip_address, device_info)
+        result = await auth_service.register(data, ip_address, device_info)
+        await db.commit()
+        return result
     except UserExistsError as e:
+        await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail={"message": e.message, "code": e.code},
         )
     except AuthServiceError as e:
+        await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={"message": e.message, "code": e.code},
@@ -89,19 +93,24 @@ async def login(
     
     try:
         auth_service = AuthService(db)
-        return await auth_service.login(data, ip_address, device_info)
+        result = await auth_service.login(data, ip_address, device_info)
+        await db.commit()
+        return result
     except InvalidCredentialsError as e:
+        await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail={"message": e.message, "code": e.code},
             headers={"WWW-Authenticate": "Bearer"},
         )
     except AccountDisabledError as e:
+        await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={"message": e.message, "code": e.code},
         )
     except AuthServiceError as e:
+        await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={"message": e.message, "code": e.code},
@@ -124,10 +133,13 @@ async def refresh_token(
     
     try:
         auth_service = AuthService(db)
-        return await auth_service.refresh_tokens(
+        result = await auth_service.refresh_tokens(
             data.refresh_token, ip_address, device_info
         )
+        await db.commit()
+        return result
     except InvalidTokenError as e:
+        await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail={"message": e.message, "code": e.code},
@@ -146,13 +158,20 @@ async def logout(
     db: DBSession,
 ) -> MessageResponse:
     """Logout by revoking refresh token."""
-    auth_service = AuthService(db)
-    success = await auth_service.logout(data.refresh_token)
-    
-    return MessageResponse(
-        message="Logged out successfully" if success else "Token not found",
-        success=success,
-    )
+    try:
+        auth_service = AuthService(db)
+        success = await auth_service.logout(data.refresh_token)
+        await db.commit()
+        return MessageResponse(
+            message="Logged out successfully" if success else "Token not found",
+            success=success,
+        )
+    except AuthServiceError as e:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"message": e.message, "code": e.code},
+        )
 
 
 @router.post(
@@ -168,13 +187,20 @@ async def logout_all(
     """Logout from all devices."""
     from uuid import UUID
     
-    auth_service = AuthService(db)
-    count = await auth_service.logout_all(UUID(user_id))
-    
-    return MessageResponse(
-        message=f"Logged out from {count} device(s)",
-        success=True,
-    )
+    try:
+        auth_service = AuthService(db)
+        count = await auth_service.logout_all(UUID(user_id))
+        await db.commit()
+        return MessageResponse(
+            message=f"Logged out from {count} device(s)",
+            success=True,
+        )
+    except AuthServiceError as e:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"message": e.message, "code": e.code},
+        )
 
 
 @router.post(
@@ -193,18 +219,22 @@ async def bind_wallet(
     
     try:
         auth_service = AuthService(db)
-        return await auth_service.bind_wallet(
+        result = await auth_service.bind_wallet(
             UUID(user_id),
             data.wallet_address,
             data.signature,
             data.message,
         )
+        await db.commit()
+        return result
     except WalletBindError as e:
+        await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={"message": e.message, "code": e.code},
         )
     except UserNotFoundError as e:
+        await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"message": e.message, "code": e.code},

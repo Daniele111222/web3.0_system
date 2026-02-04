@@ -21,33 +21,48 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     # Create asset type enum
     op.execute("""
-        CREATE TYPE assettype AS ENUM (
-            'PATENT',
-            'TRADEMARK',
-            'COPYRIGHT',
-            'TRADE_SECRET',
-            'DIGITAL_WORK'
-        )
+        DO $$
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'assettype') THEN
+                CREATE TYPE assettype AS ENUM (
+                    'PATENT',
+                    'TRADEMARK',
+                    'COPYRIGHT',
+                    'TRADE_SECRET',
+                    'DIGITAL_WORK'
+                );
+            END IF;
+        END $$;
     """)
     
     # Create legal status enum
     op.execute("""
-        CREATE TYPE legalstatus AS ENUM (
-            'PENDING',
-            'GRANTED',
-            'EXPIRED'
-        )
+        DO $$
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'legalstatus') THEN
+                CREATE TYPE legalstatus AS ENUM (
+                    'PENDING',
+                    'GRANTED',
+                    'EXPIRED'
+                );
+            END IF;
+        END $$;
     """)
     
     # Create asset status enum
     op.execute("""
-        CREATE TYPE assetstatus AS ENUM (
-            'DRAFT',
-            'MINTED',
-            'TRANSFERRED',
-            'LICENSED',
-            'STAKED'
-        )
+        DO $$
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'assetstatus') THEN
+                CREATE TYPE assetstatus AS ENUM (
+                    'DRAFT',
+                    'MINTED',
+                    'TRANSFERRED',
+                    'LICENSED',
+                    'STAKED'
+                );
+            END IF;
+        END $$;
     """)
     
     # Create assets table
@@ -57,14 +72,14 @@ def upgrade() -> None:
         sa.Column('enterprise_id', postgresql.UUID(as_uuid=True), nullable=False, comment='所属企业 ID'),
         sa.Column('creator_user_id', postgresql.UUID(as_uuid=True), nullable=True, comment='创建者用户 ID'),
         sa.Column('name', sa.String(200), nullable=False, comment='资产名称'),
-        sa.Column('type', sa.Enum('PATENT', 'TRADEMARK', 'COPYRIGHT', 'TRADE_SECRET', 'DIGITAL_WORK', name='assettype'), nullable=False, comment='资产类型'),
+        sa.Column('type', postgresql.ENUM('PATENT', 'TRADEMARK', 'COPYRIGHT', 'TRADE_SECRET', 'DIGITAL_WORK', name='assettype', create_type=False), nullable=False, comment='资产类型'),
         sa.Column('description', sa.Text(), nullable=False, comment='资产描述'),
         sa.Column('creator_name', sa.String(100), nullable=False, comment='创作人姓名'),
         sa.Column('creation_date', sa.Date(), nullable=False, comment='创作日期'),
-        sa.Column('legal_status', sa.Enum('PENDING', 'GRANTED', 'EXPIRED', name='legalstatus'), nullable=False, comment='法律状态'),
+        sa.Column('legal_status', postgresql.ENUM('PENDING', 'GRANTED', 'EXPIRED', name='legalstatus', create_type=False), nullable=False, comment='法律状态'),
         sa.Column('application_number', sa.String(100), nullable=True, comment='申请号/注册号'),
-        sa.Column('asset_metadata', postgresql.JSONB(astext_type=sa.Text()), nullable=False, server_default='{}', comment='资产元数据（JSON 格式）'),
-        sa.Column('status', sa.Enum('DRAFT', 'MINTED', 'TRANSFERRED', 'LICENSED', 'STAKED', name='assetstatus'), nullable=False, server_default='DRAFT', comment='资产状态'),
+        sa.Column('asset_metadata', postgresql.JSONB(astext_type=sa.Text()), nullable=False, server_default=sa.text("'{}'::jsonb"), comment='资产元数据（JSON 格式）'),
+        sa.Column('status', postgresql.ENUM('DRAFT', 'MINTED', 'TRANSFERRED', 'LICENSED', 'STAKED', name='assetstatus', create_type=False), nullable=False, server_default=sa.text("'DRAFT'::assetstatus"), comment='资产状态'),
         sa.Column('nft_token_id', sa.String(100), nullable=True, comment='NFT Token ID'),
         sa.Column('nft_contract_address', sa.String(42), nullable=True, comment='NFT 合约地址'),
         sa.Column('nft_chain', sa.String(50), nullable=True, comment='NFT 所在区块链'),
