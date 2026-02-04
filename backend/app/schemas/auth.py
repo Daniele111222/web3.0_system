@@ -1,8 +1,9 @@
 """用于请求/响应验证的身份验证架构。"""
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, ConfigDict
 import re
+import string
 
 
 class UserRegisterRequest(BaseModel):
@@ -69,8 +70,13 @@ class UserRegisterRequest(BaseModel):
             raise ValueError("密码必须包含至少一个小写字母")
         if not re.search(r"\d", v):
             raise ValueError("密码必须包含至少一个数字")
-        if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", v):
+        
+        # 使用 string.punctuation 支持所有标准特殊字符
+        if not any(char in string.punctuation for char in v):
             raise ValueError("密码必须包含至少一个特殊字符")
+            
+        if len(v.encode("utf-8")) > 72:
+            raise ValueError("密码长度不能超过 72 字节")
         return v
 
 
@@ -79,6 +85,25 @@ class UserLoginRequest(BaseModel):
     
     email: EmailStr = Field(..., description="用户电子邮箱地址")
     password: str = Field(..., description="用户密码")
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, v: str) -> str:
+        """
+        验证密码长度。
+        
+        Args:
+            v (str): 待验证的密码。
+            
+        Returns:
+            str: 验证通过的密码。
+            
+        Raises:
+            ValueError: 如果密码长度超过限制。
+        """
+        if len(v.encode("utf-8")) > 72:
+            raise ValueError("密码长度不能超过 72 字节")
+        return v
 
 
 class TokenResponse(BaseModel):
@@ -110,8 +135,7 @@ class UserResponse(BaseModel):
     created_at: datetime = Field(..., description="账户创建时间")
     last_login_at: Optional[datetime] = Field(None, description="最后登录时间")
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AuthResponse(BaseModel):

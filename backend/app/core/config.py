@@ -1,10 +1,16 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
 
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
     
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        case_sensitive=True,
+        extra="ignore"
+    )
+
     # Application
     APP_NAME: str = "IP-NFT Management API"
     APP_VERSION: str = "1.0.0"
@@ -29,10 +35,6 @@ class Settings(BaseSettings):
     # Blockchain
     WEB3_PROVIDER_URL: str = "https://polygon-mumbai.g.alchemy.com/v2/your-api-key"
     CONTRACT_ADDRESS: str = ""
-    
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
 
 
 @lru_cache()

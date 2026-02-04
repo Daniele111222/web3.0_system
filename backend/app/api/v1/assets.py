@@ -32,10 +32,10 @@ router = APIRouter(prefix="/assets", tags=["Assets"])
     description="创建一个新的资产草稿，需要指定所属企业",
 )
 async def create_asset(
+    db: DBSession,
+    current_user_id: CurrentUserId,
     data: AssetCreateRequest,
     enterprise_id: UUID = Query(..., description="所属企业 ID"),
-    db: DBSession = Depends(),
-    current_user_id: CurrentUserId = Depends(),
 ) -> AssetResponse:
     """
     创建资产草稿。
@@ -88,6 +88,8 @@ async def create_asset(
     description="获取指定企业的资产列表，支持筛选和分页",
 )
 async def get_assets(
+    db: DBSession,
+    current_user_id: CurrentUserId,
     enterprise_id: UUID = Query(..., description="企业 ID"),
     asset_type: Optional[AssetType] = Query(None, description="资产类型筛选"),
     asset_status: Optional[AssetStatus] = Query(None, description="资产状态筛选"),
@@ -97,8 +99,6 @@ async def get_assets(
     search: Optional[str] = Query(None, max_length=200, description="搜索关键词"),
     page: int = Query(1, ge=1, description="页码"),
     page_size: int = Query(20, ge=1, le=100, description="每页数量"),
-    db: DBSession = Depends(),
-    current_user_id: CurrentUserId = Depends(),
 ) -> AssetListResponse:
     """
     获取资产列表。
@@ -175,8 +175,8 @@ async def get_assets(
 )
 async def get_asset(
     asset_id: UUID,
-    db: DBSession = Depends(),
-    current_user_id: CurrentUserId = Depends(),
+    db: DBSession,
+    current_user_id: CurrentUserId,
 ) -> AssetResponse:
     """
     获取资产详情。
@@ -217,8 +217,8 @@ async def get_asset(
 async def update_asset(
     asset_id: UUID,
     data: AssetUpdateRequest,
-    db: DBSession = Depends(),
-    current_user_id: CurrentUserId = Depends(),
+    db: DBSession,
+    current_user_id: CurrentUserId,
 ) -> AssetResponse:
     """
     更新资产草稿。
@@ -268,8 +268,8 @@ async def update_asset(
 )
 async def delete_asset(
     asset_id: UUID,
-    db: DBSession = Depends(),
-    current_user_id: CurrentUserId = Depends(),
+    db: DBSession,
+    current_user_id: CurrentUserId,
 ) -> MessageResponse:
     """
     删除资产草稿。
@@ -319,8 +319,8 @@ async def delete_asset(
 async def upload_attachment(
     asset_id: UUID,
     data: AttachmentUploadRequest,
-    db: DBSession = Depends(),
-    current_user_id: CurrentUserId = Depends(),
+    db: DBSession,
+    current_user_id: CurrentUserId,
 ) -> AttachmentResponse:
     """
     上传资产附件。

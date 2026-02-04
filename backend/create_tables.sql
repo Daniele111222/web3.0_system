@@ -27,12 +27,14 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
     token_hash VARCHAR(255) UNIQUE NOT NULL,
     expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    is_revoked BOOLEAN NOT NULL DEFAULT FALSE,
     revoked_at TIMESTAMP WITH TIME ZONE,
     device_info VARCHAR(500),
     ip_address VARCHAR(45)
 );
 
 CREATE INDEX IF NOT EXISTS ix_refresh_tokens_user_id ON refresh_tokens(user_id);
+CREATE INDEX IF NOT EXISTS ix_refresh_tokens_user_id_is_revoked ON refresh_tokens(user_id, is_revoked);
 CREATE INDEX IF NOT EXISTS ix_refresh_tokens_token_hash ON refresh_tokens(token_hash);
 CREATE INDEX IF NOT EXISTS ix_refresh_tokens_expires_at ON refresh_tokens(expires_at);
 
