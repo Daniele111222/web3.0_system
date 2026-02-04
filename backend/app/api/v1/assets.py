@@ -3,10 +3,14 @@ from uuid import UUID
 from typing import Optional
 from fastapi import APIRouter, HTTPException, status, Query, Depends
 from math import ceil
+from pydantic import ValidationError
 
 from app.api.deps import DBSession, CurrentUserId
 from app.repositories.asset_repository import AssetRepository
-from app.repositories.enterprise_repository import EnterpriseRepository
+from app.repositories.enterprise_repository import (
+    EnterpriseRepository,
+    EnterpriseMemberRepository,
+)
 from app.services.asset_service import AssetService
 from app.schemas.asset import (
     AssetCreateRequest,
@@ -22,6 +26,28 @@ from app.models.asset import AssetType, AssetStatus, LegalStatus
 from datetime import date
 
 router = APIRouter(prefix="/assets", tags=["Assets"])
+
+def parse_current_user_id(current_user_id: str) -> UUID:
+    """
+    解析并验证当前用户 ID。
+    
+    Args:
+        current_user_id: 当前用户 ID 字符串
+        
+    Returns:
+        UUID: 解析后的用户 ID
+        
+    Raises:
+        HTTPException: 用户 ID 格式无效
+    """
+    try:
+        return UUID(current_user_id)
+    except (ValueError, TypeError):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="无效的用户凭证",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
 
 @router.post(
@@ -54,7 +80,7 @@ async def create_asset(
     """
     # 验证企业存在且用户是成员
     enterprise_repo = EnterpriseRepository(db)
-    enterprise = await enterprise_repo.get_enterprise_by_id(enterprise_id)
+    enterprise = await enterprise_repo.get_by_id(enterprise_id)
     if not enterprise:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -62,7 +88,9 @@ async def create_asset(
         )
     
     # 验证用户是企业成员
-    member = await enterprise_repo.get_member(enterprise_id, UUID(current_user_id))
+    user_id = parse_current_user_id(current_user_id)
+    member_repo = EnterpriseMemberRepository(db)
+    member = await member_repo.get_member(enterprise_id, user_id)
     if not member:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -74,7 +102,7 @@ async def create_asset(
     asset_service = AssetService(asset_repo)
     asset = await asset_service.create_asset(
         enterprise_id=enterprise_id,
-        creator_user_id=UUID(current_user_id),
+        creator_user_id=user_id,
         data=data,
     )
     
@@ -124,14 +152,16 @@ async def get_assets(
     """
     # 验证企业存在且用户是成员
     enterprise_repo = EnterpriseRepository(db)
-    enterprise = await enterprise_repo.get_enterprise_by_id(enterprise_id)
+    enterprise = await enterprise_repo.get_by_id(enterprise_id)
     if not enterprise:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="企业不存在",
         )
     
-    member = await enterprise_repo.get_member(enterprise_id, UUID(current_user_id))
+    user_id = parse_current_user_id(current_user_id)
+    member_repo = EnterpriseMemberRepository(db)
+    member = await member_repo.get_member(enterprise_id, user_id)
     if not member:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -139,16 +169,22 @@ async def get_assets(
         )
     
     # 构建筛选参数
-    filters = AssetFilterParams(
-        type=asset_type,
-        status=asset_status,
-        legal_status=legal_status,
-        start_date=start_date,
-        end_date=end_date,
-        search=search,
-        page=page,
-        page_size=page_size,
-    )
+    try:
+        filters = AssetFilterParams(
+            type=asset_type,
+            status=asset_status,
+            legal_status=legal_status,
+            start_date=start_date,
+            end_date=end_date,
+            search=search,
+            page=page,
+            page_size=page_size,
+        )
+    except ValidationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=exc.errors(),
+        )
     
     # 获取资产列表
     asset_repo = AssetRepository(db)
@@ -197,8 +233,9 @@ async def get_asset(
     asset = await asset_service.get_asset(asset_id)
     
     # 验证用户是企业成员
-    enterprise_repo = EnterpriseRepository(db)
-    member = await enterprise_repo.get_member(asset.enterprise_id, UUID(current_user_id))
+    member_repo = EnterpriseMemberRepository(db)
+    user_id = parse_current_user_id(current_user_id)
+    member = await member_repo.get_member(asset.enterprise_id, user_id)
     if not member:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -242,8 +279,9 @@ async def update_asset(
     asset = await asset_service.get_asset(asset_id)
     
     # 验证用户是企业成员
-    enterprise_repo = EnterpriseRepository(db)
-    member = await enterprise_repo.get_member(asset.enterprise_id, UUID(current_user_id))
+    member_repo = EnterpriseMemberRepository(db)
+    user_id = parse_current_user_id(current_user_id)
+    member = await member_repo.get_member(asset.enterprise_id, user_id)
     if not member:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -292,8 +330,9 @@ async def delete_asset(
     asset = await asset_service.get_asset(asset_id)
     
     # 验证用户是企业成员
-    enterprise_repo = EnterpriseRepository(db)
-    member = await enterprise_repo.get_member(asset.enterprise_id, UUID(current_user_id))
+    member_repo = EnterpriseMemberRepository(db)
+    user_id = parse_current_user_id(current_user_id)
+    member = await member_repo.get_member(asset.enterprise_id, user_id)
     if not member:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -344,8 +383,9 @@ async def upload_attachment(
     asset = await asset_service.get_asset(asset_id)
     
     # 验证用户是企业成员
-    enterprise_repo = EnterpriseRepository(db)
-    member = await enterprise_repo.get_member(asset.enterprise_id, current_user_id)
+    member_repo = EnterpriseMemberRepository(db)
+    user_id = parse_current_user_id(current_user_id)
+    member = await member_repo.get_member(asset.enterprise_id, user_id)
     if not member:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
