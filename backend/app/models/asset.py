@@ -1,10 +1,10 @@
 """资产数据库模型。"""
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from enum import Enum
 from typing import Optional, List, TYPE_CHECKING
-from sqlalchemy import String, DateTime, ForeignKey, Enum as SQLEnum, Index, Text, Date, BigInteger
+from sqlalchemy import String, DateTime, ForeignKey, Enum as SQLEnum, Index, Text, Date, BigInteger, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.dialects.postgresql import UUID
 import uuid
 
 from app.core.database import Base
@@ -143,9 +143,9 @@ class Asset(Base):
         comment="申请号/注册号",
     )
     
-    # 元数据（JSONB 格式，支持灵活扩展）
+    # 元数据（JSON 格式，支持灵活扩展）
     asset_metadata: Mapped[dict] = mapped_column(
-        JSONB,
+        JSON,
         nullable=False,
         default=dict,
         comment="资产元数据（JSON 格式）",
@@ -192,14 +192,14 @@ class Asset(Base):
     # 时间戳
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
         nullable=False,
         comment="创建时间",
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
         nullable=False,
         comment="更新时间",
     )
@@ -293,7 +293,7 @@ class Attachment(Base):
     # 时间戳
     uploaded_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
         nullable=False,
         comment="上传时间",
     )

@@ -1,12 +1,17 @@
 """用户数据库模型。"""
-from datetime import datetime
-from typing import Optional
+from datetime import datetime, timezone
+from typing import Optional, List, TYPE_CHECKING
 from sqlalchemy import String, Boolean, DateTime, Index
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 
 from app.core.database import Base
+
+if TYPE_CHECKING:
+    from app.models.refresh_token import RefreshToken
+    from app.models.enterprise import EnterpriseMember
+    from app.models.asset import Asset
 
 
 class User(Base):
@@ -56,18 +61,37 @@ class User(Base):
     # 时间戳
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
     last_login_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
+    )
+    
+    # 关系
+    refresh_tokens: Mapped[List["RefreshToken"]] = relationship(
+        "RefreshToken",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+    enterprise_memberships: Mapped[List["EnterpriseMember"]] = relationship(
+        "EnterpriseMember",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+    created_assets: Mapped[List["Asset"]] = relationship(
+        "Asset",
+        back_populates="creator",
+        lazy="selectin",
     )
     
     # 常用查询的复合索引

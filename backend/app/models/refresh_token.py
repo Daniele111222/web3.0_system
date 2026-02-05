@@ -1,11 +1,15 @@
 """用于安全令牌管理的刷新令牌模型。"""
-from datetime import datetime
+from datetime import datetime, timezone
+from typing import Optional, TYPE_CHECKING
 from sqlalchemy import String, Boolean, DateTime, ForeignKey, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 
 from app.core.database import Base
+
+if TYPE_CHECKING:
+    from app.models.user import User
 
 
 class RefreshToken(Base):
@@ -36,8 +40,8 @@ class RefreshToken(Base):
     )
     
     # 令牌元数据
-    device_info: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    ip_address: Mapped[str | None] = mapped_column(String(45), nullable=True)
+    device_info: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    ip_address: Mapped[Optional[str]] = mapped_column(String(45), nullable=True)
     
     # 令牌状态
     is_revoked: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
@@ -45,16 +49,22 @@ class RefreshToken(Base):
     # 时间戳
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
     expires_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
     )
-    revoked_at: Mapped[datetime | None] = mapped_column(
+    revoked_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
+    )
+    
+    # 关系
+    user: Mapped["User"] = relationship(
+        "User",
+        back_populates="refresh_tokens",
     )
     
     # 复合索引

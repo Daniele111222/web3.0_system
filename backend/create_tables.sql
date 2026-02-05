@@ -1,3 +1,45 @@
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+DO $$ BEGIN
+    CREATE TYPE memberrole AS ENUM ('owner', 'admin', 'member', 'viewer');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'assettype') THEN
+        CREATE TYPE assettype AS ENUM (
+            'PATENT',
+            'TRADEMARK',
+            'COPYRIGHT',
+            'TRADE_SECRET',
+            'DIGITAL_WORK'
+        );
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'legalstatus') THEN
+        CREATE TYPE legalstatus AS ENUM (
+            'PENDING',
+            'GRANTED',
+            'EXPIRED'
+        );
+    END IF;
+END $$;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'assetstatus') THEN
+        CREATE TYPE assetstatus AS ENUM (
+            'DRAFT',
+            'MINTED',
+            'TRANSFERRED',
+            'LICENSED',
+            'STAKED'
+        );
+    END IF;
+END $$;
+
 -- Create users table
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -24,12 +66,12 @@ CREATE INDEX IF NOT EXISTS ix_users_email_is_active ON users(email, is_active);
 CREATE TABLE IF NOT EXISTS refresh_tokens (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    token_hash VARCHAR(255) UNIQUE NOT NULL,
+    token_hash VARCHAR(64) UNIQUE NOT NULL,
     expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     is_revoked BOOLEAN NOT NULL DEFAULT FALSE,
     revoked_at TIMESTAMP WITH TIME ZONE,
-    device_info VARCHAR(500),
+    device_info VARCHAR(255),
     ip_address VARCHAR(45)
 );
 
@@ -62,7 +104,7 @@ CREATE TABLE IF NOT EXISTS enterprise_members (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     enterprise_id UUID NOT NULL REFERENCES enterprises(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    role VARCHAR(20) NOT NULL CHECK (role IN ('owner', 'admin', 'member', 'viewer')),
+    role memberrole NOT NULL DEFAULT 'member',
     joined_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     UNIQUE(enterprise_id, user_id)
 );
@@ -70,12 +112,56 @@ CREATE TABLE IF NOT EXISTS enterprise_members (
 CREATE INDEX IF NOT EXISTS ix_enterprise_members_enterprise_id ON enterprise_members(enterprise_id);
 CREATE INDEX IF NOT EXISTS ix_enterprise_members_user_id ON enterprise_members(user_id);
 
--- Create enum type for MemberRole
-DO $$ BEGIN
-    CREATE TYPE memberrole AS ENUM ('owner', 'admin', 'member', 'viewer');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+-- Create assets table
+CREATE TABLE IF NOT EXISTS assets (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    enterprise_id UUID NOT NULL REFERENCES enterprises(id) ON DELETE CASCADE,
+    creator_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    name VARCHAR(200) NOT NULL,
+    type assettype NOT NULL,
+    description TEXT NOT NULL,
+    creator_name VARCHAR(100) NOT NULL,
+    creation_date DATE NOT NULL,
+    legal_status legalstatus NOT NULL,
+    application_number VARCHAR(100),
+    asset_metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    status assetstatus NOT NULL DEFAULT 'DRAFT',
+    nft_token_id VARCHAR(100),
+    nft_contract_address VARCHAR(42),
+    nft_chain VARCHAR(50),
+    metadata_uri VARCHAR(500),
+    mint_tx_hash VARCHAR(66),
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS ix_assets_name ON assets(name);
+CREATE INDEX IF NOT EXISTS ix_assets_enterprise_id ON assets(enterprise_id);
+CREATE INDEX IF NOT EXISTS ix_assets_creator_user_id ON assets(creator_user_id);
+CREATE INDEX IF NOT EXISTS ix_assets_type ON assets(type);
+CREATE INDEX IF NOT EXISTS ix_assets_legal_status ON assets(legal_status);
+CREATE INDEX IF NOT EXISTS ix_assets_application_number ON assets(application_number);
+CREATE INDEX IF NOT EXISTS ix_assets_status ON assets(status);
+CREATE INDEX IF NOT EXISTS ix_assets_nft_token_id ON assets(nft_token_id);
+CREATE INDEX IF NOT EXISTS ix_assets_nft_contract_address ON assets(nft_contract_address);
+CREATE INDEX IF NOT EXISTS ix_assets_enterprise_status ON assets(enterprise_id, status);
+CREATE INDEX IF NOT EXISTS ix_assets_type_status ON assets(type, status);
+CREATE INDEX IF NOT EXISTS ix_assets_created_at ON assets(created_at);
+
+-- Create attachments table
+CREATE TABLE IF NOT EXISTS attachments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    asset_id UUID NOT NULL REFERENCES assets(id) ON DELETE CASCADE,
+    file_name VARCHAR(255) NOT NULL,
+    file_type VARCHAR(100) NOT NULL,
+    file_size BIGINT NOT NULL,
+    ipfs_cid VARCHAR(100) UNIQUE NOT NULL,
+    uploaded_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS ix_attachments_asset_id ON attachments(asset_id);
+CREATE INDEX IF NOT EXISTS ix_attachments_ipfs_cid ON attachments(ipfs_cid);
+CREATE INDEX IF NOT EXISTS ix_attachments_asset_uploaded ON attachments(asset_id, uploaded_at);
 
 COMMENT ON TABLE enterprises IS '企业表';
 COMMENT ON COLUMN enterprises.id IS '企业唯一标识符';
