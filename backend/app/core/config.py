@@ -1,9 +1,10 @@
+from typing import List
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
 
 
 class Settings(BaseSettings):
-    """Application settings loaded from environment variables."""
+    """从环境变量加载的应用配置设置。"""
     
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -20,14 +21,14 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/ipnft_db"
     DATABASE_SYNC_URL: str = "postgresql://postgres:postgres@localhost:5432/ipnft_db"
     
-    # JWT
-    SECRET_KEY: str = "your-secret-key-change-in-production"
+    # JWT - 必须从环境变量读取，无默认值
+    SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     
-    # CORS
-    CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:3000"]
+    # CORS - 使用 List[str] 以兼容 Python 3.8+
+    CORS_ORIGINS: List[str] = ["http://localhost:5173", "http://localhost:3000"]
     
     # IPFS
     IPFS_API_URL: str = "http://localhost:5001"
@@ -39,7 +40,7 @@ class Settings(BaseSettings):
 
 @lru_cache()
 def get_settings() -> Settings:
-    """Get cached settings instance."""
+    """获取缓存的配置实例。"""
     return Settings()
 
 
