@@ -1,5 +1,5 @@
 """企业数据库模型。"""
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional, List, TYPE_CHECKING
 from sqlalchemy import String, Boolean, DateTime, ForeignKey, Enum as SQLEnum, Index, Text
@@ -103,14 +103,14 @@ class Enterprise(Base):
     # 时间戳
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
         nullable=False,
         comment="创建时间",
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
         nullable=False,
         comment="更新时间",
     )
@@ -183,7 +183,7 @@ class EnterpriseMember(Base):
     # 时间戳
     joined_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
         nullable=False,
         comment="加入时间",
     )
@@ -195,6 +195,7 @@ class EnterpriseMember(Base):
     )
     user: Mapped["User"] = relationship(
         "User",
+        back_populates="enterprise_memberships",
         lazy="selectin",
     )
     
