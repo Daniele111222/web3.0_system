@@ -1,5 +1,5 @@
 """用于数据访问操作的用户仓库。"""
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from uuid import UUID
 from sqlalchemy import select, update
@@ -31,7 +31,7 @@ class UserRepository:
             User: 创建后的用户实例。
         """
         self.db.add(user)
-        await self.db.flush()
+        await self.db.commit()
         await self.db.refresh(user)
         return user
     
@@ -123,8 +123,9 @@ class UserRepository:
         await self.db.execute(
             update(User)
             .where(User.id == user_id)
-            .values(last_login_at=datetime.utcnow())
+            .values(last_login_at=datetime.now(timezone.utc))
         )
+        await self.db.commit()
     
     async def update_wallet_address(
         self, user_id: UUID, wallet_address: str
@@ -144,6 +145,7 @@ class UserRepository:
             .where(User.id == user_id)
             .values(wallet_address=wallet_address.lower())
         )
+        await self.db.commit()
         return await self.get_by_id(user_id)
     
     async def email_exists(self, email: str) -> bool:

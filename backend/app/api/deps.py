@@ -29,19 +29,11 @@ async def get_current_user_id(
 
     token = credentials.credentials
     payload = decode_token(token, expected_type="access")
-    
+
     if payload is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    token_type = payload.get("type")
-    if token_type != "access":
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token type",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -58,4 +50,7 @@ async def get_current_user_id(
 
 # Type aliases for dependency injection
 DBSession = Annotated[AsyncSession, Depends(get_db)]
+"""数据库会话依赖类型注解。"""
+
 CurrentUserId = Annotated[str, Depends(get_current_user_id)]
+"""当前用户ID依赖类型注解。"""

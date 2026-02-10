@@ -36,7 +36,7 @@ class EnterpriseRepository:
             Enterprise: 创建后的企业实例（包含生成的 ID）。
         """
         self.db.add(enterprise)
-        await self.db.flush()
+        await self.db.commit()
         await self.db.refresh(enterprise)
         return enterprise
     
@@ -198,6 +198,7 @@ class EnterpriseRepository:
             .where(Enterprise.id == enterprise_id)
             .values(**update_data)
         )
+        await self.db.commit()
         return await self.get_by_id(enterprise_id)
     
     async def update_wallet_address(
@@ -220,6 +221,7 @@ class EnterpriseRepository:
             .where(Enterprise.id == enterprise_id)
             .values(wallet_address=wallet_address.lower())
         )
+        await self.db.commit()
         return await self.get_by_id(enterprise_id)
     
     async def delete(self, enterprise_id: UUID) -> bool:
@@ -235,6 +237,7 @@ class EnterpriseRepository:
         result = await self.db.execute(
             delete(Enterprise).where(Enterprise.id == enterprise_id)
         )
+        await self.db.commit()
         return result.rowcount > 0
     
     async def wallet_address_exists(self, wallet_address: str) -> bool:
@@ -299,7 +302,7 @@ class EnterpriseMemberRepository:
             EnterpriseMember: 创建后的成员关系实例。
         """
         self.db.add(member)
-        await self.db.flush()
+        await self.db.commit()
         await self.db.refresh(member)
         return member
     
@@ -414,6 +417,7 @@ class EnterpriseMemberRepository:
             )
             .values(role=role)
         )
+        await self.db.commit()
         return await self.get_member(enterprise_id, user_id)
     
     async def delete(
@@ -437,6 +441,7 @@ class EnterpriseMemberRepository:
                 EnterpriseMember.user_id == user_id,
             )
         )
+        await self.db.commit()
         return result.rowcount > 0
     
     async def is_member(

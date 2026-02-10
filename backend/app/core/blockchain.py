@@ -3,7 +3,7 @@ import logging
 from typing import Optional
 from eth_account.messages import encode_defunct
 from web3 import Web3
-from web3.exceptions import InvalidAddress, ValidationError
+from web3.exceptions import InvalidAddress, Web3ValidationError
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -137,7 +137,7 @@ class BlockchainClient:
             
             return is_valid
             
-        except ValidationError as e:
+        except Web3ValidationError as e:
             logger.error(f"签名格式无效：{e}")
             return False
         except Exception as e:
