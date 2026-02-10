@@ -1,5 +1,5 @@
 """用于数据访问操作的刷新令牌仓库。"""
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from uuid import UUID
 from sqlalchemy import select, update, delete
@@ -31,7 +31,7 @@ class TokenRepository:
             RefreshToken: 创建后的刷新令牌实例。
         """
         self.db.add(token)
-        await self.db.flush()
+        await self.db.commit()
         await self.db.refresh(token)
         return token
     
@@ -64,7 +64,7 @@ class TokenRepository:
             select(RefreshToken).where(
                 RefreshToken.token_hash == token_hash,
                 RefreshToken.is_revoked == False,
-                RefreshToken.expires_at > datetime.utcnow()
+                RefreshToken.expires_at > datetime.now(timezone.utc)
             )
         )
         return result.scalar_one_or_none()
@@ -82,8 +82,9 @@ class TokenRepository:
         result = await self.db.execute(
             update(RefreshToken)
             .where(RefreshToken.token_hash == token_hash)
-            .values(is_revoked=True, revoked_at=datetime.utcnow())
+            .values(is_revoked=True, revoked_at=datetime.now(timezone.utc))
         )
+        await self.db.commit()
         return result.rowcount > 0
     
     async def revoke_all_user_tokens(self, user_id: UUID) -> int:
@@ -102,8 +103,9 @@ class TokenRepository:
                 RefreshToken.user_id == user_id,
                 RefreshToken.is_revoked == False
             )
-            .values(is_revoked=True, revoked_at=datetime.utcnow())
+            .values(is_revoked=True, revoked_at=datetime.now(timezone.utc))
         )
+        await self.db.commit()
         return result.rowcount
     
     async def delete_expired_tokens(self) -> int:
@@ -115,9 +117,10 @@ class TokenRepository:
         """
         result = await self.db.execute(
             delete(RefreshToken).where(
-                RefreshToken.expires_at < datetime.utcnow()
+                RefreshToken.expires_at < datetime.now(timezone.utc)
             )
         )
+        await self.db.commit()
         return result.rowcount
     
     async def count_active_tokens(self, user_id: UUID) -> int:
@@ -134,7 +137,7 @@ class TokenRepository:
             select(RefreshToken).where(
                 RefreshToken.user_id == user_id,
                 RefreshToken.is_revoked == False,
-                RefreshToken.expires_at > datetime.utcnow()
+                RefreshToken.expires_at > datetime.now(timezone.utc)
             )
         )
         return len(result.scalars().all())
