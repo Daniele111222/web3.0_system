@@ -1,52 +1,147 @@
-# AGENTS
+# AGENTS.md
 
-<skills_system priority="1">
+Guidelines for agentic coding assistants working on this React 19 + TypeScript frontend.
 
-## Available Skills
+## Project Structure
 
-<!-- SKILLS_TABLE_START -->
-<usage>
-When users ask you to perform tasks, check if any of the available skills below can help complete the task more effectively. Skills provide specialized capabilities and domain knowledge.
+- `src/components/` - React components (PascalCase files)
+- `src/hooks/` - Custom React hooks (use prefix)
+- `src/store/` - Zustand stores
+- `src/services/` - API services (axios instance)
+- `src/types/` - TypeScript type definitions
+- `src/utils/` - Utility functions
+- `public/` - Static assets
 
-How to use skills:
-- Invoke: `npx openskills read <skill-name>` (run in your shell)
-  - For multiple: `npx openskills read skill-one,skill-two`
-- The skill content will load with detailed instructions on how to complete the task
-- Base directory provided in output for resolving bundled resources (references/, scripts/, assets/)
+## Build, Lint, and Test Commands
 
-Usage notes:
-- Only use skills listed in <available_skills> below
-- Do not invoke a skill that is already loaded in your context
-- Each skill invocation is stateless
-</usage>
+```bash
+# Install dependencies (uses pnpm)
+npm install
 
-<available_skills>
+# Development server
+npm run dev
 
-<skill>
-<name>canvas-design</name>
-<description>Create beautiful visual art in .png and .pdf documents using design philosophy. You should use this skill when the user asks to create a poster, piece of art, design, or other static piece. Create original visual designs, never copying existing artists' work to avoid copyright violations.</description>
-<location>project</location>
-</skill>
+# Production build
+npm run build
 
-<skill>
-<name>frontend-design</name>
-<description>Create distinctive, production-grade frontend interfaces with high design quality. Use this skill when the user asks to build web components, pages, artifacts, posters, or applications (examples include websites, landing pages, dashboards, React components, HTML/CSS layouts, or when styling/beautifying any web UI). Generates creative, polished code and UI design that avoids generic AI aesthetics.</description>
-<location>project</location>
-</skill>
+# Type checking
+tsc -b
 
-<skill>
-<name>mcp-builder</name>
-<description>Guide for creating high-quality MCP (Model Context Protocol) servers that enable LLMs to interact with external services through well-designed tools. Use when building MCP servers to integrate external APIs or services, whether in Python (FastMCP) or Node/TypeScript (MCP SDK).</description>
-<location>project</location>
-</skill>
+# Linting
+npm run lint
 
-<skill>
-<name>skill-creator</name>
-<description>Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Claude's capabilities with specialized knowledge, workflows, or tool integrations.</description>
-<location>project</location>
-</skill>
+# Preview production build
+npm run preview
+```
 
-</available_skills>
-<!-- SKILLS_TABLE_END -->
+## Code Style Guidelines
 
-</skills_system>
+### Naming Conventions
+
+- **Components**: `PascalCase` (e.g., `LoginForm.tsx`)
+- **Functions/variables**: `camelCase` (e.g., `handleSubmit`)
+- **Types/Interfaces**: `PascalCase` (e.g., `UserData`)
+- **Constants**: `UPPER_SNAKE_CASE` (e.g., `API_BASE_URL`)
+- **Hooks**: `use` prefix (e.g., `useAuth.ts`)
+
+### Imports (organized by type)
+
+```typescript
+// 1. External libraries
+import { useState, useCallback } from 'react';
+import { Button, Form } from 'antd';
+
+// 2. Internal modules
+import { useAuthStore } from '../store';
+import { authService } from '../services';
+import type { LoginRequest } from '../types';
+```
+
+### Type Definitions
+
+```typescript
+// Use interface for object shapes
+interface UserProfile {
+  id: string;
+  email: string;
+  createdAt: Date;
+}
+
+// Use type for unions or complex types
+type ApiResponse<T> = {
+  data: T;
+  success: boolean;
+};
+```
+
+### Error Handling
+
+```typescript
+try {
+  const response = await authService.login(data);
+  setAuth(response.data);
+} catch (err: unknown) {
+  const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+  setError(errorMessage);
+} finally {
+  setIsLoading(false);
+}
+```
+
+### React Patterns
+
+```typescript
+// Use useCallback for functions passed to children/effects
+const handleSubmit = useCallback(
+  async (values: LoginRequest) => {
+    // implementation
+  },
+  [setAuth]
+);
+
+// Custom hooks with 'use' prefix
+function useAuth() {
+  // implementation
+}
+```
+
+### ESLint Configuration
+
+```javascript
+// eslint.config.js
+import js from '@eslint/js';
+import tseslint from 'typescript-eslint';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
+import prettier from 'eslint-plugin-prettier';
+```
+
+### Prettier Configuration
+
+```json
+{
+  "semi": true,
+  "trailingComma": "es5",
+  "singleQuote": true,
+  "printWidth": 100,
+  "tabWidth": 2,
+  "useTabs": false
+}
+```
+
+## Environment Variables
+
+Create `.env` file in frontend root:
+
+```
+VITE_API_BASE_URL=http://localhost:8000
+VITE_CONTRACT_ADDRESS=0x...
+```
+
+Note: Vite requires `VITE_` prefix for env variables to be exposed to client code.
+
+## Testing
+
+- React Testing Library (not yet configured)
+- Test user interactions, not implementation details
+- Mock API calls and Web3 providers
