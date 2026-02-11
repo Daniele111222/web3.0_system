@@ -167,7 +167,7 @@ const Auth = ({ initialMode = 'login', onAuthSuccess }: AuthProps) => {
             <span>企业级安全</span>
           </div>
         </div>
-        <p className="copyright">© 2025 IP-NFT Platform. All rights reserved.</p>
+        <p className="copyright">© 2026 IP-NFT Platform. All rights reserved.</p>
       </div>
     </div>
   );

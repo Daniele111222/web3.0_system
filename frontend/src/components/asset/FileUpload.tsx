@@ -1,5 +1,5 @@
 import { useState, useRef, type DragEvent, type ChangeEvent } from 'react';
-import './Asset.css';
+import './Asset.less';
 
 interface FileInfo {
   file: File;

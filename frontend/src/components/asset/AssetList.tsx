@@ -1,5 +1,5 @@
 import type { Asset } from '../../types';
-import './Asset.css';
+import './Asset.less';
 
 interface AssetListProps {
   assets: Asset[];

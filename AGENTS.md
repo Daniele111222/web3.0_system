@@ -4,33 +4,34 @@ Guidelines for agentic coding assistants working on this Web3 IP-NFT Enterprise 
 
 ## Project Structure
 
-- `backend/` - FastAPI (Python) REST API with PostgreSQL
 - `frontend/` - React 19 + TypeScript + Vite with Web3 integration
+- `backend/` - FastAPI (Python) REST API with PostgreSQL
 - `contracts/` - Solidity smart contracts (Hardhat)
 
 ## Build, Lint, and Test Commands
-
-### Backend (Python/FastAPI)
-
-```bash
-cd backend
-pip install -r requirements.txt
-pytest
-pytest tests/test_auth.py::test_login          # single test
-pytest --cov=app --cov-report=html             # coverage
-uvicorn app.main:app --reload                    # dev server
-```
 
 ### Frontend (React/TypeScript)
 
 ```bash
 cd frontend
 npm install
-npm run dev
-npm run build
-npm run lint
-tsc -b                                            # type check
-npm run preview
+npm run dev                                      # Development server
+npm run build                                    # Production build
+npm run lint                                     # Run ESLint
+npm run lint -- --fix                            # Auto-fix ESLint issues
+tsc -b                                            # Type check
+npm run preview                                  # Preview production build
+```
+
+### Backend (Python/FastAPI)
+
+```bash
+cd backend
+pip install -r requirements.txt
+pytest                                           # Run all tests
+pytest tests/test_auth.py::test_login            # Run single test
+pytest --cov=app --cov-report=html               # Coverage report
+uvicorn app.main:app --reload                    # Dev server
 ```
 
 ### Contracts (Solidity/Hardhat)
@@ -40,83 +41,123 @@ cd contracts
 npm install
 npm run compile
 npm run test
-hardhat test --grep "Should mint a new NFT"      # single test
+hardhat test --grep "Should mint a new NFT"      # Single test
 npm run test:coverage
-npm run node                                      # local node
+npm run node                                     # Local node
 npm run deploy:localhost
 ```
 
 ## Code Style Guidelines
 
-### Python (Backend)
-
-**Imports**: Standard library → Third-party → Local (blank line between sections)
-
-**Naming**: `snake_case` functions/variables, `PascalCase` classes, `UPPER_SNAKE_CASE` constants, `_leading_underscore` private
-
-**Type Hints**: Always use for parameters and returns
-
-```python
-async def get_user(user_id: UUID) -> Optional[User]: ...
-```
-
-**Docstrings**: Google-style for modules, classes, functions
-
-**Error Handling**: Custom exceptions, specific catches, HTTPException with proper status codes
-
-**Database**: SQLAlchemy 2.0 async with `Mapped`/`mapped_column`, all DB operations async
-
 ### TypeScript/React (Frontend)
 
-**Imports**: External → Internal, organized by type
+**Imports**: Organized by type - External libraries first, then internal modules
 
-**Naming**: `PascalCase` components, `camelCase` functions/variables, `PascalCase` types, `UPPER_SNAKE_CASE` constants
+```typescript
+// 1. External libraries
+import { useState, useCallback } from "react";
+import { Button, Form } from "antd";
 
-**Types**: Explicit typing, use `interface` for object shapes
+// 2. Internal modules
+import { useAuthStore } from "../store";
+import { authService } from "../services";
+import type { LoginRequest } from "../types";
+```
 
-**Error Handling**: `try-catch-finally`, type guard for error objects
+**Naming**:
 
-**React**: `useCallback` for functions passed to children, custom hooks with `use` prefix
+- `PascalCase` for components (e.g., `LoginForm.tsx`)
+- `camelCase` for functions/variables (e.g., `handleSubmit`)
+- `PascalCase` for types/interfaces (e.g., `UserData`)
+- `UPPER_SNAKE_CASE` for constants (e.g., `API_BASE_URL`)
+- `use` prefix for hooks (e.g., `useAuth.ts`)
+
+**Types**: Explicit typing preferred, use `interface` for object shapes
+
+```typescript
+interface UserProfile {
+  id: string;
+  email: string;
+  createdAt: Date;
+}
+
+type ApiResponse<T> = {
+  data: T;
+  success: boolean;
+};
+```
+
+**Error Handling**: Use `try-catch-finally`, type guard for error objects
+
+```typescript
+try {
+  const response = await authService.login(data);
+  setAuth(response.data);
+} catch (err: unknown) {
+  const errorMessage = err instanceof Error ? err.message : "Unknown error";
+  setError(errorMessage);
+} finally {
+  setIsLoading(false);
+}
+```
+
+**React Patterns**:
+
+- Use `useCallback` for functions passed to children/effects
+- Custom hooks with `use` prefix
+
+```typescript
+const handleSubmit = useCallback(
+  async (values: LoginRequest) => {
+    // implementation
+  },
+  [setAuth],
+);
+```
 
 **Formatting** (Prettier): Single quotes, semicolons, trailing commas ES5, print width 100, 2-space indent
 
-### Solidity (Contracts)
+### ESLint Configuration
 
-**Naming**: `PascalCase` contracts, `camelCase` public/external functions, `_leadingUnderscore` internal/private, `PascalCase` events, `UPPER_SNAKE_CASE` constants
+```javascript
+// eslint.config.js
+import js from "@eslint/js";
+import tseslint from "typescript-eslint";
+import reactHooks from "eslint-plugin-react-hooks";
+import reactRefresh from "eslint-plugin-react-refresh";
+import prettier from "eslint-plugin-prettier";
+```
 
-**Pragma**: `^0.8.20`, optimizer 200 runs
+### Prettier Configuration
 
-**Documentation**: NatSpec for all external/public functions
+```json
+{
+  "semi": true,
+  "trailingComma": "es5",
+  "singleQuote": true,
+  "printWidth": 100,
+  "tabWidth": 2,
+  "useTabs": false
+}
+```
 
-**Security**: OpenZeppelin Ownable/ReentrancyGuard, `require()` validation, `nonReentrant` for state-changing functions
+## Environment Variables
 
-## Testing Guidelines
+Create `.env` file in frontend root:
 
-### Backend
+```
+VITE_API_BASE_URL=http://localhost:8000
+VITE_CONTRACT_ADDRESS=0x...
+```
 
-- `@pytest.mark.anyio` for async tests
-- Use `conftest.py` fixtures
-- Mock external services
+Note: Vite requires `VITE_` prefix for env variables to be exposed to client code.
 
-### Frontend
+## Testing
 
 - React Testing Library (not yet configured)
-- Test user interactions
-- Mock APIs/Web3 providers
+- Test user interactions, not implementation details
+- Mock API calls and Web3 providers
 
-### Contracts
+---
 
-- Fresh contract in `beforeEach()`
-- Test all `require` reverts
-- Verify event emissions
-- Use `--grep` for single tests
-
-## Environment Configuration
-
-Create `.env` files in each directory:
-
-- Backend: `DATABASE_URL`, `JWT_SECRET`, `WEB3_PROVIDER_URL`
-- Frontend: `VITE_API_BASE_URL`, `VITE_CONTRACT_ADDRESS`
-- Contracts: `PRIVATE_KEY`, RPC URLs, explorer API keys
-
-Never commit `.env` files.
+Last updated: 2026-02-11

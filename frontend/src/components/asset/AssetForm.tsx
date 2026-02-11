@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import type { AssetType, LegalStatus } from '../../types';
 import type { AssetCreateRequest } from '../../services/asset';
-import './Asset.css';
+import './Asset.less';
 
 interface AssetFormProps {
   onSubmit: (data: AssetCreateRequest) => Promise<void>;
