@@ -29,6 +29,8 @@ class EnterpriseRepository:
         """
         创建新企业。
         
+        注意：此方法不自行提交事务，由调用方管理。
+        
         Args:
             enterprise (Enterprise): 企业模型实例。
             
@@ -36,7 +38,7 @@ class EnterpriseRepository:
             Enterprise: 创建后的企业实例（包含生成的 ID）。
         """
         self.db.add(enterprise)
-        await self.db.commit()
+        await self.db.flush()
         await self.db.refresh(enterprise)
         return enterprise
     
@@ -295,6 +297,8 @@ class EnterpriseMemberRepository:
         """
         创建企业成员关系。
         
+        注意：此方法不自行提交事务，由调用方管理。
+        
         Args:
             member (EnterpriseMember): 成员关系模型实例。
             
@@ -302,7 +306,7 @@ class EnterpriseMemberRepository:
             EnterpriseMember: 创建后的成员关系实例。
         """
         self.db.add(member)
-        await self.db.commit()
+        await self.db.flush()
         await self.db.refresh(member)
         return member
     

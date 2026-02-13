@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP-NFT管理平台 - 项目开发概览</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section h2 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .section h3 {
+            color: #764ba2;
+            font-size: 1.4em;
+            margin: 20px 0 15px 0;
+        }
+        
+        .tech-stack {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .tech-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .tech-card h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .tech-card ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .tech-card li {
+            padding: 5px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .tech-card li:before {
+            content: "▸";
+            position: absolute;
+            left: 0;
+            color: #764ba2;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .feature-card {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            padding: 25px;
+            border-radius: 8px;
+            transition: transform 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .feature-card h4 {
+            color: #667eea;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+        
+        .phase {
+            background: #f8f9fa;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 5px solid #764ba2;
+        }
+        
+        .phase h4 {
+            color: #764ba2;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+        }
+        
+        .phase ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .phase li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+        
+        .phase li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .phase li.pending:before {
+            content: "○";
+            color: #6c757d;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .status-completed {
+            background: #28a745;
+            color: white;
+        }
+        
+        .status-progress {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .status-pending {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .architecture-diagram {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .layer {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+        }
+        
+        .layer h5 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .highlight {
+            background: #fff3cd;
+            padding: 15px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎨 IP-NFT 管理平台</h1>
+            <p>企业知识产权区块链资产管理系统 - 开发概览</p>
+        </header>
+        
+        <div class="content">
+            <!-- 项目概述 -->
+            <div class="section">
+                <h2>📋 项目概述</h2>
+                <p>本系统是一个基于Web3的企业知识产权管理DApp，通过NFT技术将传统IP资产（专利、商标、版权、商业秘密、数字作品）数字化为区块链上的NFT，实现资产确权、流转和商业化。</p>
+                
+                <div class="highlight">
+                    <strong>核心价值：</strong>将无形资产转化为可交易、可追溯、可融资的数字资产，为企业知识产权管理提供全新的解决方案。
+                </div>
+            </div>
+            
+            <!-- 技术栈 -->
+            <div class="section">
+                <h2>🛠️ 技术栈</h2>
+                <div class="tech-stack">
+                    <div class="tech-card">
+                        <h4>前端技术</h4>
+                        <ul>
+                            <li>React 19 + TypeScript 5.9</li>
+                            <li>Vite 7.x 构建工具</li>
+                            <li>Zustand 5.x 状态管理</li>
+                            <li>React Router 7.x 路由</li>
+                            <li>Ethers.js 6.x 区块链交互</li>
+                            <li>Axios HTTP客户端</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="tech-card">
+                        <h4>后端技术</h4>
+                        <ul>
+                            <li>Python 3.11+</li>
+                            <li>FastAPI 0.115.x</li>
+                            <li>SQLAlchemy 2.0 (异步ORM)</li>
+                            <li>PostgreSQL 14+ 数据库</li>
+                            <li>Alembic 数据库迁移</li>
+                            <li>Web3.py 7.x 区块链</li>
+                            <li>pytest + Hypothesis 测试</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="tech-card">
+                        <h4>智能合约</h4>
+                        <ul>
+                            <li>Solidity ^0.8.20</li>
+                            <li>Hardhat 开发框架</li>
+                            <li>OpenZeppelin Contracts 5.x</li>
+                            <li>ERC-721 NFT标准</li>
+                            <li>ERC-2981 版税标准</li>
+                            <li>Chai + Hardhat测试</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="tech-card">
+                        <h4>基础设施</h4>
+                        <ul>
+                            <li>IPFS 去中心化存储</li>
+                            <li>Ethereum/Polygon/BSC</li>
+                            <li>JWT 认证</li>
+                            <li>bcrypt 密码加密</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 系统架构 -->
+            <div class="section">
+                <h2>🏗️ 系统架构</h2>
+                <div class="architecture-diagram">
+                    <div class="layer">
+                        <h5>表现层 (Presentation Layer)</h5>
+                        <p>React组件 | 自定义Hooks | 状态管理</p>
+                    </div>
+                    <div class="layer">
+                        <h5>应用层 (Application Layer)</h5>
+                        <p>FastAPI控制器 | 业务服务 | API路由</p>
+                    </div>
+                    <div class="layer">
+                        <h5>领域层 (Domain Layer)</h5>
+                        <p>数据模型 | 智能合约 | 业务逻辑</p>
+                    </div>
+                    <div class="layer">
+                        <h5>基础设施层 (Infrastructure Layer)</h5>
+                        <p>PostgreSQL | IPFS | 区块链节点</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 核心功能 -->
+            <div class="section">
+                <h2>✨ 核心功能模块</h2>
+                <div class="features">
+                    <div class="feature-card">
+                        <h4>🔐 用户认证系统</h4>
+                        <p>JWT令牌认证、邮箱注册登录、Web3钱包绑定、密码重置、令牌刷新机制</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>🏢 企业组织管理</h4>
+                        <p>多租户企业架构、成员邀请管理、角色权限控制、企业信息维护</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>📝 IP资产录入</h4>
+                        <p>资产元数据管理、IPFS文件存储、多类型资产支持、草稿编辑功能</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>🎨 NFT铸造</h4>
+                        <p>ERC-721标准铸造、元数据上链、交易哈希记录、多链支持</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>📊 权属看板</h4>
+                        <p>资产列表展示、多维度筛选、状态实时同步、数据统计分析</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>🔄 权属转移</h4>
+                        <p>NFT所有权转移、权限验证、链上链下同步、转移事件记录</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>📜 历史溯源</h4>
+                        <p>完整事件链追踪、时间线可视化、交易详情查询、生命周期管理</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>💼 商业化功能（选做）</h4>
+                        <p>授权许可管理、版税自动分成、质押融资、二级市场集成</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 开发进度 -->
+            <div class="section">
+                <h2>📈 开发进度</h2>
+                
+                <div class="phase">
+                    <h4>Phase 1: 项目基础架构 <span class="status-badge status-completed">已完成</span></h4>
+                    <ul>
+                        <li>前端React+TypeScript项目初始化</li>
+                        <li>后端FastAPI项目结构搭建</li>
+                        <li>PostgreSQL数据库配置</li>
+                        <li>Hardhat智能合约项目初始化</li>
+                    </ul>
+                </div>
+                
+                <div class="phase">
+                    <h4>Phase 2: 用户认证系统 <span class="status-badge status-progress">进行中</span></h4>
+                    <ul>
+                        <li>用户数据模型创建</li>
+                        <li>密码哈希和JWT工具实现</li>
+                        <li>注册/登录API端点</li>
+                        <li>钱包绑定功能</li>
+                        <li>前端认证页面</li>
+                        <li class="pending">数据库迁移脚本</li>
+                        <li class="pending">属性测试：认证凭据验证</li>
+                        <li class="pending">属性测试：JWT令牌有效性</li>
+                        <li class="pending">单元测试</li>
+                    </ul>
+                </div>
+                
+                <div class="phase">
+                    <h4>Phase 3: 企业与组织管理 <span class="status-badge status-completed">已完成</span></h4>
+                    <ul>
+                        <li>企业数据模型</li>
+                        <li>企业CRUD API</li>
+                        <li>成员管理API</li>
+                        <li>前端企业管理页面</li>
+                    </ul>
+                </div>
+                
+                <div class="phase">
+                    <h4>Phase 4: IP资产录入 <span class="status-badge status-completed">已完成</span></h4>
+                    <ul>
+                        <li>资产数据模型</li>
+                        <li>IPFS存储服务</li>
+                        <li>资产元数据验证</li>
+                        <li>资产CRUD API</li>
+                        <li>前端资产录入页面</li>
+                    </ul>
+                </div>
+                
+                <div class="phase">
+                    <h4>Phase 5: 智能合约开发 <span class="status-badge status-progress">进行中</span></h4>
+                    <ul>
+                        <li>ERC-721基础合约</li>
+                        <li>ERC-2981版税支持</li>
+                        <li>智能合约测试</li>
+                        <li class="pending">NFT元数据序列化工具</li>
+                        <li class="pending">属性测试：元数据Round-Trip</li>
+                        <li class="pending">合约模糊测试</li>
+                        <li class="pending">测试网部署</li>
+                    </ul>
+                </div>
+                
+                <div class="phase">
+                    <h4>Phase 6: NFT铸造功能 <span class="status-badge status-pending">待开发</span></h4>
+                    <ul class="pending">
+                        <li class="pending">区块链服务实现</li>
+                        <li class="pending">NFT铸造API</li>
+                        <li class="pending">元数据上传IPFS</li>
+                        <li class="pending">前端铸造页面</li>
+                        <li class="pending">属性测试和单元测试</li>
+                    </ul>
+                </div>
+                
+                <div class="phase">
+                    <h4>Phase 7: 权属看板 <span class="status-badge status-pending">待开发</span></h4>
+                    <ul class="pending">
+                        <li class="pending">资产列表查询API</li>
+                        <li class="pending">多条件筛选功能</li>
+                        <li class="pending">前端看板页面</li>
+                        <li class="pending">属性测试和单元测试</li>
+                    </ul>
+                </div>
+                
+                <div class="phase">
+                    <h4>Phase 8: 权属转移与溯源 <span class="status-badge status-pending">待开发</span></h4>
+                    <ul class="pending">
+                        <li class="pending">NFT事件数据模型</li>
+                        <li class="pending">NFT转移API</li>
+                        <li class="pending">历史溯源API</li>
+                        <li class="pending">前端转移和溯源页面</li>
+                        <li class="pending">属性测试和单元测试</li>
+                    </ul>
+                </div>
+                
+                <div class="phase">
+                    <h4>Phase 9: 商业化功能（选做） <span class="status-badge status-pending">待开发</span></h4>
+                    <ul class="pending">
+                        <li class="pending">商业化授权模块</li>
+                        <li class="pending">版税分成模块</li>
+                        <li class="pending">质押融资模块</li>
+                    </ul>
+                </div>
+                
+                <div class="phase">
+                    <h4>Phase 10: 集成与优化 <span class="status-badge status-progress">部分完成</span></h4>
+                    <ul>
+                        <li>前端路由和导航</li>
+                        <li>前端状态管理</li>
+                        <li class="pending">API错误处理</li>
+                        <li class="pending">Web3连接管理</li>
+                        <li class="pending">E2E测试</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- 测试策略 -->
+            <div class="section">
+                <h2>🧪 测试策略</h2>
+                <h3>双重测试方法</h3>
+                <div class="tech-stack">
+                    <div class="tech-card">
+                        <h4>单元测试</h4>
+                        <ul>
+                            <li>验证特定示例和边界情况</li>
+                            <li>测试组件间集成点</li>
+                            <li>验证错误处理逻辑</li>
+                            <li>测试具体业务场景</li>
+                        </ul>
+                        <p style="margin-top: 10px;"><strong>工具：</strong>pytest (后端), Jest (前端), Chai (合约)</p>
+                    </div>
+                    
+                    <div class="tech-card">
+                        <h4>属性基测试 (PBT)</h4>
+                        <ul>
+                            <li>验证跨所有输入的通用属性</li>
+                            <li>发现边界条件和极端情况</li>
+                            <li>验证数据转换正确性</li>
+                            <li>测试不变量保持</li>
+                        </ul>
+                        <p style="margin-top: 10px;"><strong>工具：</strong>Hypothesis (后端), fast-check (前端), Foundry (合约)</p>
+                    </div>
+                </div>
+                
+                <h3 style="margin-top: 30px;">15个核心正确性属性</h3>
+                <div class="highlight">
+                    <p>系统定义了15个关键的正确性属性，涵盖认证、权限、资产管理、NFT操作等核心功能，通过属性基测试确保系统在各种输入下的正确性。</p>
+                </div>
+            </div>
+            
+            <!-- 数据模型 -->
+            <div class="section">
+                <h2>🗄️ 核心数据模型</h2>
+                <div class="features">
+                    <div class="feature-card">
+                        <h4>User (用户)</h4>
+                        <p>id, email, password_hash, name, wallet_address, email_verified, created_at, updated_at</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>Enterprise (企业)</h4>
+                        <p>id, name, description, logo_url, created_at, updated_at</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>Asset (资产)</h4>
+                        <p>id, enterprise_id, creator_user_id, name, type, description, creator_name, creation_date, legal_status, metadata, status, nft_token_id, nft_contract_address</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>Attachment (附件)</h4>
+                        <p>id, asset_id, file_name, file_type, ipfs_cid, file_size, uploaded_at</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>NFTEvent (NFT事件)</h4>
+                        <p>id, asset_id, event_type, transaction_hash, from_address, to_address, details, event_time</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>RefreshToken (刷新令牌)</h4>
+                        <p>id, user_id, token, expires_at, is_revoked, created_at</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 项目亮点 -->
+            <div class="section">
+                <h2>🌟 项目亮点</h2>
+                <div class="features">
+                    <div class="feature-card">
+                        <h4>🔗 链上链下协同</h4>
+                        <p>智能合约负责核心资产逻辑，后端负责业务编排，实现高效的混合架构</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>🛡️ 双重认证机制</h4>
+                        <p>传统JWT认证与Web3钱包绑定分离，兼顾安全性和合规性</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>📦 去中心化存储</h4>
+                        <p>IPFS存储元数据和文件，确保数据永久性和抗审查性</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>🧪 严格测试保障</h4>
+                        <p>单元测试+属性基测试双重保障，15个核心正确性属性验证</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>🏗️ 分层架构设计</h4>
+                        <p>清晰的表现层、应用层、领域层、基础设施层分离</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>🌐 多链支持</h4>
+                        <p>支持Ethereum、Polygon、BSC等多条区块链网络</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 资产类型 -->
+            <div class="section">
+                <h2>📂 支持的资产类型</h2>
+                <div class="tech-stack">
+                    <div class="tech-card">
+                        <h4>PATENT (专利)</h4>
+                        <p>发明专利、实用新型专利、外观设计专利</p>
+                    </div>
+                    <div class="tech-card">
+                        <h4>TRADEMARK (商标)</h4>
+                        <p>文字商标、图形商标、组合商标</p>
+                    </div>
+                    <div class="tech-card">
+                        <h4>COPYRIGHT (版权)</h4>
+                        <p>文学作品、音乐作品、美术作品</p>
+                    </div>
+                    <div class="tech-card">
+                        <h4>TRADE_SECRET (商业秘密)</h4>
+                        <p>技术秘密、经营秘密</p>
+                    </div>
+                    <div class="tech-card">
+                        <h4>DIGITAL_WORK (数字作品)</h4>
+                        <p>数字艺术、NFT艺术品</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2026 IP-NFT管理平台 | 基于Web3的企业知识产权管理解决方案</p>
+            <p style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">
+                技术栈: React + FastAPI + Solidity + PostgreSQL + IPFS
+            </p>
+        </footer>
+    </div>
+</body>
+</html>
