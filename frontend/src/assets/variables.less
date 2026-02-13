@@ -1,0 +1,362 @@
+/**
+ * IP-NFT Design System Variables
+ * Future Tech Luxury Theme - Dark Aurora
+ * 
+ * This file contains all design tokens used across the application.
+ * Import this file in your component styles to maintain consistency.
+ */
+
+/* ============================================
+   PRIMARY COLORS - Aurora Teal to Purple
+   ============================================ */
+:root {
+  --color-primary: #00d4aa;
+  --color-primary-light: #5ff5d4;
+  --color-primary-dark: #00a884;
+  --color-primary-alpha-10: rgba(0, 212, 170, 0.1);
+  --color-primary-alpha-20: rgba(0, 212, 170, 0.2);
+  --color-primary-alpha-30: rgba(0, 212, 170, 0.3);
+
+  --color-secondary: #7c3aed;
+  --color-secondary-light: #a78bfa;
+  --color-secondary-dark: #5b21b6;
+  --color-secondary-alpha-10: rgba(124, 58, 237, 0.1);
+  --color-secondary-alpha-15: rgba(124, 58, 237, 0.15);
+  --color-secondary-alpha-20: rgba(124, 58, 237, 0.2);
+  --color-secondary-alpha-30: rgba(124, 58, 237, 0.3);
+
+  /* ============================================
+     ACCENT COLORS
+     ============================================ */
+  --color-accent-cyan: #06b6d4;
+  --color-accent-cyan-alpha-25: rgba(6, 182, 212, 0.25);
+  --color-accent-blue: #3b82f6;
+  --color-accent-pink: #ec4899;
+  --color-accent-orange: #f97316;
+
+  /* Semantic Colors */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-error-light: #f87171;
+  --color-error-alpha-10: rgba(239, 68, 68, 0.1);
+  --color-error-alpha-30: rgba(239, 68, 68, 0.3);
+  --color-info: #3b82f6;
+
+  /* ============================================
+     BACKGROUND COLORS
+     ============================================ */
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #12121a;
+  --bg-tertiary: #1a1a25;
+  --bg-quaternary: #232330;
+  --bg-card: rgba(26, 26, 37, 0.6);
+  --bg-glass: rgba(255, 255, 255, 0.03);
+  --bg-glass-hover: rgba(255, 255, 255, 0.05);
+  --bg-input: #0f0f16;
+
+  /* ============================================
+     TEXT COLORS
+     ============================================ */
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.8);
+  --text-tertiary: rgba(255, 255, 255, 0.5);
+  --text-muted: rgba(255, 255, 255, 0.3);
+  --text-disabled: rgba(255, 255, 255, 0.2);
+
+  /* ============================================
+     BORDER COLORS
+     ============================================ */
+  --border-primary: rgba(255, 255, 255, 0.1);
+  --border-secondary: rgba(255, 255, 255, 0.05);
+  --border-tertiary: rgba(255, 255, 255, 0.03);
+  --border-glow: rgba(0, 212, 170, 0.3);
+  --border-focus: rgba(0, 212, 170, 0.5);
+
+  /* ============================================
+     GRADIENTS
+     ============================================ */
+  --gradient-primary: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  --gradient-primary-hover: linear-gradient(
+    135deg,
+    var(--color-primary-light),
+    var(--color-secondary-light)
+  );
+  --gradient-aurora: linear-gradient(135deg, #00d4aa20, #7c3aed20, #06b6d420);
+  --gradient-glow: radial-gradient(circle at 50% 50%, var(--color-primary) 0%, transparent 70%);
+  --gradient-text: linear-gradient(
+    135deg,
+    #ffffff 0%,
+    var(--color-primary-light) 50%,
+    var(--color-secondary-light) 100%
+  );
+  --gradient-border: linear-gradient(135deg, rgba(0, 212, 170, 0.5), rgba(124, 58, 237, 0.5));
+  --gradient-shine: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  --gradient-error: linear-gradient(135deg, #ef4444, #dc2626);
+  --gradient-success: linear-gradient(135deg, #10b981, #059669);
+
+  /* ============================================
+     SHADOWS
+     ============================================ */
+  --shadow-glow: 0 0 40px rgba(0, 212, 170, 0.3);
+  --shadow-glow-lg: 0 0 60px rgba(0, 212, 170, 0.4);
+  --shadow-card: 0 25px 50px rgba(0, 0, 0, 0.5);
+  --shadow-card-hover: 0 30px 60px rgba(0, 0, 0, 0.6);
+  --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.3);
+  --shadow-inset: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-focus: 0 0 0 3px rgba(0, 212, 170, 0.15);
+  --shadow-error: 0 0 0 3px rgba(239, 68, 68, 0.15);
+
+  /* ============================================
+     SPACING SCALE
+     ============================================ */
+  --space-0: 0;
+  --space-px: 1px;
+  --space-0-5: 0.125rem;
+  --space-1: 0.25rem;
+  --space-1-5: 0.375rem;
+  --space-2: 0.5rem;
+  --space-2-5: 0.625rem;
+  --space-3: 0.75rem;
+  --space-3-5: 0.875rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-7: 1.75rem;
+  --space-8: 2rem;
+  --space-9: 2.25rem;
+  --space-10: 2.5rem;
+  --space-11: 2.75rem;
+  --space-12: 3rem;
+  --space-14: 3.5rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+  --space-28: 7rem;
+  --space-32: 8rem;
+  --space-36: 9rem;
+  --space-40: 10rem;
+  --space-44: 11rem;
+  --space-48: 12rem;
+  --space-52: 13rem;
+  --space-56: 14rem;
+  --space-60: 15rem;
+  --space-64: 16rem;
+  --space-72: 18rem;
+  --space-80: 20rem;
+  --space-96: 24rem;
+
+  /* Common aliases */
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+  --space-4xl: 6rem;
+  --space-5xl: 8rem;
+
+  /* ============================================
+     TYPOGRAPHY
+     ============================================ */
+  --font-sans:
+    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Monaco, monospace;
+
+  /* Font Sizes */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 0.9375rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --text-5xl: 3rem;
+  --text-6xl: 3.75rem;
+  --text-7xl: 4.5rem;
+  --text-8xl: 6rem;
+  --text-9xl: 8rem;
+
+  /* Font Weights */
+  --font-thin: 100;
+  --font-extralight: 200;
+  --font-light: 300;
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  --font-extrabold: 800;
+  --font-black: 900;
+
+  /* Line Heights */
+  --leading-none: 1;
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+  --leading-loose: 2;
+
+  /* Letter Spacing */
+  --tracking-tighter: -0.05em;
+  --tracking-tight: -0.025em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.025em;
+  --tracking-wider: 0.05em;
+  --tracking-widest: 0.1em;
+
+  /* ============================================
+     BORDER RADIUS
+     ============================================ */
+  --rounded-none: 0;
+  --rounded-sm: 0.125rem;
+  --rounded: 0.25rem;
+  --rounded-md: 0.375rem;
+  --rounded-lg: 0.5rem;
+  --rounded-xl: 0.75rem;
+  --rounded-2xl: 1rem;
+  --rounded-3xl: 1.5rem;
+  --rounded-full: 9999px;
+
+  /* Aliases */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* ============================================
+     Z-INDEX SCALE
+     ============================================ */
+  --z-hide: -1;
+  --z-auto: auto;
+  --z-base: 0;
+  --z-docked: 10;
+  --z-dropdown: 1000;
+  --z-sticky: 1100;
+  --z-banner: 1200;
+  --z-overlay: 1300;
+  --z-modal: 1400;
+  --z-popover: 1500;
+  --z-skip-link: 1600;
+  --z-toast: 1700;
+  --z-tooltip: 1800;
+  --z-maximum: 2147483647;
+
+  /* ============================================
+     TRANSITIONS & ANIMATIONS
+     ============================================ */
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.25s ease;
+  --transition-slow: 0.4s ease;
+  --transition-slower: 0.6s ease;
+  --transition-bounce: 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-spring: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  /* Easing Functions */
+  --ease-linear: linear;
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ============================================
+     BLUR & BACKDROP FILTERS
+     ============================================ */
+  --blur-none: 0;
+  --blur-sm: 4px;
+  --blur: 8px;
+  --blur-md: 12px;
+  --blur-lg: 16px;
+  --blur-xl: 24px;
+  --blur-2xl: 40px;
+  --blur-3xl: 64px;
+
+  /* ============================================
+     OPACITY SCALE
+     ============================================ */
+  --opacity-0: 0;
+  --opacity-5: 0.05;
+  --opacity-10: 0.1;
+  --opacity-15: 0.15;
+  --opacity-20: 0.2;
+  --opacity-25: 0.25;
+  --opacity-30: 0.3;
+  --opacity-40: 0.4;
+  --opacity-50: 0.5;
+  --opacity-60: 0.6;
+  --opacity-70: 0.7;
+  --opacity-75: 0.75;
+  --opacity-80: 0.8;
+  --opacity-90: 0.9;
+  --opacity-95: 0.95;
+  --opacity-100: 1;
+
+  /* ============================================
+     BREAKPOINTS (for reference in JS/TS)
+     ============================================ */
+  --bp-xs: 0;
+  --bp-sm: 640px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1280px;
+  --bp-2xl: 1536px;
+
+  /* ============================================
+     CONTAINER WIDTHS
+     ============================================ */
+  --container-xs: 20rem; /* 320px */
+  --container-sm: 24rem; /* 384px */
+  --container-md: 28rem; /* 448px */
+  --container-lg: 32rem; /* 512px */
+  --container-xl: 36rem; /* 576px */
+  --container-2xl: 42rem; /* 672px */
+  --container-3xl: 48rem; /* 768px */
+  --container-4xl: 56rem; /* 896px */
+  --container-5xl: 64rem; /* 1024px */
+  --container-6xl: 72rem; /* 1152px */
+  --container-7xl: 80rem; /* 1280px */
+  --container-full: 100%;
+}
+
+/* ============================================
+   DARK THEME (default)
+   ============================================ */
+[data-theme='dark'],
+:root {
+  color-scheme: dark;
+}
+
+/* ============================================
+   LIGHT THEME (optional, for future use)
+   ============================================ */
+[data-theme='light'] {
+  color-scheme: light;
+  /* Light theme variables would go here */
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: 0.01ms;
+    --transition-base: 0.01ms;
+    --transition-slow: 0.01ms;
+    --transition-bounce: 0.01ms;
+    --transition-spring: 0.01ms;
+  }
+}
+
+/* ============================================
+   HIGH CONTRAST MODE
+   ============================================ */
+@media (prefers-contrast: high) {
+  :root {
+    --border-primary: rgba(255, 255, 255, 0.3);
+    --border-secondary: rgba(255, 255, 255, 0.2);
+    --text-secondary: rgba(255, 255, 255, 0.9);
+    --text-tertiary: rgba(255, 255, 255, 0.7);
+  }
+}

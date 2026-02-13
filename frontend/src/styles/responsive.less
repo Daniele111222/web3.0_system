@@ -1,0 +1,112 @@
+/* ===== Responsive Design ===== */
+/* Media queries and responsive utilities */
+
+/* ========================================
+   Container Queries
+   ======================================== */
+.container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .container {
+    max-width: var(--container-sm);
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: var(--container-md);
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    max-width: var(--container-lg);
+  }
+}
+
+@media (min-width: 1280px) {
+  .container {
+    max-width: var(--container-xl);
+  }
+}
+
+@media (min-width: 1536px) {
+  .container {
+    max-width: var(--container-2xl);
+  }
+}
+
+/* ========================================
+   Responsive Typography
+   ======================================== */
+@media (max-width: 768px) {
+  :root {
+    --text-4xl: 1.875rem;
+    --text-3xl: 1.5rem;
+    --text-2xl: 1.25rem;
+  }
+
+  h1 {
+    font-size: var(--text-3xl);
+  }
+
+  h2 {
+    font-size: var(--text-2xl);
+  }
+
+  h3 {
+    font-size: var(--text-xl);
+  }
+
+  h4 {
+    font-size: var(--text-lg);
+  }
+
+  h5 {
+    font-size: var(--text-base);
+  }
+}
+
+/* ========================================
+   Responsive Buttons
+   ======================================== */
+@media (max-width: 768px) {
+  .btn {
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--text-sm);
+  }
+
+  .btn-lg {
+    padding: var(--space-3) var(--space-5);
+    font-size: var(--text-base);
+  }
+
+  .btn-xl {
+    padding: var(--space-4) var(--space-6);
+    font-size: var(--text-lg);
+  }
+}
+
+@media (max-width: 480px) {
+  .btn {
+    width: 100%;
+  }
+
+  .btn-group {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .btn-group .btn,
+  .btn-group .btn:first-child,
+  .btn-group .btn:last-child {
+    border-radius: var(--radius-lg);
+    width: 100%;
+  }
+}

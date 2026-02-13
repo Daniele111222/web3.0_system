@@ -189,7 +189,7 @@ class AssetRepository:
         result = await self.db.execute(
             select(Attachment)
             .where(Attachment.asset_id == asset_id)
-            .order_by(Attachment.uploaded_at.desc())
+            .order_by(Attachment.created_at.desc())
         )
         return list(result.scalars().all())
     

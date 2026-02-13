@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import init_db
 from app.core.rate_limiter import RateLimitMiddleware
+from app.core.handlers import register_exception_handlers
 from app.api.v1.router import api_router
 
 
@@ -41,6 +42,9 @@ def create_app() -> FastAPI:
     
     # Add rate limiting middleware
     app.add_middleware(RateLimitMiddleware)
+    
+    # Register exception handlers
+    register_exception_handlers(app)
     
     # Include API router
     app.include_router(api_router)

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { EnterpriseList } from '../../components/enterprise/EnterpriseList';
 import { EnterpriseDetail } from '../../components/enterprise/EnterpriseDetail';
-import './index.css';
+import './index.less';
 
 const Enterprise = () => {
   const [selectedEnterpriseId, setSelectedEnterpriseId] = useState<string | null>(null);

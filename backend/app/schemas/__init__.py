@@ -1,4 +1,10 @@
 """Pydantic 请求/响应架构。"""
+from app.schemas.response import (
+    ApiResponse,
+    ApiError,
+    PageResult,
+    MessageResponse,
+)
 from app.schemas.auth import (
     UserRegisterRequest,
     UserLoginRequest,
@@ -7,7 +13,7 @@ from app.schemas.auth import (
     UserResponse,
     AuthResponse,
     WalletBindRequest,
-    MessageResponse,
+    MessageResponse as AuthMessageResponse,
 )
 from app.schemas.enterprise import (
     EnterpriseCreateRequest,
@@ -31,6 +37,11 @@ from app.schemas.asset import (
 )
 
 __all__ = [
+    # 通用响应
+    "ApiResponse",
+    "ApiError",
+    "PageResult",
+    "MessageResponse",
     # 认证相关
     "UserRegisterRequest",
     "UserLoginRequest",
@@ -39,7 +50,7 @@ __all__ = [
     "UserResponse",
     "AuthResponse",
     "WalletBindRequest",
-    "MessageResponse",
+    "AuthMessageResponse",
     # 企业相关
     "EnterpriseCreateRequest",
     "EnterpriseUpdateRequest",

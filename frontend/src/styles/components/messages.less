@@ -1,0 +1,127 @@
+/* ===== Message & Alert Component Styles ===== */
+/* Toast notifications, alerts, and inline messages */
+
+/* ========================================
+   Base Message
+   ======================================== */
+.message {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  margin-bottom: var(--space-4);
+  animation: messageSlideIn 0.3s var(--ease-out);
+}
+
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+}
+
+.message-content {
+  flex: 1;
+}
+
+.message-title {
+  font-weight: var(--font-semibold);
+  margin-bottom: var(--space-1);
+  color: inherit;
+}
+
+.message-description {
+  color: inherit;
+  opacity: 0.9;
+}
+
+.message-close {
+  flex-shrink: 0;
+  padding: var(--space-1);
+  margin: calc(-1 * var(--space-1));
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity var(--transition-fast);
+  border-radius: var(--radius-sm);
+}
+
+.message-close:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* ========================================
+   Message Variants
+   ======================================== */
+
+/* Error Message */
+.message-error,
+.error-message {
+  background: linear-gradient(135deg, var(--color-error-50) 0%, #fef2f2 100%);
+  border: 1px solid var(--color-error-200);
+  color: var(--color-error-700);
+}
+
+.message-error .message-icon::before,
+.error-message .message-icon::before {
+  content: '⚠';
+}
+
+/* Success Message */
+.message-success,
+.success-message {
+  background: linear-gradient(135deg, var(--color-success-50) 0%, #f0fdf4 100%);
+  border: 1px solid var(--color-success-200);
+  color: var(--color-success-700);
+}
+
+.message-success .message-icon::before,
+.success-message .message-icon::before {
+  content: '✓';
+}
+
+/* Warning Message */
+.message-warning,
+.warning-message {
+  background: linear-gradient(135deg, var(--color-warning-50) 0%, #fffbeb 100%);
+  border: 1px solid var(--color-warning-200);
+  color: var(--color-warning-700);
+}
+
+.message-warning .message-icon::before,
+.warning-message .message-icon::before {
+  content: '!';
+}
+
+/* Info Message */
+.message-info,
+.info-message {
+  background: linear-gradient(135deg, var(--color-info-50) 0%, #eff6ff 100%);
+  border: 1px solid var(--color-info-200);
+  color: var(--color-info-700);
+}
+
+.message-info .message-icon::before,
+.info-message .message-icon::before {
+  content: 'ℹ';
+}

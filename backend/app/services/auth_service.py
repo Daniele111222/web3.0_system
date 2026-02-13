@@ -10,6 +10,13 @@ from eth_account.messages import encode_defunct
 from web3 import Web3
 
 from app.core.config import settings
+from app.core.exceptions import (
+    AppException,
+    BadRequestException,
+    UnauthorizedException,
+    ForbiddenException,
+    NotFoundException,
+)
 from app.core.security import (
     verify_password,
     get_password_hash,
@@ -30,58 +37,42 @@ from app.schemas.auth import (
 )
 
 
-class AuthServiceError(Exception):
-    """身份验证服务错误的基类。"""
-    
-    def __init__(self, message: str, code: str = "AUTH_ERROR"):
-        """
-        初始化认证服务错误。
-        
-        Args:
-            message (str): 错误消息。
-            code (str): 错误代码。
-        """
-        self.message = message
-        self.code = code
-        super().__init__(message)
-
-
-class InvalidCredentialsError(AuthServiceError):
+class InvalidCredentialsError(UnauthorizedException):
     """当凭据无效时抛出。"""
     
     def __init__(self, message: str = "邮箱或密码错误"):
         super().__init__(message, "INVALID_CREDENTIALS")
 
 
-class UserExistsError(AuthServiceError):
+class UserExistsError(BadRequestException):
     """当用户已存在时抛出。"""
     
     def __init__(self, field: str):
         super().__init__(f"{field} 已被注册", "USER_EXISTS")
 
 
-class UserNotFoundError(AuthServiceError):
+class UserNotFoundError(NotFoundException):
     """当找不到用户时抛出。"""
     
     def __init__(self):
         super().__init__("未找到该用户", "USER_NOT_FOUND")
 
 
-class AccountDisabledError(AuthServiceError):
+class AccountDisabledError(ForbiddenException):
     """当账户被禁用时抛出。"""
     
     def __init__(self):
         super().__init__("该账户已被禁用", "ACCOUNT_DISABLED")
 
 
-class InvalidTokenError(AuthServiceError):
+class InvalidTokenError(UnauthorizedException):
     """当令牌无效时抛出。"""
     
     def __init__(self, message: str = "无效或已过期的令牌"):
         super().__init__(message, "INVALID_TOKEN")
 
 
-class WalletBindError(AuthServiceError):
+class WalletBindError(BadRequestException):
     """当钱包绑定失败时抛出。"""
     
     def __init__(self, message: str):

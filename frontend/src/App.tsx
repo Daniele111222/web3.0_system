@@ -1,6 +1,6 @@
 import { RouterProvider } from 'react-router-dom';
 import { router } from './router';
-import './App.css';
+import './App.less';
 
 /**
  * 应用根组件

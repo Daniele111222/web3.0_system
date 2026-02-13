@@ -1,7 +1,6 @@
 """业务逻辑服务层。"""
 from app.services.auth_service import (
     AuthService,
-    AuthServiceError,
     InvalidCredentialsError,
     UserExistsError,
     UserNotFoundError,
@@ -11,7 +10,6 @@ from app.services.auth_service import (
 )
 from app.services.enterprise_service import (
     EnterpriseService,
-    EnterpriseServiceError,
     EnterpriseNotFoundError,
     PermissionDeniedError,
     MemberExistsError,
@@ -23,7 +21,6 @@ from app.services.enterprise_service import (
 __all__ = [
     # 认证服务
     "AuthService",
-    "AuthServiceError",
     "InvalidCredentialsError",
     "UserExistsError",
     "UserNotFoundError",
@@ -32,7 +29,6 @@ __all__ = [
     "WalletBindError",
     # 企业服务
     "EnterpriseService",
-    "EnterpriseServiceError",
     "EnterpriseNotFoundError",
     "PermissionDeniedError",
     "MemberExistsError",

@@ -1,0 +1,86 @@
+/* ===== Loading & Skeleton Component Styles ===== */
+/* Spinners, loaders, and skeleton placeholders */
+
+/* ========================================
+   Loading Container
+   ======================================== */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12);
+  color: var(--color-gray-500);
+  gap: var(--space-4);
+}
+
+.loading-inline {
+  display: inline-flex;
+  flex-direction: row;
+  padding: 0;
+  gap: var(--space-2);
+}
+
+.loading-text {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-gray-500);
+}
+
+/* ========================================
+   Spinner
+   ======================================== */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--color-gray-200);
+  border-top-color: var(--color-primary-500);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.spinner-sm {
+  width: 20px;
+  height: 20px;
+  border-width: 2px;
+}
+
+.spinner-lg {
+  width: 60px;
+  height: 60px;
+  border-width: 4px;
+}
+
+.spinner-xl {
+  width: 80px;
+  height: 80px;
+  border-width: 5px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Spinner Colors */
+.spinner-primary {
+  border-top-color: var(--color-primary-500);
+}
+
+.spinner-secondary {
+  border-top-color: var(--color-gray-500);
+}
+
+.spinner-success {
+  border-top-color: var(--color-success-500);
+}
+
+.spinner-error {
+  border-top-color: var(--color-error-500);
+}
+
+.spinner-white {
+  border-color: rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+}

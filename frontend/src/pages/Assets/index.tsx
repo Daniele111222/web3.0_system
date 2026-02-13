@@ -5,7 +5,7 @@ import { AssetList } from '../../components/asset/AssetList';
 import { useEnterpriseStore } from '../../store';
 import type { Asset } from '../../types';
 import type { AssetCreateRequest } from '../../services/asset';
-import './index.css';
+import './index.less';
 
 /**
  * 资产管理页面

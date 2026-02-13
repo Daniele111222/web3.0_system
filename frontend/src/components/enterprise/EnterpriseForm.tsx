@@ -1,159 +1,307 @@
-import React, { useState } from 'react';
-import type {
-  EnterpriseCreateRequest,
-  EnterpriseUpdateRequest,
-  EnterpriseDetail,
-} from '../../types';
-import './Enterprise.css';
+import { useState, useCallback } from 'react';
+import { Building2, Mail, Phone, MapPin, Globe, Users, Briefcase } from 'lucide-react';
+import type { Enterprise } from '../../types/enterprise';
+import './Enterprise.less';
 
 interface EnterpriseFormProps {
-  enterprise?: EnterpriseDetail;
-  onSubmit: (data: EnterpriseCreateRequest | EnterpriseUpdateRequest) => Promise<void>;
+  initialData?: Partial<Enterprise>;
+  onSubmit: (data: Partial<Enterprise>) => void;
   onCancel: () => void;
-  isLoading?: boolean;
 }
 
-export function EnterpriseForm({ enterprise, onSubmit, onCancel, isLoading }: EnterpriseFormProps) {
-  const [formData, setFormData] = useState({
-    name: enterprise?.name || '',
-    description: enterprise?.description || '',
-    logo_url: enterprise?.logo_url || '',
-    website: enterprise?.website || '',
-    contact_email: enterprise?.contact_email || '',
+interface FormData {
+  name: string;
+  description: string;
+  address: string;
+  contactEmail: string;
+  contactPhone: string;
+  website: string;
+  industry: string;
+  scale: string;
+}
+
+interface FormErrors {
+  [key: string]: string;
+}
+
+const initialFormData: FormData = {
+  name: '',
+  description: '',
+  address: '',
+  contactEmail: '',
+  contactPhone: '',
+  website: '',
+  industry: '',
+  scale: '',
+};
+
+const industryOptions = [
+  '科技/软件',
+  '金融/投资',
+  '制造/工业',
+  '医疗/健康',
+  '教育/培训',
+  '零售/电商',
+  '媒体/广告',
+  '咨询/服务',
+  '其他',
+];
+
+const scaleOptions = ['1-10人', '11-50人', '51-100人', '101-500人', '501-1000人', '1000人以上'];
+
+export const EnterpriseForm = ({ initialData, onSubmit, onCancel }: EnterpriseFormProps) => {
+  const [formData, setFormData] = useState<FormData>(() => {
+    if (initialData) {
+      return {
+        ...initialFormData,
+        ...initialData,
+      };
+    }
+    return initialFormData;
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const isEdit = !!enterprise;
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
+  // 验证表单
+  const validateForm = useCallback((): boolean => {
+    const newErrors: FormErrors = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = '企业名称不能为空';
-    } else if (formData.name.length < 2 || formData.name.length > 100) {
-      newErrors.name = '企业名称长度应在 2-100 个字符之间';
+      newErrors.name = '请输入企业名称';
+    } else if (formData.name.length < 2) {
+      newErrors.name = '企业名称至少2个字符';
     }
 
-    if (formData.website && !formData.website.match(/^https?:\/\//)) {
-      newErrors.website = '官网 URL 必须以 http:// 或 https:// 开头';
+    if (!formData.description.trim()) {
+      newErrors.description = '请输入企业简介';
     }
 
-    if (
-      formData.contact_email &&
-      !formData.contact_email.match(/^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/)
-    ) {
-      newErrors.contact_email = '请输入有效的邮箱地址';
+    if (!formData.contactEmail.trim()) {
+      newErrors.contactEmail = '请输入联系邮箱';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contactEmail)) {
+      newErrors.contactEmail = '请输入有效的邮箱地址';
+    }
+
+    if (!formData.contactPhone.trim()) {
+      newErrors.contactPhone = '请输入联系电话';
+    }
+
+    if (!formData.address.trim()) {
+      newErrors.address = '请输入企业地址';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [formData]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm()) return;
+  // 处理输入变化
+  const handleInputChange = useCallback(
+    (field: keyof FormData, value: string) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+      // 清除该字段的错误
+      if (errors[field]) {
+        setErrors((prev) => ({ ...prev, [field]: '' }));
+      }
+    },
+    [errors]
+  );
 
-    const data: EnterpriseCreateRequest | EnterpriseUpdateRequest = {
-      name: formData.name.trim(),
-      description: formData.description.trim() || undefined,
-      logo_url: formData.logo_url.trim() || undefined,
-      website: formData.website.trim() || undefined,
-      contact_email: formData.contact_email.trim() || undefined,
-    };
+  // 处理表单提交
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
 
-    await onSubmit(data);
-  };
+      if (!validateForm()) {
+        return;
+      }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: '' }));
-    }
-  };
+      setIsSubmitting(true);
+
+      try {
+        // 模拟API调用延迟
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        onSubmit(formData);
+      } catch (error) {
+        console.error('提交失败:', error);
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [formData, validateForm, onSubmit]
+  );
 
   return (
     <form className="enterprise-form" onSubmit={handleSubmit}>
-      <h2>{isEdit ? '编辑企业' : '创建企业'}</h2>
+      {/* 基本信息 */}
+      <div className="form-section">
+        <h4 className="form-section-title">
+          <Building2 size={18} />
+          基本信息
+        </h4>
 
-      <div className="form-group">
-        <label htmlFor="name">企业名称 *</label>
-        <input
-          type="text"
-          id="name"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          placeholder="请输入企业名称"
-          disabled={isLoading}
-        />
-        {errors.name && <span className="error">{errors.name}</span>}
+        <div className="form-row">
+          <div className="form-group form-group-half">
+            <label className="form-label form-label-required">企业名称</label>
+            <div className="input-wrapper">
+              <Building2 className="input-icon" size={18} />
+              <input
+                type="text"
+                className={`form-input ${errors.name ? 'form-input-error' : ''}`}
+                placeholder="请输入企业全称"
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
+              />
+            </div>
+            {errors.name && <span className="form-error">{errors.name}</span>}
+          </div>
+
+          <div className="form-group form-group-half">
+            <label className="form-label">所属行业</label>
+            <div className="select-wrapper">
+              <Briefcase className="input-icon" size={18} />
+              <select
+                className="form-select"
+                value={formData.industry}
+                onChange={(e) => handleInputChange('industry', e.target.value)}
+              >
+                <option value="">请选择行业</option>
+                {industryOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-group form-group-half">
+            <label className="form-label">企业规模</label>
+            <div className="select-wrapper">
+              <Users className="input-icon" size={18} />
+              <select
+                className="form-select"
+                value={formData.scale}
+                onChange={(e) => handleInputChange('scale', e.target.value)}
+              >
+                <option value="">请选择规模</option>
+                {scaleOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="form-group form-group-half">
+            <label className="form-label">官方网站</label>
+            <div className="input-wrapper">
+              <Globe className="input-icon" size={18} />
+              <input
+                type="url"
+                className="form-input"
+                placeholder="https://www.example.com"
+                value={formData.website}
+                onChange={(e) => handleInputChange('website', e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label className="form-label form-label-required">企业简介</label>
+          <textarea
+            className={`form-textarea ${errors.description ? 'form-input-error' : ''}`}
+            rows={4}
+            placeholder="请简要描述企业的主要业务、核心产品或服务..."
+            value={formData.description}
+            onChange={(e) => handleInputChange('description', e.target.value)}
+          />
+          {errors.description && <span className="form-error">{errors.description}</span>}
+        </div>
       </div>
 
-      <div className="form-group">
-        <label htmlFor="description">企业描述</label>
-        <textarea
-          id="description"
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          placeholder="请输入企业描述"
-          rows={4}
-          disabled={isLoading}
-        />
+      {/* 联系信息 */}
+      <div className="form-section">
+        <h4 className="form-section-title">
+          <Mail size={18} />
+          联系信息
+        </h4>
+
+        <div className="form-row">
+          <div className="form-group form-group-half">
+            <label className="form-label form-label-required">联系邮箱</label>
+            <div className="input-wrapper">
+              <Mail className="input-icon" size={18} />
+              <input
+                type="email"
+                className={`form-input ${errors.contactEmail ? 'form-input-error' : ''}`}
+                placeholder="contact@company.com"
+                value={formData.contactEmail}
+                onChange={(e) => handleInputChange('contactEmail', e.target.value)}
+              />
+            </div>
+            {errors.contactEmail && <span className="form-error">{errors.contactEmail}</span>}
+          </div>
+
+          <div className="form-group form-group-half">
+            <label className="form-label form-label-required">联系电话</label>
+            <div className="input-wrapper">
+              <Phone className="input-icon" size={18} />
+              <input
+                type="tel"
+                className={`form-input ${errors.contactPhone ? 'form-input-error' : ''}`}
+                placeholder="010-88888888"
+                value={formData.contactPhone}
+                onChange={(e) => handleInputChange('contactPhone', e.target.value)}
+              />
+            </div>
+            {errors.contactPhone && <span className="form-error">{errors.contactPhone}</span>}
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label className="form-label form-label-required">企业地址</label>
+          <div className="input-wrapper">
+            <MapPin className="input-icon" size={18} />
+            <input
+              type="text"
+              className={`form-input ${errors.address ? 'form-input-error' : ''}`}
+              placeholder="请输入企业详细地址"
+              value={formData.address}
+              onChange={(e) => handleInputChange('address', e.target.value)}
+            />
+          </div>
+          {errors.address && <span className="form-error">{errors.address}</span>}
+        </div>
       </div>
 
-      <div className="form-group">
-        <label htmlFor="logo_url">Logo URL</label>
-        <input
-          type="text"
-          id="logo_url"
-          name="logo_url"
-          value={formData.logo_url}
-          onChange={handleChange}
-          placeholder="请输入 Logo 图片 URL"
-          disabled={isLoading}
-        />
-      </div>
-
-      <div className="form-group">
-        <label htmlFor="website">企业官网</label>
-        <input
-          type="text"
-          id="website"
-          name="website"
-          value={formData.website}
-          onChange={handleChange}
-          placeholder="https://example.com"
-          disabled={isLoading}
-        />
-        {errors.website && <span className="error">{errors.website}</span>}
-      </div>
-
-      <div className="form-group">
-        <label htmlFor="contact_email">联系邮箱</label>
-        <input
-          type="email"
-          id="contact_email"
-          name="contact_email"
-          value={formData.contact_email}
-          onChange={handleChange}
-          placeholder="contact@example.com"
-          disabled={isLoading}
-        />
-        {errors.contact_email && <span className="error">{errors.contact_email}</span>}
-      </div>
-
+      {/* 表单操作 */}
       <div className="form-actions">
-        <button type="button" className="btn-secondary" onClick={onCancel} disabled={isLoading}>
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={onCancel}
+          disabled={isSubmitting}
+        >
           取消
         </button>
-        <button type="submit" className="btn-primary" disabled={isLoading}>
-          {isLoading ? '提交中...' : isEdit ? '保存' : '创建'}
+        <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+          {isSubmitting ? (
+            <>
+              <span className="spinner" />
+              提交中...
+            </>
+          ) : initialData ? (
+            '保存修改'
+          ) : (
+            '创建企业'
+          )}
         </button>
       </div>
     </form>
   );
-}
-
-export default EnterpriseForm;
+};

@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import { Navigation } from './Navigation';
-import './Layout.css';
+import './Layout.less';
 
 /**
  * 主布局组件 - 极光科技风格

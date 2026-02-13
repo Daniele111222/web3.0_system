@@ -2,7 +2,7 @@
 from datetime import datetime, timezone
 from typing import Optional
 from uuid import UUID
-from sqlalchemy import select, update, delete
+from sqlalchemy import select, update, delete, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.refresh_token import RefreshToken
@@ -134,10 +134,10 @@ class TokenRepository:
             int: 活跃令牌的数量。
         """
         result = await self.db.execute(
-            select(RefreshToken).where(
+            select(func.count(RefreshToken.id)).where(
                 RefreshToken.user_id == user_id,
                 RefreshToken.is_revoked == False,
                 RefreshToken.expires_at > datetime.now(timezone.utc)
             )
         )
-        return len(result.scalars().all())
+        return result.scalar_one() or 0

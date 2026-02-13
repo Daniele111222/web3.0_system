@@ -6,6 +6,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from eth_account.messages import encode_defunct
 from web3 import Web3
 
+from app.core.exceptions import (
+    AppException,
+    NotFoundException,
+    ForbiddenException,
+    ConflictException,
+    BadRequestException,
+)
 from app.models.enterprise import Enterprise, EnterpriseMember, MemberRole
 from app.repositories.enterprise_repository import (
     EnterpriseRepository,
@@ -24,65 +31,49 @@ from app.schemas.enterprise import (
 )
 
 
-class EnterpriseServiceError(Exception):
-    """企业服务错误的基类。"""
-    
-    def __init__(self, message: str, code: str = "ENTERPRISE_ERROR"):
-        """
-        初始化企业服务错误。
-        
-        Args:
-            message (str): 错误消息。
-            code (str): 错误代码。
-        """
-        self.message = message
-        self.code = code
-        super().__init__(message)
-
-
-class EnterpriseNotFoundError(EnterpriseServiceError):
+class EnterpriseNotFoundError(NotFoundException):
     """当找不到企业时抛出。"""
     
     def __init__(self):
         super().__init__("未找到该企业", "ENTERPRISE_NOT_FOUND")
 
 
-class PermissionDeniedError(EnterpriseServiceError):
+class PermissionDeniedError(ForbiddenException):
     """当用户没有权限时抛出。"""
     
     def __init__(self, message: str = "您没有执行此操作的权限"):
         super().__init__(message, "PERMISSION_DENIED")
 
 
-class MemberExistsError(EnterpriseServiceError):
+class MemberExistsError(ConflictException):
     """当成员已存在时抛出。"""
     
     def __init__(self):
         super().__init__("该用户已是企业成员", "MEMBER_EXISTS")
 
 
-class MemberNotFoundError(EnterpriseServiceError):
+class MemberNotFoundError(NotFoundException):
     """当找不到成员时抛出。"""
     
     def __init__(self):
         super().__init__("未找到该成员", "MEMBER_NOT_FOUND")
 
 
-class UserNotFoundError(EnterpriseServiceError):
+class UserNotFoundError(NotFoundException):
     """当找不到用户时抛出。"""
     
     def __init__(self):
         super().__init__("未找到该用户", "USER_NOT_FOUND")
 
 
-class WalletBindError(EnterpriseServiceError):
+class WalletBindError(BadRequestException):
     """当钱包绑定失败时抛出。"""
     
     def __init__(self, message: str):
         super().__init__(message, "WALLET_BIND_ERROR")
 
 
-class CannotRemoveOwnerError(EnterpriseServiceError):
+class CannotRemoveOwnerError(ForbiddenException):
     """当尝试移除所有者时抛出。"""
     
     def __init__(self):

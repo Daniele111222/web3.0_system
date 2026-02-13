@@ -1,0 +1,49 @@
+/* ========================================
+   导航栏组件样式 - Glassmorphism Navigation
+   极光科技风格 - Aurora Tech Style
+   ======================================== */
+
+/* 导入设计系统变量 */
+@import '../../assets/variables.less';
+
+/* ========================================
+   主导航栏容器
+   ======================================== */
+.navigation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1100;
+  height: 70px;
+  background: rgba(10, 10, 15, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-primary);
+  transition: all var(--transition-base);
+}
+
+/* 滚动时的导航栏样式 */
+.navigation.scrolled {
+  background: rgba(10, 10, 15, 0.95);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* 导航栏发光边框效果 */
+.navigation::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-primary-alpha-30) 20%,
+    var(--color-secondary-alpha-20) 50%,
+    var(--color-primary-alpha-30) 80%,
+    transparent 100%
+  );
+  opacity: 0.5;
+}

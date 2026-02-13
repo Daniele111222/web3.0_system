@@ -1,7 +1,7 @@
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useAuthStore } from '../../store';
-import './Navigation.css';
+import './Navigation.less';
 
 /**
  * 导航菜单组件 - 极光科技风格
