@@ -18,9 +18,9 @@ class UserRegisterRequest(BaseModel):
     )
     password: str = Field(
         ...,
-        min_length=8,
+        min_length=6,
         max_length=128,
-        description="密码（8-128 个字符）",
+        description="密码（6-128 个字符）",
     )
     full_name: Optional[str] = Field(
         None,
@@ -53,7 +53,7 @@ class UserRegisterRequest(BaseModel):
     @classmethod
     def validate_password(cls, v: str) -> str:
         """
-        验证密码强度。
+        验证密码长度。
         
         Args:
             v (str): 待验证的密码。
@@ -62,19 +62,8 @@ class UserRegisterRequest(BaseModel):
             str: 验证通过的密码。
             
         Raises:
-            ValueError: 如果密码强度不足。
+            ValueError: 如果密码长度超过限制。
         """
-        if not re.search(r"[A-Z]", v):
-            raise ValueError("密码必须包含至少一个大写字母")
-        if not re.search(r"[a-z]", v):
-            raise ValueError("密码必须包含至少一个小写字母")
-        if not re.search(r"\d", v):
-            raise ValueError("密码必须包含至少一个数字")
-        
-        # 使用 string.punctuation 支持所有标准特殊字符
-        if not any(char in string.punctuation for char in v):
-            raise ValueError("密码必须包含至少一个特殊字符")
-            
         if len(v.encode("utf-8")) > 72:
             raise ValueError("密码长度不能超过 72 字节")
         return v

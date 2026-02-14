@@ -1,4 +1,5 @@
 import uuid
+import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any, Iterable, Optional, Dict
 from jose import jwt, JWTError
@@ -14,7 +15,12 @@ ALLOWED_ALGORITHMS = ["HS256", "HS384", "HS512"]
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """验证明文密码与哈希密码是否匹配。"""
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        return pwd_context.verify(plain_password, hashed_password)
+    except ValueError as e:
+        logger = logging.getLogger(__name__)
+        logger.warning(f"密码验证失败: {str(e)}")
+        return False
 
 
 def get_password_hash(password: str) -> str:

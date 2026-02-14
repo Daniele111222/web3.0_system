@@ -8,62 +8,17 @@ import {
   Shield,
   MoreVertical,
   Filter,
+  AlertCircle,
+  Loader2,
 } from 'lucide-react';
 import { EnterpriseForm } from './EnterpriseForm';
-import type { Enterprise } from '../../types/enterprise';
+import { useEnterprise } from '../../hooks/useEnterprise';
+import type { Enterprise } from '../../types';
 import './Enterprise.less';
 
 interface EnterpriseListProps {
   onSelectEnterprise: (id: string) => void;
 }
-
-// 模拟数据
-const mockEnterprises: Enterprise[] = [
-  {
-    id: '1',
-    name: '科技创新有限公司',
-    description: '专注于人工智能和区块链技术研发',
-    address: '北京市海淀区中关村软件园',
-    contactEmail: 'contact@tech-innov.com',
-    contactPhone: '010-88888888',
-    status: 'active',
-    createdAt: '2024-01-15T00:00:00Z',
-    updatedAt: '2024-12-01T00:00:00Z',
-  },
-  {
-    id: '2',
-    name: '未来数字集团',
-    description: '数字资产管理和金融科技服务',
-    address: '上海市浦东新区陆家嘴金融中心',
-    contactEmail: 'info@future-digital.com',
-    contactPhone: '021-66666666',
-    status: 'active',
-    createdAt: '2024-02-20T00:00:00Z',
-    updatedAt: '2024-11-28T00:00:00Z',
-  },
-  {
-    id: '3',
-    name: '云端知识产权',
-    description: '知识产权保护和交易服务平台',
-    address: '深圳市南山区科技园',
-    contactEmail: 'support@cloud-ip.com',
-    contactPhone: '0755-33333333',
-    status: 'pending',
-    createdAt: '2024-12-10T00:00:00Z',
-    updatedAt: '2024-12-10T00:00:00Z',
-  },
-  {
-    id: '4',
-    name: '链上资产管理',
-    description: '区块链资产托管和交易服务',
-    address: '杭州市西湖区西溪谷',
-    contactEmail: 'hello@chain-asset.com',
-    contactPhone: '0571-55555555',
-    status: 'inactive',
-    createdAt: '2024-03-05T00:00:00Z',
-    updatedAt: '2024-09-15T00:00:00Z',
-  },
-];
 
 // 生成漂浮粒子
 const generateParticles = (count: number) => {
@@ -79,19 +34,30 @@ const generateParticles = (count: number) => {
 };
 
 export const EnterpriseList = ({ onSelectEnterprise }: EnterpriseListProps) => {
-  const [enterprises] = useState<Enterprise[]>(mockEnterprises);
+  const { enterprises, isLoading, error, fetchEnterprises, createEnterprise, actionLoading } =
+    useEnterprise();
+
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [particles] = useState(() => generateParticles(20));
 
+  // 加载企业列表
+  useEffect(() => {
+    fetchEnterprises().catch(console.error);
+  }, [fetchEnterprises]);
+
   // 过滤企业列表
   const filteredEnterprises = useMemo(() => {
     return enterprises.filter((enterprise) => {
+      const searchLower = searchQuery.toLowerCase();
       const matchesSearch =
-        enterprise.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        enterprise.description.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesStatus = statusFilter ? enterprise.status === statusFilter : true;
+        enterprise.name?.toLowerCase().includes(searchLower) ||
+        enterprise.description?.toLowerCase().includes(searchLower) ||
+        false;
+      const matchesStatus = statusFilter
+        ? (enterprise as Enterprise & { status?: string }).status === statusFilter
+        : true;
       return matchesSearch && matchesStatus;
     });
   }, [enterprises, searchQuery, statusFilter]);
@@ -113,11 +79,50 @@ export const EnterpriseList = ({ onSelectEnterprise }: EnterpriseListProps) => {
   };
 
   // 处理表单提交
-  const handleFormSubmit = (data: Partial<Enterprise>) => {
-    console.log('创建企业:', data);
-    setShowForm(false);
-    // TODO: 调用API创建企业
+  const handleFormSubmit = async (data: Partial<Enterprise>) => {
+    try {
+      await createEnterprise(
+        data as {
+          name: string;
+          description: string;
+          address: string;
+          contactEmail: string;
+          contactPhone: string;
+        }
+      );
+      setShowForm(false);
+    } catch (error) {
+      console.error('创建企业失败:', error);
+    }
   };
+
+  // 渲染加载状态
+  if (isLoading && enterprises.length === 0) {
+    return (
+      <div className="enterprise-page">
+        <div className="enterprise-loading">
+          <Loader2 size={48} className="animate-spin" />
+          <p>正在加载企业列表...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 渲染错误状态
+  if (error && enterprises.length === 0) {
+    return (
+      <div className="enterprise-page">
+        <div className="enterprise-error">
+          <AlertCircle size={48} />
+          <h3>加载失败</h3>
+          <p>{error}</p>
+          <button className="btn btn-primary" onClick={() => fetchEnterprises()}>
+            重试
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="enterprise-page">
@@ -243,18 +248,20 @@ export const EnterpriseList = ({ onSelectEnterprise }: EnterpriseListProps) => {
                 onClick={() => onSelectEnterprise(enterprise.id)}
               >
                 <div className="enterprise-card-header">
-                  <div className="enterprise-logo">{enterprise.name.charAt(0)}</div>
+                  <div className="enterprise-logo">{enterprise.name?.charAt(0) ?? '?'}</div>
                   <div className="enterprise-info">
-                    <h3 className="enterprise-name">{enterprise.name}</h3>
+                    <h3 className="enterprise-name">{enterprise.name ?? '未命名企业'}</h3>
                     <span className="enterprise-id">ID: {enterprise.id}</span>
                   </div>
                 </div>
                 <div className="enterprise-card-body">
-                  <p className="enterprise-description">{enterprise.description}</p>
+                  <p className="enterprise-description">{enterprise.description ?? '暂无描述'}</p>
                   <div className="enterprise-meta">
                     <div className="enterprise-meta-row">
                       <Building2 className="enterprise-meta-icon" size={16} />
-                      <span>{enterprise.address}</span>
+                      <span>
+                        {(enterprise as Enterprise & { address?: string }).address ?? '暂无地址'}
+                      </span>
                     </div>
                     <div className="enterprise-meta-row">
                       <Users className="enterprise-meta-icon" size={16} />
@@ -263,7 +270,9 @@ export const EnterpriseList = ({ onSelectEnterprise }: EnterpriseListProps) => {
                   </div>
                 </div>
                 <div className="enterprise-card-footer">
-                  {getStatusBadge(enterprise.status)}
+                  {getStatusBadge(
+                    (enterprise as Enterprise & { status?: string }).status ?? 'inactive'
+                  )}
                   <div className="enterprise-card-actions">
                     <button
                       className="btn btn-ghost btn-sm btn-icon-only"
@@ -318,27 +327,15 @@ export const EnterpriseList = ({ onSelectEnterprise }: EnterpriseListProps) => {
               </button>
             </div>
             <div className="modal-body">
-              <EnterpriseForm onSubmit={handleFormSubmit} onCancel={() => setShowForm(false)} />
+              <EnterpriseForm
+                onSubmit={handleFormSubmit}
+                onCancel={() => setShowForm(false)}
+                isSubmitting={actionLoading}
+              />
             </div>
           </div>
         </div>
       )}
     </div>
-  );
-};
-
-// 获取状态徽章
-const getStatusBadge = (status: string) => {
-  const statusConfig: Record<string, { label: string; className: string }> = {
-    active: { label: '运营中', className: 'enterprise-status-active' },
-    pending: { label: '审核中', className: 'enterprise-status-pending' },
-    inactive: { label: '已停用', className: 'enterprise-status-inactive' },
-  };
-  const config = statusConfig[status] || statusConfig.inactive;
-  return (
-    <span className={`enterprise-status ${config.className}`}>
-      <span className="enterprise-status-dot" />
-      {config.label}
-    </span>
   );
 };

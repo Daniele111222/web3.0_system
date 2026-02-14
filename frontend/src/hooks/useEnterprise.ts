@@ -5,7 +5,7 @@ import type {
   EnterpriseCreateRequest,
   EnterpriseUpdateRequest,
   InviteMemberRequest,
-  MemberRole,
+  EnterpriseRole,
 } from '../types';
 
 function extractErrorMessage(err: unknown): string {
@@ -148,8 +148,8 @@ export function useEnterprise() {
         if (currentEnterprise?.id === enterpriseId) {
           setCurrentEnterprise({
             ...currentEnterprise,
-            members: [...currentEnterprise.members, member],
-            member_count: currentEnterprise.member_count + 1,
+            members: [...(currentEnterprise.members || []), member],
+            member_count: (currentEnterprise.member_count || 0) + 1,
           });
         }
         return member;
@@ -166,7 +166,7 @@ export function useEnterprise() {
 
   // 更新成员角色
   const updateMemberRole = useCallback(
-    async (enterpriseId: string, userId: string, role: MemberRole) => {
+    async (enterpriseId: string, userId: string, role: EnterpriseRole) => {
       setActionLoading(true);
       setError(null);
       try {
@@ -199,8 +199,8 @@ export function useEnterprise() {
         if (currentEnterprise?.id === enterpriseId) {
           setCurrentEnterprise({
             ...currentEnterprise,
-            members: currentEnterprise.members.filter((m) => m.user_id !== userId),
-            member_count: currentEnterprise.member_count - 1,
+            members: (currentEnterprise.members || []).filter((m) => m.user_id !== userId),
+            member_count: (currentEnterprise.member_count || 0) - 1,
           });
         }
       } catch (err) {

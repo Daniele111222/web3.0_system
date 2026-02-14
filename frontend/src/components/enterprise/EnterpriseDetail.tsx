@@ -1,428 +1,713 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
-  ArrowLeft,
-  Building2,
-  Mail,
-  Phone,
-  MapPin,
-  Users,
-  Shield,
-  Edit3,
-  Settings,
-  MoreVertical,
-  Clock,
-  FileText,
-  Activity,
-  ChevronRight,
-} from 'lucide-react';
-import { MemberList } from './MemberList';
-import { InviteMemberDialog } from './InviteMemberDialog';
-import { EnterpriseForm } from './EnterpriseForm';
-import type { Enterprise, EnterpriseMember } from '../../types/enterprise';
-import './Enterprise.less';
+  Card,
+  Descriptions,
+  Button,
+  Space,
+  Tag,
+  message,
+  Form,
+  Input,
+  Select,
+  Divider,
+  Avatar,
+  Tooltip,
+  Empty,
+  Spin,
+  Alert,
+  Popconfirm,
+} from 'antd';
+import {
+  ArrowLeftOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  UserOutlined,
+  SettingOutlined,
+  InfoCircleOutlined,
+  UserAddOutlined,
+  CrownOutlined,
+} from '@ant-design/icons';
+import { useEnterpriseStore, useAuthStore } from '../../store';
+import type { Enterprise, EnterpriseMember, EnterpriseRole } from '../../types';
 
-interface EnterpriseDetailProps {
-  enterpriseId: string;
-  onBack: () => void;
+const { Option } = Select;
+const { TextArea } = Input;
+
+interface FormData {
+  name: string;
+  description: string;
+  website?: string;
+  contactEmail?: string;
+  contactPhone?: string;
 }
 
-// 模拟企业数据
-const mockEnterprise: Enterprise = {
-  id: '1',
-  name: '科技创新有限公司',
-  description:
-    '专注于人工智能和区块链技术研发，致力于为企业提供数字化解决方案。公司成立于2020年，拥有核心技术专利30余项。',
-  address: '北京市海淀区中关村软件园A座18层',
-  contactEmail: 'contact@tech-innov.com',
-  contactPhone: '010-88888888',
-  website: 'https://www.tech-innov.com',
-  industry: '科技/软件',
-  scale: '100-500人',
-  status: 'active',
-  createdAt: '2024-01-15T00:00:00Z',
-  updatedAt: '2024-12-01T00:00:00Z',
-};
-
-// 模拟成员数据
-const mockMembers: EnterpriseMember[] = [
-  {
-    id: '1',
-    enterpriseId: '1',
-    userId: 'user1',
-    role: 'owner',
-    status: 'active',
-    joinedAt: '2024-01-15T00:00:00Z',
-    user: {
-      id: 'user1',
-      email: 'ceo@tech-innov.com',
-      name: '张明远',
-      avatar: null,
-    },
-  },
-  {
-    id: '2',
-    enterpriseId: '1',
-    userId: 'user2',
-    role: 'admin',
-    status: 'active',
-    joinedAt: '2024-02-01T00:00:00Z',
-    user: {
-      id: 'user2',
-      email: 'cto@tech-innov.com',
-      name: '李思涵',
-      avatar: null,
-    },
-  },
-  {
-    id: '3',
-    enterpriseId: '1',
-    userId: 'user3',
-    role: 'member',
-    status: 'active',
-    joinedAt: '2024-03-15T00:00:00Z',
-    user: {
-      id: 'user3',
-      email: 'dev@tech-innov.com',
-      name: '王浩宇',
-      avatar: null,
-    },
-  },
-];
-
-// 活动日志模拟数据
-const activityLogs = [
-  { id: '1', action: '企业信息更新', user: '张明远', time: '2小时前', icon: Edit3 },
-  { id: '2', action: '新成员加入', user: '李思涵', time: '5小时前', icon: Users },
-  { id: '3', action: '权限变更', user: '张明远', time: '1天前', icon: Shield },
-  { id: '4', action: '企业创建', user: '张明远', time: '10个月前', icon: Building2 },
-];
-
-export const EnterpriseDetail = ({ enterpriseId, onBack }: EnterpriseDetailProps) => {
-  const [enterprise] = useState<Enterprise>(mockEnterprise);
-  const [members] = useState<EnterpriseMember[]>(mockMembers);
-  const [activeTab, setActiveTab] = useState<'overview' | 'members' | 'settings'>('overview');
-  const [showInviteDialog, setShowInviteDialog] = useState(false);
-  const [showEditForm, setShowEditForm] = useState(false);
-
-  // 获取角色徽章
-  const _getRoleBadge = (role: string) => {
-    const roleConfig: Record<string, { label: string; className: string }> = {
-      owner: { label: '所有者', className: 'role-owner' },
-      admin: { label: '管理员', className: 'role-admin' },
-      member: { label: '成员', className: 'role-member' },
+// 辅助函数：获取角色标签
+const getRoleBadge = (role: EnterpriseRole): React.ReactNode => {
+  // 定义角色配置映射
+  const roleConfig: Record<EnterpriseRole, { color: string; icon: React.ReactNode; text: string }> =
+    {
+      owner: { color: 'gold', icon: <CrownOutlined />, text: '所有者' },
+      admin: { color: 'red', icon: <SettingOutlined />, text: '管理员' },
+      member: { color: 'blue', icon: <UserOutlined />, text: '成员' },
+      viewer: { color: 'default', icon: <InfoCircleOutlined />, text: '观察者' },
     };
-    const config = roleConfig[role] || roleConfig.member;
-    return <span className={`role-badge ${config.className}`}>{config.label}</span>;
-  };
 
-  // 渲染概览标签
-  const renderOverview = () => (
-    <div className="enterprise-detail-layout">
-      <div className="detail-main-column">
-        {/* 企业信息卡片 */}
-        <div className="card card-elevated">
-          <div className="card-header">
-            <h3 className="card-title">
-              <FileText size={18} />
-              企业信息
-            </h3>
-            <button className="btn btn-ghost btn-sm" onClick={() => setShowEditForm(true)}>
-              <Edit3 size={16} />
-              编辑
-            </button>
-          </div>
-          <div className="card-body">
-            <div className="info-grid">
-              <div className="info-item">
-                <span className="info-label">企业全称</span>
-                <span className="info-value">{enterprise.name}</span>
-              </div>
-              <div className="info-item">
-                <span className="info-label">所属行业</span>
-                <span className="info-value">{enterprise.industry || '科技/软件'}</span>
-              </div>
-              <div className="info-item">
-                <span className="info-label">企业规模</span>
-                <span className="info-value">{enterprise.scale || '100-500人'}</span>
-              </div>
-              <div className="info-item">
-                <span className="info-label">成立时间</span>
-                <span className="info-value">
-                  {new Date(enterprise.createdAt).toLocaleDateString('zh-CN')}
-                </span>
-              </div>
-              <div className="info-item info-item-full">
-                <span className="info-label">企业简介</span>
-                <p className="info-description">{enterprise.description}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 联系信息 */}
-        <div className="card card-elevated" style={{ marginTop: '1.5rem' }}>
-          <div className="card-header">
-            <h3 className="card-title">
-              <MapPin size={18} />
-              联系信息
-            </h3>
-          </div>
-          <div className="card-body">
-            <div className="contact-list">
-              <div className="contact-item">
-                <div className="contact-icon">
-                  <MapPin size={18} />
-                </div>
-                <div className="contact-content">
-                  <span className="contact-label">企业地址</span>
-                  <span className="contact-value">{enterprise.address}</span>
-                </div>
-              </div>
-              <div className="contact-item">
-                <div className="contact-icon">
-                  <Mail size={18} />
-                </div>
-                <div className="contact-content">
-                  <span className="contact-label">联系邮箱</span>
-                  <span className="contact-value">{enterprise.contactEmail}</span>
-                </div>
-              </div>
-              <div className="contact-item">
-                <div className="contact-icon">
-                  <Phone size={18} />
-                </div>
-                <div className="contact-content">
-                  <span className="contact-label">联系电话</span>
-                  <span className="contact-value">{enterprise.contactPhone}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Sidebar */}
-      <div className="detail-sidebar-column">
-        {/* 快速统计 */}
-        <div className="card">
-          <div className="card-header">
-            <h3 className="card-title">
-              <Activity size={16} />
-              快速统计
-            </h3>
-          </div>
-          <div className="card-body">
-            <div className="quick-stats">
-              <div className="quick-stat">
-                <span className="quick-stat-value">{members.length}</span>
-                <span className="quick-stat-label">团队成员</span>
-              </div>
-              <div className="quick-stat">
-                <span className="quick-stat-value">12</span>
-                <span className="quick-stat-label">IP资产</span>
-              </div>
-              <div className="quick-stat">
-                <span className="quick-stat-value">85%</span>
-                <span className="quick-stat-label">完成度</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 最近活动 */}
-        <div className="card" style={{ marginTop: '1.5rem' }}>
-          <div className="card-header">
-            <h3 className="card-title">
-              <Clock size={16} />
-              最近活动
-            </h3>
-          </div>
-          <div className="card-body" style={{ padding: 0 }}>
-            <div className="activity-list">
-              {activityLogs.map((log) => (
-                <div key={log.id} className="activity-item">
-                  <div className="activity-icon">
-                    <log.icon size={14} />
-                  </div>
-                  <div className="activity-content">
-                    <span className="activity-action">{log.action}</span>
-                    <span className="activity-meta">
-                      {log.user} · {log.time}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="card-footer">
-            <button className="btn btn-ghost btn-sm" style={{ width: '100%' }}>
-              查看全部活动
-              <ChevronRight size={16} />
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  // 渲染成员标签
-  const renderMembers = () => (
-    <div className="enterprise-detail-layout">
-      <div className="detail-main-column full-width">
-        <MemberList
-          members={members}
-          onInvite={() => setShowInviteDialog(true)}
-          onRemoveMember={(memberId) => {
-            console.log('移除成员:', memberId);
-          }}
-          onUpdateRole={(memberId, role) => {
-            console.log('更新角色:', memberId, role);
-          }}
-        />
-      </div>
-    </div>
-  );
-
-  // 渲染设置标签
-  const renderSettings = () => (
-    <div className="enterprise-detail-sections">
-      <div className="detail-main">
-        <div className="card">
-          <div className="card-header">
-            <h3 className="card-title">
-              <Settings size={18} />
-              企业设置
-            </h3>
-          </div>
-          <div className="card-body">
-            <p
-              className="settings-placeholder"
-              style={{ color: 'var(--text-tertiary)', textAlign: 'center', padding: '3rem' }}
-            >
-              企业设置功能开发中...
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  // 使用类型断言确保类型安全
+  const config = roleConfig[role as keyof typeof roleConfig] || roleConfig.viewer;
 
   return (
-    <div className="enterprise-page">
-      {/* Aurora Background Effect */}
-      <div className="aurora-bg">
-        <div className="aurora-layer aurora-1" />
-        <div className="aurora-layer aurora-2" />
-        <div className="aurora-layer aurora-3" />
-      </div>
+    <Tag icon={config.icon} color={config.color}>
+      {config.text}
+    </Tag>
+  );
+};
 
-      {/* Grid Pattern */}
-      <div className="enterprise-grid-pattern" />
+export const EnterpriseDetail: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [form] = Form.useForm<FormData>();
+  const [settingsForm] = Form.useForm();
 
-      {/* Header */}
-      <header className="enterprise-header">
-        <div className="enterprise-header-content">
-          <div className="enterprise-header-left">
-            <button className="enterprise-back-btn" onClick={onBack}>
-              <ArrowLeft size={20} />
-            </button>
-            <div className="enterprise-header-title-group">
-              <h1 className="enterprise-header-title">{enterprise.name}</h1>
-              <p className="enterprise-header-subtitle">
-                企业ID: {enterprise.id} · 创建于{' '}
-                {new Date(enterprise.createdAt).toLocaleDateString('zh-CN')}
-              </p>
+  const {
+    currentEnterprise,
+    members,
+    settings,
+    isLoading,
+    error,
+    fetchEnterpriseById,
+    fetchEnterpriseMembers,
+    fetchEnterpriseSettings,
+    updateEnterprise,
+    deleteEnterprise,
+    updateEnterpriseSettings,
+    removeMember,
+    // updateMemberRole, // TODO: 未来实现角色更改功能时启用
+    clearCurrentEnterprise,
+  } = useEnterpriseStore();
+
+  const { user } = useAuthStore();
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isSettingsEditing, setIsSettingsEditing] = useState(false);
+
+  // 检查当前用户是否是管理员或所有者
+  const canManageEnterprise = () => {
+    if (!currentEnterprise || !user) return false;
+    // 添加类型注解
+    const member = members.find((m: EnterpriseMember) => m.userId === user.id);
+    return member?.role === 'admin' || member?.role === 'owner';
+  };
+
+  // 检查当前用户是否是所有者
+  const isOwner = () => {
+    if (!currentEnterprise || !user) return false;
+    // 添加类型注解
+    const member = members.find((m: EnterpriseMember) => m.userId === user.id);
+    return member?.role === 'owner';
+  };
+
+  // 企业详情标签页配置
+  const enterpriseTabs = [
+    { key: 'overview', label: '概览', icon: <InfoCircleOutlined /> },
+    { key: 'members', label: '成员管理', icon: <UserOutlined /> },
+    { key: 'settings', label: '企业设置', icon: <SettingOutlined /> },
+  ];
+
+  useEffect(() => {
+    if (id) {
+      fetchEnterpriseById(id);
+      fetchEnterpriseMembers(id);
+      fetchEnterpriseSettings(id);
+    }
+
+    return () => {
+      clearCurrentEnterprise();
+    };
+  }, [
+    id,
+    fetchEnterpriseById,
+    fetchEnterpriseMembers,
+    fetchEnterpriseSettings,
+    clearCurrentEnterprise,
+  ]);
+
+  useEffect(() => {
+    if (currentEnterprise && isEditing) {
+      form.setFieldsValue({
+        name: currentEnterprise.name,
+        description: currentEnterprise.description,
+        website: currentEnterprise.website,
+        contactEmail: currentEnterprise.contactEmail,
+        contactPhone: currentEnterprise.contactPhone,
+      });
+    }
+  }, [currentEnterprise, isEditing, form]);
+
+  useEffect(() => {
+    if (settings && isSettingsEditing) {
+      settingsForm.setFieldsValue({
+        requireApproval: settings.requireApproval,
+        allowPublicView: settings.allowPublicView,
+        defaultMemberRole: settings.defaultMemberRole,
+        notificationSettings: settings.notificationSettings,
+      });
+    }
+  }, [settings, isSettingsEditing, settingsForm]);
+
+  const handleUpdate = async (values: FormData) => {
+    if (!id || !currentEnterprise) return;
+
+    try {
+      await updateEnterprise(id, {
+        ...currentEnterprise,
+        ...values,
+      });
+      message.success('企业信息更新成功');
+      setIsEditing(false);
+    } catch (err) {
+      message.error('更新失败：' + (err instanceof Error ? err.message : '未知错误'));
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!id) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteEnterprise(id);
+      message.success('企业删除成功');
+      navigate('/enterprises');
+    } catch (err) {
+      message.error('删除失败：' + (err instanceof Error ? err.message : '未知错误'));
+      setIsDeleting(false);
+    }
+  };
+
+  const handleUpdateSettings = async (values: any) => {
+    if (!id) return;
+
+    try {
+      await updateEnterpriseSettings(id, values);
+      message.success('设置更新成功');
+      setIsSettingsEditing(false);
+    } catch (err) {
+      message.error('更新失败：' + (err instanceof Error ? err.message : '未知错误'));
+    }
+  };
+
+  // 处理移除成员
+  const handleRemoveMember = async (memberId: string) => {
+    if (!id) return;
+
+    try {
+      await removeMember(id, memberId);
+      message.success('成员移除成功');
+    } catch (err) {
+      message.error('移除失败：' + (err instanceof Error ? err.message : '未知错误'));
+    }
+  };
+
+  // 辅助函数：判断企业是否活跃
+  const isEnterpriseActive = (enterprise: Enterprise | null | undefined): boolean => {
+    if (!enterprise) return false;
+    return (
+      enterprise.isActive === true ||
+      enterprise.is_active === true ||
+      enterprise.status === 'active'
+    );
+  };
+
+  // 辅助函数：安全格式化日期
+  const formatDate = (dateStr: string | undefined | null): string => {
+    if (!dateStr) return '未知';
+    try {
+      return new Date(dateStr).toLocaleString('zh-CN');
+    } catch {
+      return '未知';
+    }
+  };
+
+  // 辅助函数：安全格式化日期（仅日期）
+  const formatDateOnly = (dateStr: string | undefined | null): string => {
+    if (!dateStr) return '未知';
+    try {
+      return new Date(dateStr).toLocaleDateString('zh-CN');
+    } catch {
+      return '未知';
+    }
+  };
+
+  const renderOverview = () => {
+    if (!currentEnterprise) return null;
+
+    return (
+      <Card>
+        <div className="flex justify-between items-start mb-6">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+              {currentEnterprise.name.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-1">{currentEnterprise.name}</h2>
+              <div className="flex items-center gap-2 text-gray-500">
+                <span className="text-sm">ID: {currentEnterprise.id}</span>
+                <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
+                <Tag color={isEnterpriseActive(currentEnterprise) ? 'green' : 'red'}>
+                  {isEnterpriseActive(currentEnterprise) ? '活跃' : '停用'}
+                </Tag>
+              </div>
             </div>
           </div>
-          <div className="enterprise-header-actions">
-            {getStatusBadge(enterprise.status)}
-            <button className="btn btn-secondary btn-icon-only">
-              <MoreVertical size={18} />
-            </button>
+          {(canManageEnterprise() || isOwner()) && (
+            <div className="flex gap-2">
+              {!isEditing ? (
+                <Button type="primary" icon={<EditOutlined />} onClick={() => setIsEditing(true)}>
+                  编辑企业信息
+                </Button>
+              ) : (
+                <Space>
+                  <Button onClick={() => setIsEditing(false)}>取消</Button>
+                  <Button type="primary" onClick={() => form.submit()}>
+                    保存
+                  </Button>
+                </Space>
+              )}
+              {isOwner() && (
+                <Popconfirm
+                  title="确认删除企业"
+                  description="删除企业后，所有相关数据将无法恢复，是否确认删除？"
+                  onConfirm={handleDelete}
+                  okText="确认删除"
+                  cancelText="取消"
+                  okButtonProps={{ danger: true, loading: isDeleting }}
+                >
+                  <Button danger icon={<DeleteOutlined />} loading={isDeleting}>
+                    删除企业
+                  </Button>
+                </Popconfirm>
+              )}
+            </div>
+          )}
+        </div>
+
+        {isEditing ? (
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleUpdate}
+            initialValues={{
+              name: currentEnterprise.name,
+              description: currentEnterprise.description,
+              website: currentEnterprise.website,
+              contactEmail: currentEnterprise.contactEmail,
+              contactPhone: currentEnterprise.contactPhone,
+            }}
+          >
+            <Form.Item
+              name="name"
+              label="企业名称"
+              rules={[{ required: true, message: '请输入企业名称' }]}
+            >
+              <Input placeholder="请输入企业名称" />
+            </Form.Item>
+
+            <Form.Item
+              name="description"
+              label="企业描述"
+              rules={[{ required: true, message: '请输入企业描述' }]}
+            >
+              <TextArea rows={4} placeholder="请输入企业描述" />
+            </Form.Item>
+
+            <Form.Item name="website" label="企业官网">
+              <Input placeholder="请输入企业官网" />
+            </Form.Item>
+
+            <Form.Item name="contactEmail" label="联系邮箱">
+              <Input placeholder="请输入联系邮箱" />
+            </Form.Item>
+
+            <Form.Item name="contactPhone" label="联系电话">
+              <Input placeholder="请输入联系电话" />
+            </Form.Item>
+          </Form>
+        ) : (
+          <>
+            <Divider />
+            <Descriptions column={2} bordered>
+              <Descriptions.Item label="企业名称" span={2}>
+                {currentEnterprise.name}
+              </Descriptions.Item>
+              <Descriptions.Item label="企业描述" span={2}>
+                {currentEnterprise.description || '暂无描述'}
+              </Descriptions.Item>
+              <Descriptions.Item label="企业官网">
+                {currentEnterprise.website ? (
+                  <a href={currentEnterprise.website} target="_blank" rel="noopener noreferrer">
+                    {currentEnterprise.website}
+                  </a>
+                ) : (
+                  '未设置'
+                )}
+              </Descriptions.Item>
+              <Descriptions.Item label="联系邮箱">
+                {currentEnterprise.contactEmail || '未设置'}
+              </Descriptions.Item>
+              <Descriptions.Item label="联系电话">
+                {currentEnterprise.contactPhone || '未设置'}
+              </Descriptions.Item>
+              <Descriptions.Item label="创建时间">
+                {formatDate(currentEnterprise.createdAt)}
+              </Descriptions.Item>
+              <Descriptions.Item label="成员数量">{members.length} 人</Descriptions.Item>
+              <Descriptions.Item label="状态">
+                <Tag color={isEnterpriseActive(currentEnterprise) ? 'green' : 'red'}>
+                  {isEnterpriseActive(currentEnterprise) ? '活跃' : '停用'}
+                </Tag>
+              </Descriptions.Item>
+              <Descriptions.Item label="成员数量">{members.length} 人</Descriptions.Item>
+              <Descriptions.Item label="状态">
+                <Tag color={isEnterpriseActive(currentEnterprise) ? 'green' : 'red'}>
+                  {isEnterpriseActive(currentEnterprise) ? '活跃' : '停用'}
+                </Tag>
+              </Descriptions.Item>
+            </Descriptions>
+          </>
+        )}
+      </Card>
+    );
+  };
+
+  const renderMembers = () => {
+    return (
+      <Card
+        title={
+          <div className="flex justify-between items-center">
+            <span className="text-lg font-semibold">成员管理</span>
+            {canManageEnterprise() && (
+              <Button
+                type="primary"
+                icon={<UserAddOutlined />}
+                onClick={() => {
+                  // TODO: 打开邀请成员弹窗
+                  message.info('邀请成员功能待实现');
+                }}
+              >
+                邀请成员
+              </Button>
+            )}
+          </div>
+        }
+      >
+        {members.length === 0 ? (
+          <Empty description="暂无成员" />
+        ) : (
+          <div className="space-y-4">
+            {members.map((member: EnterpriseMember) => (
+              <div
+                key={member.id}
+                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <div className="flex items-center gap-4">
+                  <Avatar size="large" icon={<UserOutlined />} className="bg-blue-500" />
+                  <div>
+                    <div className="font-medium text-gray-900">
+                      {member.username || member.userId}
+                    </div>
+                    <div className="text-sm text-gray-500">{member.userEmail || '暂无邮箱'}</div>
+                    <div className="text-xs text-gray-400 mt-1">
+                      加入时间: {formatDateOnly(member.joinedAt)}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  {getRoleBadge(member.role)}
+
+                  {canManageEnterprise() && member.userId !== user?.id && (
+                    <Space>
+                      <Tooltip title="更改角色">
+                        <Button
+                          size="small"
+                          icon={<EditOutlined />}
+                          onClick={() => {
+                            // TODO: 更改角色逻辑
+                            message.info('更改角色功能待实现');
+                          }}
+                        />
+                      </Tooltip>
+                      <Tooltip title="移除成员">
+                        <Button
+                          size="small"
+                          danger
+                          icon={<DeleteOutlined />}
+                          onClick={() => {
+                            // 调用移除成员函数
+                            handleRemoveMember(member.id);
+                          }}
+                        />
+                      </Tooltip>
+                    </Space>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+    );
+  };
+
+  const renderSettings = () => {
+    return (
+      <Card
+        title={
+          <div className="flex justify-between items-center">
+            <span className="text-lg font-semibold">企业设置</span>
+            {canManageEnterprise() && (
+              <div className="flex gap-2">
+                {isSettingsEditing ? (
+                  <>
+                    <Button onClick={() => setIsSettingsEditing(false)}>取消</Button>
+                    <Button type="primary" onClick={() => settingsForm.submit()}>
+                      保存设置
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    type="primary"
+                    icon={<EditOutlined />}
+                    onClick={() => setIsSettingsEditing(true)}
+                  >
+                    编辑设置
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+        }
+      >
+        {isSettingsEditing ? (
+          <Form form={settingsForm} layout="vertical" onFinish={handleUpdateSettings}>
+            <Form.Item name="requireApproval" label="成员加入需要审批" valuePropName="checked">
+              <Select>
+                <Option value={true}>需要审批</Option>
+                <Option value={false}>不需要审批</Option>
+              </Select>
+            </Form.Item>
+
+            <Form.Item name="allowPublicView" label="允许公开查看" valuePropName="checked">
+              <Select>
+                <Option value={true}>允许</Option>
+                <Option value={false}>不允许</Option>
+              </Select>
+            </Form.Item>
+
+            <Form.Item
+              name="defaultMemberRole"
+              label="默认成员角色"
+              rules={[{ required: true, message: '请选择默认角色' }]}
+            >
+              <Select placeholder="选择默认角色">
+                <Option value="member">成员</Option>
+                <Option value="viewer">观察者</Option>
+              </Select>
+            </Form.Item>
+
+            <Divider />
+
+            <h4 className="font-medium mb-4">通知设置</h4>
+
+            <Form.Item
+              name={['notificationSettings', 'emailEnabled']}
+              label="启用邮件通知"
+              valuePropName="checked"
+            >
+              <Select>
+                <Option value={true}>启用</Option>
+                <Option value={false}>禁用</Option>
+              </Select>
+            </Form.Item>
+
+            <Form.Item
+              name={['notificationSettings', 'newMemberAlert']}
+              label="新成员加入提醒"
+              valuePropName="checked"
+            >
+              <Select>
+                <Option value={true}>提醒</Option>
+                <Option value={false}>不提醒</Option>
+              </Select>
+            </Form.Item>
+
+            <Form.Item
+              name={['notificationSettings', 'roleChangeAlert']}
+              label="角色变更提醒"
+              valuePropName="checked"
+            >
+              <Select>
+                <Option value={true}>提醒</Option>
+                <Option value={false}>不提醒</Option>
+              </Select>
+            </Form.Item>
+          </Form>
+        ) : (
+          <>
+            {!settings ? (
+              <Empty description="暂无设置信息" />
+            ) : (
+              <Descriptions column={1} bordered>
+                <Descriptions.Item label="成员加入需要审批">
+                  {settings.requireApproval ? (
+                    <Tag color="orange">需要审批</Tag>
+                  ) : (
+                    <Tag color="green">不需要审批</Tag>
+                  )}
+                </Descriptions.Item>
+
+                <Descriptions.Item label="允许公开查看">
+                  {settings.allowPublicView ? (
+                    <Tag color="green">允许</Tag>
+                  ) : (
+                    <Tag color="orange">不允许</Tag>
+                  )}
+                </Descriptions.Item>
+
+                <Descriptions.Item label="默认成员角色">
+                  {getRoleBadge(settings.defaultMemberRole || 'member')}
+                </Descriptions.Item>
+
+                <Descriptions.Item label="邮件通知">
+                  {settings.notificationSettings?.emailEnabled ? (
+                    <Tag color="blue">已启用</Tag>
+                  ) : (
+                    <Tag color="default">已禁用</Tag>
+                  )}
+                </Descriptions.Item>
+
+                <Descriptions.Item label="新成员提醒">
+                  {settings.notificationSettings?.newMemberAlert ? (
+                    <Tag color="green">已开启</Tag>
+                  ) : (
+                    <Tag color="default">已关闭</Tag>
+                  )}
+                </Descriptions.Item>
+
+                <Descriptions.Item label="角色变更提醒">
+                  {settings.notificationSettings?.roleChangeAlert ? (
+                    <Tag color="green">已开启</Tag>
+                  ) : (
+                    <Tag color="default">已关闭</Tag>
+                  )}
+                </Descriptions.Item>
+              </Descriptions>
+            )}
+          </>
+        )}
+      </Card>
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Spin size="large" tip="加载中..." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <Alert
+          message="加载失败"
+          description={error}
+          type="error"
+          showIcon
+          action={<Button onClick={() => id && fetchEnterpriseById(id)}>重试</Button>}
+        />
+      </div>
+    );
+  }
+
+  if (!currentEnterprise) {
+    return (
+      <div className="p-6">
+        <Alert
+          message="企业不存在"
+          description="无法找到指定的企业信息"
+          type="warning"
+          showIcon
+          action={<Button onClick={() => navigate('/enterprises')}>返回列表</Button>}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6 max-w-7xl mx-auto">
+      {/* 页面头部 */}
+      <div className="mb-6">
+        <Button
+          icon={<ArrowLeftOutlined />}
+          onClick={() => navigate('/enterprises')}
+          className="mb-4"
+        >
+          返回企业列表
+        </Button>
+
+        <div className="flex items-center gap-4 mb-4">
+          <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white text-3xl font-bold shadow-lg">
+            {currentEnterprise.name.charAt(0).toUpperCase()}
+          </div>
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">{currentEnterprise.name}</h1>
+            <div className="flex items-center gap-4 text-gray-500">
+              <Tag color={isEnterpriseActive(currentEnterprise) ? 'green' : 'red'}>
+                {isEnterpriseActive(currentEnterprise) ? '活跃' : '停用'}
+              </Tag>
+              <span>成员: {members.length} 人</span>
+              <span>创建时间: {formatDateOnly(currentEnterprise.createdAt)}</span>
+            </div>
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="tabs" style={{ marginTop: '1.5rem', marginBottom: '-1px' }}>
-          <button
-            className={`tab ${activeTab === 'overview' ? 'tab-active' : ''}`}
-            onClick={() => setActiveTab('overview')}
-          >
-            <Building2 size={16} />
-            概览
-          </button>
-          <button
-            className={`tab ${activeTab === 'members' ? 'tab-active' : ''}`}
-            onClick={() => setActiveTab('members')}
-          >
-            <Users size={16} />
-            成员
-          </button>
-          <button
-            className={`tab ${activeTab === 'settings' ? 'tab-active' : ''}`}
-            onClick={() => setActiveTab('settings')}
-          >
-            <Settings size={16} />
-            设置
-          </button>
+        {/* 标签页导航 */}
+        <div className="border-b border-gray-200 mb-6">
+          <nav className="-mb-px flex space-x-8">
+            {enterpriseTabs.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`
+                  whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm
+                  flex items-center gap-2
+                  ${
+                    activeTab === tab.key
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }
+                `}
+              >
+                {tab.icon}
+                {tab.label}
+              </button>
+            ))}
+          </nav>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="enterprise-main">
-        <div className="enterprise-content">
+        {/* 标签页内容 */}
+        <div className="mt-6">
           {activeTab === 'overview' && renderOverview()}
           {activeTab === 'members' && renderMembers()}
           {activeTab === 'settings' && renderSettings()}
         </div>
-      </main>
-
-      {/* Invite Member Modal */}
-      {showInviteDialog && (
-        <InviteMemberDialog
-          enterpriseId={enterpriseId}
-          onClose={() => setShowInviteDialog(false)}
-          onInvite={(email, role) => {
-            console.log('邀请成员:', email, role);
-            setShowInviteDialog(false);
-          }}
-        />
-      )}
-
-      {/* Edit Enterprise Modal */}
-      {showEditForm && (
-        <div className="modal-overlay" onClick={() => setShowEditForm(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2 className="modal-title">编辑企业信息</h2>
-              <button className="modal-close" onClick={() => setShowEditForm(false)}>
-                ×
-              </button>
-            </div>
-            <div className="modal-body">
-              <EnterpriseForm
-                initialData={enterprise}
-                onSubmit={(data) => {
-                  console.log('更新企业:', data);
-                  setShowEditForm(false);
-                }}
-                onCancel={() => setShowEditForm(false)}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 };
 
-// 获取状态徽章
-const getStatusBadge = (status: string) => {
-  const statusConfig: Record<string, { label: string; className: string }> = {
-    active: { label: '运营中', className: 'badge badge-success' },
-    pending: { label: '审核中', className: 'badge badge-warning' },
-    inactive: { label: '已停用', className: 'badge badge-danger' },
-  };
-  const config = statusConfig[status] || statusConfig.inactive;
-  return <span className={config.className}>{config.label}</span>;
-};
+export default EnterpriseDetail;

@@ -1,12 +1,13 @@
 import { useState, useCallback } from 'react';
 import { Building2, Mail, Phone, MapPin, Globe, Users, Briefcase } from 'lucide-react';
-import type { Enterprise } from '../../types/enterprise';
+import type { Enterprise } from '../../types';
 import './Enterprise.less';
 
 interface EnterpriseFormProps {
   initialData?: Partial<Enterprise>;
   onSubmit: (data: Partial<Enterprise>) => void;
   onCancel: () => void;
+  isSubmitting?: boolean;
 }
 
 interface FormData {
@@ -49,7 +50,12 @@ const industryOptions = [
 
 const scaleOptions = ['1-10人', '11-50人', '51-100人', '101-500人', '501-1000人', '1000人以上'];
 
-export const EnterpriseForm = ({ initialData, onSubmit, onCancel }: EnterpriseFormProps) => {
+export const EnterpriseForm = ({
+  initialData,
+  onSubmit,
+  onCancel,
+  isSubmitting: externalIsSubmitting,
+}: EnterpriseFormProps) => {
   const [formData, setFormData] = useState<FormData>(() => {
     if (initialData) {
       return {
@@ -119,8 +125,7 @@ export const EnterpriseForm = ({ initialData, onSubmit, onCancel }: EnterpriseFo
       setIsSubmitting(true);
 
       try {
-        // 模拟API调用延迟
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        // 直接提交表单数据，不进行模拟延迟
         onSubmit(formData);
       } catch (error) {
         console.error('提交失败:', error);

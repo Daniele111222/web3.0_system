@@ -14,7 +14,7 @@ import {
   ChevronDown,
   Filter,
 } from 'lucide-react';
-import type { EnterpriseMember } from '../../types/enterprise';
+import type { EnterpriseMember } from '../../types';
 import './MemberList.less';
 
 interface MemberListProps {
@@ -45,8 +45,9 @@ export const MemberList = ({
       // 搜索过滤
       const searchLower = searchQuery.toLowerCase();
       const matchesSearch =
-        member.user.name.toLowerCase().includes(searchLower) ||
-        member.user.email.toLowerCase().includes(searchLower);
+        member.user?.name?.toLowerCase().includes(searchLower) ||
+        member.user?.email?.toLowerCase().includes(searchLower) ||
+        false;
 
       // 角色过滤
       const matchesRole = roleFilter === 'all' || member.role === roleFilter;
@@ -71,7 +72,7 @@ export const MemberList = ({
   }, [members]);
 
   // 获取角色信息
-  const getRoleInfo = (role: string) => {
+  const getRoleInfo = (role?: string) => {
     const roleConfig: Record<string, { label: string; icon: typeof Crown; className: string }> = {
       owner: {
         label: '所有者',
@@ -89,11 +90,12 @@ export const MemberList = ({
         className: 'role-member',
       },
     };
-    return roleConfig[role] || roleConfig.member;
+    const safeRole = role ?? 'member';
+    return roleConfig[safeRole] || roleConfig.member;
   };
 
   // 获取状态信息
-  const getStatusInfo = (status: string) => {
+  const getStatusInfo = (status?: string) => {
     const statusConfig: Record<
       string,
       { label: string; className: string; icon: typeof CheckCircle2 }
@@ -114,7 +116,8 @@ export const MemberList = ({
         icon: XCircle,
       },
     };
-    return statusConfig[status] || statusConfig.inactive;
+    const safeStatus = status ?? 'inactive';
+    return statusConfig[safeStatus] || statusConfig.inactive;
   };
 
   return (
@@ -242,10 +245,10 @@ export const MemberList = ({
                 >
                   {/* 头像 */}
                   <div className="member-avatar">
-                    {member.user.avatar ? (
-                      <img src={member.user.avatar} alt={member.user.name} />
+                    {member.user?.avatar ? (
+                      <img src={member.user.avatar} alt={member.user?.name ?? ''} />
                     ) : (
-                      <span className="avatar-initials">{member.user.name.charAt(0)}</span>
+                      <span className="avatar-initials">{member.user?.name?.charAt(0) ?? '?'}</span>
                     )}
                     <span className={`member-status-indicator ${statusInfo.className}`} />
                   </div>
@@ -253,12 +256,12 @@ export const MemberList = ({
                   {/* 用户信息 */}
                   <div className="member-info">
                     <div className="member-name-row">
-                      <span className="member-name">{member.user.name}</span>
+                      <span className="member-name">{member.user?.name ?? '未知用户'}</span>
                       {getRoleBadge(member.role)}
                     </div>
                     <div className="member-meta">
                       <Mail size={12} />
-                      <span>{member.user.email}</span>
+                      <span>{member.user?.email ?? '暂无邮箱'}</span>
                     </div>
                   </div>
 
@@ -305,7 +308,11 @@ export const MemberList = ({
                   {/* 加入时间 */}
                   <div className="member-joined">
                     <Clock size={12} />
-                    <span>{new Date(member.joinedAt).toLocaleDateString('zh-CN')}</span>
+                    <span>
+                      {member.joinedAt
+                        ? new Date(member.joinedAt).toLocaleDateString('zh-CN')
+                        : '未知'}
+                    </span>
                   </div>
 
                   {/* 操作菜单 */}
@@ -366,12 +373,13 @@ export const MemberList = ({
 };
 
 // 获取角色徽章
-const getRoleBadge = (role: string) => {
+const getRoleBadge = (role?: string) => {
   const roleConfig: Record<string, { label: string; className: string }> = {
     owner: { label: '所有者', className: 'role-badge role-owner' },
     admin: { label: '管理员', className: 'role-badge role-admin' },
     member: { label: '成员', className: 'role-badge role-member' },
   };
-  const config = roleConfig[role] || roleConfig.member;
+  const safeRole = role ?? 'member';
+  const config = roleConfig[safeRole] ?? roleConfig.member;
   return <span className={config.className}>{config.label}</span>;
 };

@@ -11,12 +11,13 @@ import {
   ChevronDown,
   Send,
 } from 'lucide-react';
+import { useEnterprise } from '../../hooks/useEnterprise';
 import './Enterprise.less';
 
 interface InviteMemberDialogProps {
   enterpriseId: string;
   onClose: () => void;
-  onInvite: (email: string, role: string) => void;
+  onSuccess?: () => void;
 }
 
 type InviteRole = 'admin' | 'member';
@@ -45,13 +46,15 @@ const roleOptions: { value: InviteRole; label: string; description: string; icon
 export const InviteMemberDialog = ({
   enterpriseId,
   onClose,
-  onInvite,
+  onSuccess,
 }: InviteMemberDialogProps) => {
+  const { inviteMember } = useEnterprise();
+
   const [form, setForm] = useState<InviteForm>({
     email: '',
     role: 'member',
   });
-  const [errors, setErrors] = useState<{ email?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; general?: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
 
@@ -100,16 +103,21 @@ export const InviteMemberDialog = ({
       }
 
       setIsSubmitting(true);
+      setErrors({});
 
       try {
-        // 模拟API调用
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        onInvite(form.email, form.role);
+        // 调用API邀请成员
+        await inviteMember(enterpriseId, { email: form.email, role: form.role });
+        onClose();
+        onSuccess?.();
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : '邀请成员失败';
+        setErrors({ general: errorMessage });
       } finally {
         setIsSubmitting(false);
       }
     },
-    [form, validateEmail, onInvite]
+    [form, validateEmail, enterpriseId, inviteMember, onClose, onSuccess]
   );
 
   // 获取当前选中的角色
@@ -136,6 +144,14 @@ export const InviteMemberDialog = ({
 
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
+            {/* 全局错误提示 */}
+            {errors.general && (
+              <div className="form-error" style={{ marginBottom: '1rem' }}>
+                <AlertCircle size={14} />
+                {errors.general}
+              </div>
+            )}
+
             {/* 邮箱输入 */}
             <div className="form-group">
               <label className="form-label form-label-required">

@@ -59,10 +59,32 @@ export interface User {
   email_verified: boolean;
 }
 
-// 企业类型
+// ============================================
+// 企业类型 - 统一使用 enterprise.ts 中的定义
+// ============================================
+
+// 从 enterprise.ts 重新导出所有企业相关类型
+export type {
+  EnterpriseStatus,
+  EnterpriseRole,
+  MemberStatus,
+  MemberUser,
+  EnterpriseMember,
+  Enterprise,
+  EnterpriseDetail,
+  EnterpriseListResponse,
+  EnterpriseCreateRequest,
+  EnterpriseUpdateRequest,
+  InviteMemberRequest,
+  UpdateMemberRoleRequest,
+  EnterpriseSettings,
+} from './enterprise';
+
+// 为保持向后兼容，定义 MemberRole 类型
 export type MemberRole = 'owner' | 'admin' | 'member' | 'viewer';
 
-export interface EnterpriseMember {
+// 为保持向后兼容，定义简化的 EnterpriseMember 接口
+export interface SimpleEnterpriseMember {
   id: string;
   user_id: string;
   username: string;
@@ -73,7 +95,8 @@ export interface EnterpriseMember {
   joined_at: string;
 }
 
-export interface Enterprise {
+// 为保持向后兼容，定义简化的 Enterprise 接口
+export interface SimpleEnterprise {
   id: string;
   name: string;
   description?: string;
@@ -88,39 +111,7 @@ export interface Enterprise {
   member_count: number;
 }
 
-export interface EnterpriseDetail extends Enterprise {
-  members: EnterpriseMember[];
-}
-
-export interface EnterpriseListResponse {
-  items: Enterprise[];
-  total: number;
-  page: number;
-  page_size: number;
-  pages: number;
-}
-
-export interface EnterpriseCreateRequest {
-  name: string;
-  description?: string;
-  logo_url?: string;
-  website?: string;
-  contact_email?: string;
-}
-
-export interface EnterpriseUpdateRequest {
-  name?: string;
-  description?: string;
-  logo_url?: string;
-  website?: string;
-  contact_email?: string;
-}
-
-export interface InviteMemberRequest {
-  user_id: string;
-  role: MemberRole;
-}
-
-export interface UpdateMemberRoleRequest {
-  role: MemberRole;
+// 为保持向后兼容，定义简化的 EnterpriseDetail 接口
+export interface SimpleEnterpriseDetail extends SimpleEnterprise {
+  members: SimpleEnterpriseMember[];
 }
