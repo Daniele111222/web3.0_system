@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import {
   ArrowLeft,
   Building2,
@@ -12,8 +11,6 @@ import {
   Settings,
   MoreVertical,
   Clock,
-  CheckCircle2,
-  AlertCircle,
   FileText,
   Activity,
   ChevronRight,
@@ -108,7 +105,7 @@ export const EnterpriseDetail = ({ enterpriseId, onBack }: EnterpriseDetailProps
   const [showEditForm, setShowEditForm] = useState(false);
 
   // 获取角色徽章
-  const getRoleBadge = (role: string) => {
+  const _getRoleBadge = (role: string) => {
     const roleConfig: Record<string, { label: string; className: string }> = {
       owner: { label: '所有者', className: 'role-owner' },
       admin: { label: '管理员', className: 'role-admin' },
@@ -120,8 +117,8 @@ export const EnterpriseDetail = ({ enterpriseId, onBack }: EnterpriseDetailProps
 
   // 渲染概览标签
   const renderOverview = () => (
-    <div className="enterprise-detail-sections">
-      <div className="detail-main">
+    <div className="enterprise-detail-layout">
+      <div className="detail-main-column">
         {/* 企业信息卡片 */}
         <div className="card card-elevated">
           <div className="card-header">
@@ -205,7 +202,7 @@ export const EnterpriseDetail = ({ enterpriseId, onBack }: EnterpriseDetailProps
       </div>
 
       {/* Sidebar */}
-      <div className="detail-sidebar">
+      <div className="detail-sidebar-column">
         {/* 快速统计 */}
         <div className="card">
           <div className="card-header">
@@ -270,8 +267,8 @@ export const EnterpriseDetail = ({ enterpriseId, onBack }: EnterpriseDetailProps
 
   // 渲染成员标签
   const renderMembers = () => (
-    <div className="enterprise-detail-sections">
-      <div className="detail-main">
+    <div className="enterprise-detail-layout">
+      <div className="detail-main-column full-width">
         <MemberList
           members={members}
           onInvite={() => setShowInviteDialog(true)}

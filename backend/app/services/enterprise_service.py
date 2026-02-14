@@ -142,7 +142,10 @@ class EnterpriseService:
         )
         await self.member_repo.create(member)
         
-        # 重新获取完整数据
+        # 刷新 session，确保能看到新创建的成员
+        await self.db.refresh(enterprise)
+        
+        # 重新获取完整数据（需要新查询以加载 members 关系）
         enterprise = await self.enterprise_repo.get_by_id(enterprise.id)
         
         return self._enterprise_to_detail_response(enterprise)

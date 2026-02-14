@@ -143,7 +143,7 @@ export const EnterpriseList = ({ onSelectEnterprise }: EnterpriseListProps) => {
         <div className="enterprise-header-content">
           <div className="enterprise-header-left">
             <div className="brand-logo-compact">
-              <Building2 className="logo-icon" />
+              <Building2 className="logo-icon" size={24} />
             </div>
             <div className="enterprise-header-title-group">
               <h1 className="enterprise-header-title">企业管理</h1>
@@ -152,7 +152,7 @@ export const EnterpriseList = ({ onSelectEnterprise }: EnterpriseListProps) => {
           </div>
           <div className="enterprise-header-actions">
             <button className="btn btn-primary" onClick={() => setShowForm(true)}>
-              <Plus className="btn-icon" />
+              <Plus className="btn-icon" size={18} />
               创建企业
             </button>
           </div>

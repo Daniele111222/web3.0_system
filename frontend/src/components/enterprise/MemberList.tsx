@@ -11,12 +11,11 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  AlertCircle,
   ChevronDown,
   Filter,
 } from 'lucide-react';
 import type { EnterpriseMember } from '../../types/enterprise';
-import './Enterprise.less';
+import './MemberList.less';
 
 interface MemberListProps {
   members: EnterpriseMember[];

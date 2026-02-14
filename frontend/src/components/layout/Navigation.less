@@ -1,6 +1,7 @@
 /* ========================================
    导航栏组件样式 - Glassmorphism Navigation
    极光科技风格 - Aurora Tech Style
+   基于 antd Menu 定制
    ======================================== */
 
 /* 导入设计系统变量 */
@@ -16,7 +17,7 @@
   right: 0;
   z-index: 1100;
   height: 70px;
-  background: rgba(10, 10, 15, 0.8);
+  background: rgba(10, 10, 15, 0.85);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border-primary);
@@ -46,4 +47,498 @@
     transparent 100%
   );
   opacity: 0.5;
+}
+
+/* ========================================
+   导航容器布局
+   ======================================== */
+.nav-container {
+  max-width: 1600px;
+  height: 100%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  gap: 2rem;
+}
+
+/* ========================================
+   品牌 Logo 区域
+   ======================================== */
+.nav-brand {
+  flex-shrink: 0;
+}
+
+.brand-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+.brand-logo-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(0, 212, 170, 0.2), rgba(124, 58, 237, 0.2));
+  border: 1px solid rgba(0, 212, 170, 0.3);
+  border-radius: var(--radius-lg);
+  color: var(--color-primary);
+
+  svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.brand-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+}
+
+.brand-subtitle {
+  font-size: 0.625rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  line-height: 1.2;
+}
+
+/* ========================================
+   桌面端导航菜单 (antd Menu 定制)
+   ======================================== */
+.nav-menu-desktop {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  background: transparent;
+  border: none;
+}
+
+.nav-antd-menu {
+  background: transparent !important;
+  border: none !important;
+  line-height: 68px !important;
+
+  .ant-menu-item {
+    margin: 0 4px !important;
+    padding: 0 16px !important;
+    height: 44px !important;
+    line-height: 44px !important;
+    border-radius: var(--radius-md) !important;
+    background: transparent !important;
+    border: none !important;
+    color: var(--text-secondary) !important;
+    font-weight: 500 !important;
+    transition: all 0.25s ease !important;
+
+    &::after {
+      display: none !important;
+    }
+
+    &:hover {
+      color: var(--text-primary) !important;
+      background: rgba(0, 212, 170, 0.1) !important;
+    }
+
+    &.ant-menu-item-selected {
+      color: var(--color-primary) !important;
+      background: linear-gradient(
+        135deg,
+        rgba(0, 212, 170, 0.15),
+        rgba(124, 58, 237, 0.15)
+      ) !important;
+      border: 1px solid rgba(0, 212, 170, 0.3) !important;
+
+      &::after {
+        display: none !important;
+      }
+    }
+  }
+}
+
+.nav-menu-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.nav-menu-icon {
+  color: inherit;
+}
+
+/* ========================================
+   桌面端用户区域
+   ======================================== */
+.nav-user-desktop {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 0.25s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--color-primary-alpha-30);
+  }
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(0, 212, 170, 0.2), rgba(124, 58, 237, 0.2));
+  border-radius: var(--radius-md);
+  color: var(--color-primary);
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.user-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.2;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wallet-address {
+  font-size: 0.6875rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.user-dropdown-arrow {
+  color: var(--text-muted);
+  transition: transform 0.25s ease;
+}
+
+.user-dropdown-trigger:hover .user-dropdown-arrow {
+  color: var(--text-secondary);
+}
+
+/* ========================================
+   移动端菜单按钮
+   ======================================== */
+.mobile-menu-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  gap: 5px;
+
+  &.active {
+    .hamburger-line {
+      &:nth-child(1) {
+        transform: translateY(7px) rotate(45deg);
+      }
+      &:nth-child(2) {
+        opacity: 0;
+      }
+      &:nth-child(3) {
+        transform: translateY(-7px) rotate(-45deg);
+      }
+    }
+  }
+}
+
+.hamburger-line {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: var(--text-primary);
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+/* ========================================
+   移动端菜单
+   ======================================== */
+.mobile-menu {
+  display: none;
+  position: fixed;
+  top: 70px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(10, 10, 15, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 1099;
+  padding: 1.5rem;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+
+  &.open {
+    transform: translateX(0);
+  }
+}
+
+.mobile-user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  margin-bottom: 1.5rem;
+}
+
+.mobile-user-avatar {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(0, 212, 170, 0.2), rgba(124, 58, 237, 0.2));
+  border-radius: var(--radius-md);
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.mobile-user-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  overflow: hidden;
+}
+
+.mobile-nav-menu {
+  margin-bottom: 1.5rem;
+}
+
+.mobile-antd-menu {
+  background: transparent !important;
+  border: none !important;
+
+  .ant-menu-item {
+    margin: 8px 0 !important;
+    padding: 0 16px !important;
+    height: 52px !important;
+    line-height: 52px !important;
+    border-radius: var(--radius-md) !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid var(--border-secondary) !important;
+    color: var(--text-secondary) !important;
+    font-size: 1rem !important;
+    font-weight: 500 !important;
+
+    a {
+      color: inherit !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 0.75rem !important;
+      text-decoration: none !important;
+    }
+
+    &:hover {
+      background: rgba(0, 212, 170, 0.1) !important;
+      border-color: rgba(0, 212, 170, 0.3) !important;
+      color: var(--text-primary) !important;
+    }
+
+    &.ant-menu-item-selected {
+      background: linear-gradient(
+        135deg,
+        rgba(0, 212, 170, 0.15),
+        rgba(124, 58, 237, 0.15)
+      ) !important;
+      border-color: rgba(0, 212, 170, 0.4) !important;
+      color: var(--color-primary) !important;
+    }
+  }
+}
+
+.mobile-nav-icon {
+  color: inherit;
+}
+
+.mobile-logout {
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-secondary);
+}
+
+.btn-logout-mobile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 1rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-md);
+  color: #f87171;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+
+  &:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.5);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.mobile-overlay {
+  display: none;
+}
+
+/* ========================================
+   响应式设计
+   ======================================== */
+@media (max-width: 1023px) {
+  .nav-menu-desktop {
+    display: none;
+  }
+
+  .nav-user-desktop {
+    display: none;
+  }
+
+  .mobile-menu-toggle {
+    display: flex;
+  }
+
+  .mobile-menu {
+    display: block;
+  }
+
+  .mobile-overlay {
+    display: block;
+    position: fixed;
+    top: 70px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1098;
+  }
+}
+
+@media (max-width: 767px) {
+  .nav-container {
+    padding: 0 1rem;
+  }
+
+  .brand-text {
+    display: none;
+  }
+
+  .navigation {
+    height: 60px;
+  }
+
+  .mobile-menu {
+    top: 60px;
+  }
+}
+
+/* ========================================
+   antd Menu 弹出层样式
+   ======================================== */
+.ant-dropdown-menu {
+  background: rgba(18, 18, 24, 0.95) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-primary) !important;
+  border-radius: var(--radius-lg) !important;
+  padding: 8px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+
+  .ant-dropdown-menu-item {
+    color: var(--text-secondary) !important;
+    border-radius: var(--radius-md) !important;
+    padding: 10px 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+
+    &:hover {
+      background: rgba(0, 212, 170, 0.1) !important;
+      color: var(--text-primary) !important;
+    }
+
+    &.ant-dropdown-menu-item-danger {
+      color: #f87171 !important;
+
+      &:hover {
+        background: rgba(239, 68, 68, 0.1) !important;
+        color: #f87171 !important;
+      }
+    }
+  }
+
+  .ant-dropdown-menu-item-divider {
+    background: var(--border-secondary) !important;
+    margin: 8px 0 !important;
+  }
+}
+
+/* ========================================
+   减少动画偏好
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+  .navigation,
+  .nav-container,
+  .mobile-menu,
+  .mobile-menu-toggle,
+  .hamburger-line,
+  .user-dropdown-trigger {
+    transition: none !important;
+    animation: none !important;
+  }
 }

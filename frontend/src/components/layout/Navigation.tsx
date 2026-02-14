@@ -1,6 +1,17 @@
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useAuthStore } from '../../store';
+import { Menu, Dropdown } from 'antd';
+import {
+  LayoutDashboard,
+  Building2,
+  Files,
+  Gem,
+  LogOut,
+  User,
+  Wallet,
+  ChevronDown,
+} from 'lucide-react';
 import './Navigation.less';
 
 /**
@@ -127,44 +138,41 @@ export function Navigation() {
    * 导航项配置
    */
   const navItems = [
-    { to: '/dashboard', icon: 'dashboard', label: '权属看板' },
-    { to: '/enterprises', icon: 'enterprise', label: '企业管理' },
-    { to: '/assets', icon: 'assets', label: '资产管理' },
-    { to: '/nft', icon: 'nft', label: 'NFT 铸造' },
+    { key: '/dashboard', icon: LayoutDashboard, label: '权属看板' },
+    { key: '/enterprises', icon: Building2, label: '企业管理' },
+    { key: '/assets', icon: Files, label: '资产管理' },
+    { key: '/nft', icon: Gem, label: 'NFT 铸造' },
   ];
 
-  // 导航图标 SVG 映射
-  const navIcons: Record<string, React.ReactNode> = {
-    dashboard: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <rect x="3" y="3" width="7" height="7" rx="1" />
-        <rect x="14" y="3" width="7" height="7" rx="1" />
-        <rect x="14" y="14" width="7" height="7" rx="1" />
-        <rect x="3" y="14" width="7" height="7" rx="1" />
-      </svg>
-    ),
-    enterprise: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M3 21h18M5 21V7l8-4 8 4v14M8 21v-9a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v9" />
-      </svg>
-    ),
-    assets: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-        <polyline points="14 2 14 8 20 8" />
-        <line x1="16" y1="13" x2="8" y2="13" />
-        <line x1="16" y1="17" x2="8" y2="17" />
-        <polyline points="10 9 9 9 8 9" />
-      </svg>
-    ),
-    nft: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-        <circle cx="8.5" cy="8.5" r="1.5" />
-        <polyline points="21 15 16 10 5 21" />
-      </svg>
-    ),
-  };
+  // 用户下拉菜单
+  const userMenuItems = [
+    {
+      key: 'profile',
+      icon: <User size={14} />,
+      label: '个人资料',
+    },
+    {
+      key: 'wallet',
+      icon: <Wallet size={14} />,
+      label: '钱包地址',
+    },
+    { type: 'divider' as const },
+    {
+      key: 'logout',
+      icon: <LogOut size={14} />,
+      label: '退出登录',
+      danger: true,
+    },
+  ];
+
+  const handleUserMenuClick = useCallback(
+    ({ key }: { key: string }) => {
+      if (key === 'logout') {
+        handleLogout();
+      }
+    },
+    [handleLogout]
+  );
 
   return (
     <nav
@@ -189,63 +197,56 @@ export function Navigation() {
             </div>
             <div className="brand-text">
               <span className="brand-title">IP-NFT</span>
-              <span className="brand-subtitle">Enterprise Platform</span>
+              <span className="brand-subtitle">Enterprise</span>
             </div>
           </NavLink>
         </div>
 
-        {/* 桌面端导航菜单 */}
-        <ul className="nav-menu-desktop" role="menubar">
-          {navItems.map((item) => (
-            <li key={item.to} role="none">
-              <NavLink
-                to={item.to}
-                className={({ isActive }) => (isActive ? 'active' : '')}
-                role="menuitem"
-                aria-current={location.pathname === item.to ? 'page' : undefined}
-              >
-                <span className="nav-icon" aria-hidden="true">
-                  {navIcons[item.icon]}
-                </span>
-                <span className="nav-label">{item.label}</span>
-              </NavLink>
-            </li>
-          ))}
-        </ul>
+        {/* 桌面端导航菜单 - 使用 antd Menu */}
+        <div className="nav-menu-desktop">
+          <Menu
+            mode="horizontal"
+            selectedKeys={[location.pathname]}
+            items={navItems.map((item) => ({
+              key: item.key,
+              label: (
+                <NavLink to={item.key} className="nav-menu-link">
+                  <item.icon size={18} className="nav-menu-icon" />
+                  <span>{item.label}</span>
+                </NavLink>
+              ),
+            }))}
+            className="nav-antd-menu"
+          />
+        </div>
 
         {/* 桌面端用户信息 */}
         <div className="nav-user-desktop">
-          <div className="user-info">
-            <span className="user-name" title={user?.email}>
-              {user?.full_name || user?.username || user?.email}
-            </span>
-            {user?.wallet_address && (
-              <span className="wallet-address" title={user.wallet_address}>
-                {user.wallet_address.slice(0, 6)}...{user.wallet_address.slice(-4)}
-              </span>
-            )}
-          </div>
-          <button
-            className="btn-logout"
-            onClick={handleLogout}
-            disabled={isLoggingOut}
-            aria-label="退出登录"
-            title="退出登录"
+          <Dropdown
+            menu={{
+              items: userMenuItems,
+              onClick: handleUserMenuClick,
+            }}
+            trigger={['click']}
+            placement="bottomRight"
           >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
-            {isLoggingOut ? '退出中...' : '退出'}
-          </button>
+            <button className="user-dropdown-trigger">
+              <div className="user-avatar">
+                <User size={16} />
+              </div>
+              <div className="user-info">
+                <span className="user-name">
+                  {user?.full_name || user?.username || user?.email}
+                </span>
+                {user?.wallet_address && (
+                  <span className="wallet-address">
+                    {user.wallet_address.slice(0, 6)}...{user.wallet_address.slice(-4)}
+                  </span>
+                )}
+              </div>
+              <ChevronDown size={14} className="user-dropdown-arrow" />
+            </button>
+          </Dropdown>
         </div>
 
         {/* 移动端汉堡菜单按钮 */}
@@ -271,48 +272,41 @@ export function Navigation() {
       >
         {/* 移动端用户信息 */}
         <div className="mobile-user-info">
-          <span className="user-name">{user?.full_name || user?.username || user?.email}</span>
-          {user?.wallet_address && (
-            <span className="wallet-address">
-              {user.wallet_address.slice(0, 6)}...{user.wallet_address.slice(-4)}
-            </span>
-          )}
+          <div className="mobile-user-avatar">
+            <User size={24} />
+          </div>
+          <div className="mobile-user-details">
+            <span className="user-name">{user?.full_name || user?.username || user?.email}</span>
+            {user?.wallet_address && (
+              <span className="wallet-address">
+                {user.wallet_address.slice(0, 6)}...{user.wallet_address.slice(-4)}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* 移动端导航链接 */}
-        <ul className="mobile-nav-list" role="menu">
-          {navItems.map((item) => (
-            <li key={item.to} role="none">
-              <NavLink
-                to={item.to}
-                className={({ isActive }) => (isActive ? 'active' : '')}
-                onClick={handleNavClick}
-                role="menuitem"
-              >
-                <span className="nav-icon" aria-hidden="true">
-                  {navIcons[item.icon]}
-                </span>
-                <span className="nav-label">{item.label}</span>
-              </NavLink>
-            </li>
-          ))}
-        </ul>
+        <div className="mobile-nav-menu">
+          <Menu
+            mode="vertical"
+            selectedKeys={[location.pathname]}
+            items={navItems.map((item) => ({
+              key: item.key,
+              label: (
+                <NavLink to={item.key} onClick={handleNavClick}>
+                  <item.icon size={20} className="mobile-nav-icon" />
+                  <span>{item.label}</span>
+                </NavLink>
+              ),
+            }))}
+            className="mobile-antd-menu"
+          />
+        </div>
 
         {/* 移动端登出按钮 */}
         <div className="mobile-logout">
           <button className="btn-logout-mobile" onClick={handleLogout} disabled={isLoggingOut}>
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
+            <LogOut size={18} />
             {isLoggingOut ? '退出中...' : '退出登录'}
           </button>
         </div>

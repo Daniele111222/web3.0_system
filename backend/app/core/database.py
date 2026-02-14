@@ -15,7 +15,8 @@ ERROR_DIVIDER = "=" * 80
 
 engine = create_async_engine(
     settings.DATABASE_URL,
-    echo=settings.DEBUG,
+    # echo=settings.DEBUG,
+    echo=False,
     pool_pre_ping=True,  # 验证连接有效性，防止使用已断开连接
 )
 
