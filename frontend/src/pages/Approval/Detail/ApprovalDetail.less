@@ -1,0 +1,687 @@
+/** 
+ * 审批详情页面样式
+ */
+
+/* ==================== 页面整体 ==================== */
+.approval-detail-page {
+  padding: 0;
+  animation: pageFadeIn 0.5s ease-out;
+}
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.approval-detail-page.loading,
+.approval-detail-page.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 500px;
+}
+
+/* ==================== 页面头部 ==================== */
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 24px 0;
+  margin-bottom: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.back-btn {
+  color: rgba(255, 255, 255, 0.7);
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+  color: #1890ff;
+  background: rgba(24, 144, 255, 0.1);
+}
+
+.header-title-group {
+  flex: 1;
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 12px;
+  background: linear-gradient(135deg, #ffffff 0%, #a0aec0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.header-tags {
+  display: flex;
+  gap: 8px;
+}
+
+.priority-tag,
+.status-tag {
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.header-approval-id {
+  text-align: right;
+}
+
+.header-approval-id .label {
+  display: block;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 4px;
+}
+
+.header-approval-id .value {
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+/* ==================== 主体内容 ==================== */
+.page-content {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 24px;
+}
+
+.content-left {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.content-right {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: sticky;
+  top: 24px;
+  height: fit-content;
+}
+
+/* ==================== 信息卡片 ==================== */
+.info-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+}
+
+.info-card .ant-card-body {
+  padding: 20px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0;
+}
+
+/* 申请人卡片 */
+.applicant-profile {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.applicant-avatar {
+  background: linear-gradient(135deg, #1890ff 0%, #52c41a 100%);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.applicant-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.applicant-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0 0 4px;
+}
+
+.applicant-email {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 4px;
+}
+
+.applicant-id {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0;
+  font-family: 'Monaco', 'Menlo', monospace;
+}
+
+/* 目标信息卡片 */
+.target-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.target-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.item-label {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  min-width: 70px;
+}
+
+.item-value {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+.item-value.code {
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.changes-section {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.changes-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 12px;
+}
+
+.change-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.change-field {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.change-values {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.old-value {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  text-decoration: line-through;
+}
+
+.arrow {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.new-value {
+  font-size: 13px;
+  color: #52c41a;
+  font-weight: 500;
+}
+
+/* 备注卡片 */
+.remarks-content {
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+}
+
+/* 附件卡片 */
+.attachments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.attachment-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.attachment-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.attachment-icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(24, 144, 255, 0.1);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1890ff;
+  flex-shrink: 0;
+}
+
+.attachment-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.attachment-name {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.attachment-size {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.download-btn {
+  color: rgba(255, 255, 255, 0.5);
+  transition: all 0.3s ease;
+}
+
+.download-btn:hover {
+  color: #1890ff;
+  background: rgba(24, 144, 255, 0.1);
+}
+
+/* ==================== 右侧操作卡片 ==================== */
+.action-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+}
+
+.action-card .ant-card-body {
+  padding: 20px;
+}
+
+.action-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.form-label .required {
+  color: #ff4d4f;
+  margin-left: 4px;
+}
+
+.comment-input {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  resize: vertical;
+}
+
+.comment-input::placeholder {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.comment-input:hover,
+.comment-input:focus {
+  border-color: #1890ff !important;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
+}
+
+/* 快捷模板 */
+.template-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.template-btn {
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.template-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--template-color, rgba(255, 255, 255, 0.2));
+}
+
+.template-btn.active {
+  background: var(--template-color, rgba(24, 144, 255, 0.15));
+  border-color: var(--template-color, #1890ff);
+  color: var(--template-color, #1890ff);
+}
+
+/* 上传区域 */
+.upload-area {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px dashed rgba(255, 255, 255, 0.2) !important;
+  border-radius: 8px !important;
+  padding: 24px !important;
+  transition: all 0.3s ease;
+}
+
+.upload-area:hover {
+  border-color: #1890ff !important;
+  background: rgba(24, 144, 255, 0.03) !important;
+}
+
+.upload-icon {
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 12px;
+}
+
+.upload-text {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 6px;
+}
+
+.upload-hint {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0;
+}
+
+/* 分割线 */
+.action-divider {
+  margin: 8px 0 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* 警告提示 */
+.action-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: rgba(250, 173, 20, 0.1);
+  border: 1px solid rgba(250, 173, 20, 0.3);
+  border-radius: 8px;
+  color: #faad14;
+  font-size: 13px;
+}
+
+/* 操作按钮组 */
+.action-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.action-btns .action-btn {
+  height: 44px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.action-btns .action-btn.approve {
+  background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%);
+  border: none;
+  box-shadow: 0 4px 16px rgba(82, 196, 26, 0.35);
+}
+
+.action-btns .action-btn.approve:hover {
+  background: linear-gradient(135deg, #73d13d 0%, #52c41a 100%);
+  box-shadow: 0 6px 20px rgba(82, 196, 26, 0.45);
+  transform: translateY(-1px);
+}
+
+.action-btns .action-btn.reject {
+  background: rgba(255, 77, 79, 0.1);
+  border: 1px solid rgba(255, 77, 79, 0.3);
+  color: #ff4d4f;
+}
+
+.action-btns .action-btn.reject:hover {
+  background: rgba(255, 77, 79, 0.2);
+  border-color: #ff4d4f;
+}
+
+.action-btns .action-btn.return {
+  background: rgba(250, 173, 20, 0.1);
+  border: 1px solid rgba(250, 173, 20, 0.3);
+  color: #faad14;
+}
+
+.action-btns .action-btn.return:hover {
+  background: rgba(250, 173, 20, 0.2);
+  border-color: #faad14;
+}
+
+/* ==================== 历史记录卡片 ==================== */
+.history-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+}
+
+.history-card .ant-card-body {
+  padding: 20px;
+}
+
+.history-timeline {
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+/* 自定义滚动条 */
+.history-timeline::-webkit-scrollbar {
+  width: 4px;
+}
+
+.history-timeline::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 2px;
+}
+
+.history-timeline::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+}
+
+.history-timeline::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* 时间线样式 */
+.timeline-item {
+  padding: 4px 0;
+}
+
+.timeline-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.timeline-action {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.timeline-time {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.timeline-operator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.timeline-operator span {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.timeline-operator .ant-tag {
+  font-size: 11px;
+  padding: 0 6px;
+  line-height: 18px;
+}
+
+.timeline-comment {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  border-left: 3px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Ant Design Timeline 样式覆盖 */
+.history-timeline .ant-timeline {
+  padding-top: 8px;
+}
+
+.history-timeline .ant-timeline-item {
+  padding-bottom: 20px;
+}
+
+.history-timeline .ant-timeline-item-last {
+  padding-bottom: 0;
+}
+
+.history-timeline .ant-timeline-item-tail {
+  border-left: 2px solid rgba(255, 255, 255, 0.08);
+  left: 4px;
+}
+
+.history-timeline .ant-timeline-item-head {
+  background: transparent;
+  border: none;
+}
+
+/* ==================== 响应式适配 ==================== */
+@media (max-width: 1200px) {
+  .page-content {
+    grid-template-columns: 1fr;
+  }
+
+  .content-right {
+    position: static;
+    order: -1;
+  }
+
+  .action-card {
+    order: -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .header-approval-id {
+    text-align: left;
+    width: 100%;
+  }
+
+  .page-title {
+    font-size: 22px;
+  }
+
+  .applicant-profile {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .action-btns .action-btn {
+    height: 48px;
+  }
+}

@@ -13,13 +13,13 @@ from app.models.asset import AssetType, LegalStatus, AssetStatus
 class AttachmentResponse(BaseModel):
     """附件响应模式。"""
     
-    id: UUID
-    asset_id: UUID
-    file_name: str
-    file_type: str
-    file_size: int
-    ipfs_cid: str
-    uploaded_at: datetime
+    id: UUID = Field(..., description="附件 ID")
+    asset_id: UUID = Field(..., description="所属资产 ID")
+    file_name: str = Field(..., description="文件名")
+    file_type: str = Field(..., description="文件类型（MIME type）")
+    file_size: int = Field(..., description="文件大小（字节）")
+    ipfs_cid: str = Field(..., description="IPFS CID")
+    uploaded_at: datetime = Field(..., description="上传时间")
     
     model_config = ConfigDict(from_attributes=True)
 

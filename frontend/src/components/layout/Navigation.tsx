@@ -11,6 +11,7 @@ import {
   User,
   Wallet,
   ChevronDown,
+  ClipboardCheck,
 } from 'lucide-react';
 import './Navigation.less';
 
@@ -142,6 +143,7 @@ export function Navigation() {
     { key: '/enterprises', icon: Building2, label: '企业管理' },
     { key: '/assets', icon: Files, label: '资产管理' },
     { key: '/nft', icon: Gem, label: 'NFT 铸造' },
+    { key: '/approvals', icon: ClipboardCheck, label: '审批中心' },
   ];
 
   // 用户下拉菜单

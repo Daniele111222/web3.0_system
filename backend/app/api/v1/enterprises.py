@@ -21,7 +21,12 @@ from app.schemas.auth import MessageResponse
 router = APIRouter(prefix="/enterprises", tags=["Enterprises"])
 
 
-@router.post("", response_model=EnterpriseDetailResponse)
+@router.post(
+    "",
+    response_model=EnterpriseDetailResponse,
+    summary="创建企业",
+    description="创建一个新企业，创建者自动成为企业所有者",
+)
 async def create_enterprise(
     data: EnterpriseCreateRequest,
     db: DBSession,
@@ -34,7 +39,12 @@ async def create_enterprise(
     return result
 
 
-@router.get("", response_model=EnterpriseListResponse)
+@router.get(
+    "",
+    response_model=EnterpriseListResponse,
+    summary="获取我的企业列表",
+    description="获取当前用户所属的所有企业列表，支持分页",
+)
 async def get_my_enterprises(
     db: DBSession,
     current_user_id: CurrentUserId,
@@ -48,7 +58,12 @@ async def get_my_enterprises(
     )
 
 
-@router.get("/{enterprise_id}", response_model=EnterpriseDetailResponse)
+@router.get(
+    "/{enterprise_id}",
+    response_model=EnterpriseDetailResponse,
+    summary="获取企业详情",
+    description="获取指定企业的详细信息，包括成员列表",
+)
 async def get_enterprise(
     enterprise_id: str,
     db: DBSession,
@@ -61,7 +76,12 @@ async def get_enterprise(
     )
 
 
-@router.put("/{enterprise_id}", response_model=EnterpriseDetailResponse)
+@router.put(
+    "/{enterprise_id}",
+    response_model=EnterpriseDetailResponse,
+    summary="更新企业信息",
+    description="更新企业基本信息（仅企业所有者和管理员可操作）",
+)
 async def update_enterprise(
     enterprise_id: str,
     data: EnterpriseUpdateRequest,
@@ -77,7 +97,12 @@ async def update_enterprise(
     return result
 
 
-@router.delete("/{enterprise_id}", response_model=MessageResponse)
+@router.delete(
+    "/{enterprise_id}",
+    response_model=MessageResponse,
+    summary="删除企业",
+    description="删除企业（仅企业所有者可操作，将同时删除所有成员关系）",
+)
 async def delete_enterprise(
     enterprise_id: str,
     db: DBSession,
@@ -90,7 +115,12 @@ async def delete_enterprise(
     return MessageResponse(message="企业已成功删除")
 
 
-@router.get("/{enterprise_id}/members", response_model=list[MemberResponse])
+@router.get(
+    "/{enterprise_id}/members",
+    response_model=list[MemberResponse],
+    summary="获取企业成员列表",
+    description="获取指定企业的所有成员列表",
+)
 async def get_enterprise_members(
     enterprise_id: str,
     db: DBSession,
@@ -103,7 +133,12 @@ async def get_enterprise_members(
     )
 
 
-@router.post("/{enterprise_id}/members", response_model=MemberResponse)
+@router.post(
+    "/{enterprise_id}/members",
+    response_model=MemberResponse,
+    summary="邀请成员加入企业",
+    description="邀请用户加入企业，可指定成员角色",
+)
 async def invite_member(
     enterprise_id: str,
     data: InviteMemberRequest,
@@ -119,7 +154,12 @@ async def invite_member(
     return result
 
 
-@router.put("/{enterprise_id}/members/{user_id}", response_model=MemberResponse)
+@router.put(
+    "/{enterprise_id}/members/{user_id}",
+    response_model=MemberResponse,
+    summary="更新成员角色",
+    description="更新企业成员的的角色（仅企业所有者和管理员可操作）",
+)
 async def update_member_role(
     enterprise_id: str,
     user_id: str,
@@ -136,7 +176,12 @@ async def update_member_role(
     return result
 
 
-@router.delete("/{enterprise_id}/members/{user_id}", response_model=MessageResponse)
+@router.delete(
+    "/{enterprise_id}/members/{user_id}",
+    response_model=MessageResponse,
+    summary="移除企业成员",
+    description="从企业中移除指定成员（企业所有者不能被移除）",
+)
 async def remove_member(
     enterprise_id: str,
     user_id: str,
@@ -152,7 +197,12 @@ async def remove_member(
     return MessageResponse(message="成员已成功移除")
 
 
-@router.post("/{enterprise_id}/wallet", response_model=EnterpriseDetailResponse)
+@router.post(
+    "/{enterprise_id}/wallet",
+    response_model=EnterpriseDetailResponse,
+    summary="绑定企业钱包",
+    description="将区块链钱包地址绑定到企业（仅企业所有者和管理员可操作）",
+)
 async def bind_enterprise_wallet(
     enterprise_id: str,
     data: BindWalletRequest,

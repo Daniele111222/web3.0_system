@@ -27,7 +27,7 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title=settings.APP_NAME,
         version=settings.APP_VERSION,
-        description="Enterprise IP Asset Management DApp API",
+        description="企业 IP 资产管理系统 API - 支持企业创建、资产管理、NFT 铸造等功能",
         lifespan=lifespan,
     )
     

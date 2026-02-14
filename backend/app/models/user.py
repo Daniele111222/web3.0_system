@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from app.models.refresh_token import RefreshToken
     from app.models.enterprise import EnterpriseMember
     from app.models.asset import Asset
+    from app.models.approval import Approval, ApprovalProcess, ApprovalNotification
 
 
 class User(Base):
@@ -91,6 +92,26 @@ class User(Base):
     created_assets: Mapped[List["Asset"]] = relationship(
         "Asset",
         back_populates="creator",
+        lazy="selectin",
+    )
+    
+    # 审批相关关系
+    submitted_approvals: Mapped[List["Approval"]] = relationship(
+        "Approval",
+        foreign_keys="Approval.applicant_id",
+        back_populates="applicant",
+        lazy="selectin",
+    )
+    approval_processes: Mapped[List["ApprovalProcess"]] = relationship(
+        "ApprovalProcess",
+        foreign_keys="ApprovalProcess.operator_id",
+        back_populates="operator",
+        lazy="selectin",
+    )
+    approval_notifications: Mapped[List["ApprovalNotification"]] = relationship(
+        "ApprovalNotification",
+        foreign_keys="ApprovalNotification.recipient_id",
+        back_populates="recipient",
         lazy="selectin",
     )
     

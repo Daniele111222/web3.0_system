@@ -1,0 +1,722 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>企业审批系统需求文档 - IP-NFT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family:
+          'Inter',
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          sans-serif;
+      }
+
+      /* 极光背景 */
+      .aurora-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: -1;
+        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+      }
+
+      .aurora-layer {
+        position: absolute;
+        width: 200%;
+        height: 200%;
+        top: -50%;
+        left: -50%;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.4;
+        animation: aurora 20s ease-in-out infinite;
+      }
+
+      .aurora-1 {
+        background: linear-gradient(45deg, rgba(56, 189, 248, 0.3), rgba(168, 85, 247, 0.2));
+        animation-delay: 0s;
+      }
+      .aurora-2 {
+        background: linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(59, 130, 246, 0.3));
+        animation-delay: -7s;
+      }
+      .aurora-3 {
+        background: linear-gradient(225deg, rgba(34, 211, 238, 0.2), rgba(168, 85, 247, 0.3));
+        animation-delay: -14s;
+      }
+
+      @keyframes aurora {
+        0%,
+        100% {
+          transform: translate(0, 0) rotate(0deg);
+        }
+        33% {
+          transform: translate(30px, -30px) rotate(5deg);
+        }
+        66% {
+          transform: translate(-20px, 20px) rotate(-5deg);
+        }
+      }
+
+      .grid-pattern {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 50px 50px;
+        z-index: -1;
+      }
+
+      .code-block {
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 1rem;
+        font-family: 'Fira Code', 'Consolas', monospace;
+        font-size: 0.85rem;
+        overflow-x: auto;
+      }
+
+      .nav-link {
+        transition: all 0.2s;
+      }
+
+      .nav-link:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .section-card {
+        transition: all 0.3s ease;
+      }
+
+      .section-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+      }
+    </style>
+  </head>
+  <body class="text-slate-200">
+    <!-- 背景 -->
+    <div class="aurora-bg">
+      <div class="aurora-layer aurora-1"></div>
+      <div class="aurora-layer aurora-2"></div>
+      <div class="aurora-layer aurora-3"></div>
+    </div>
+    <div class="grid-pattern"></div>
+
+    <!-- 顶部导航 -->
+    <header class="sticky top-0 z-50 backdrop-blur-xl bg-slate-900/70 border-b border-white/10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center shadow-lg shadow-cyan-500/20"
+            >
+              <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <div>
+              <h1
+                class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400"
+              >
+                企业审批系统需求文档
+              </h1>
+              <p class="text-xs text-slate-400">IP-NFT Asset Management System</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-4">
+            <span
+              class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-medium border border-emerald-500/20"
+              >v1.0.0</span
+            >
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- 侧边导航 -->
+    <div class="flex min-h-screen pt-16">
+      <aside
+        class="w-64 fixed h-full overflow-y-auto border-r border-white/10 bg-slate-900/50 backdrop-blur-xl hidden lg:block"
+      >
+        <nav class="p-4 space-y-1">
+          <a
+            href="#overview"
+            class="nav-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-300 hover:text-white"
+          >
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            文档概述
+          </a>
+          <a
+            href="#business-flow"
+            class="nav-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-300 hover:text-white"
+          >
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+              />
+            </svg>
+            业务流程
+          </a>
+          <a
+            href="#features"
+            class="nav-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-300 hover:text-white"
+          >
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+              />
+            </svg>
+            功能需求
+          </a>
+          <a
+            href="#api"
+            class="nav-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-300 hover:text-white"
+          >
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+              />
+            </svg>
+            API设计
+          </a>
+          <a
+            href="#database"
+            class="nav-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-300 hover:text-white"
+          >
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"
+              />
+            </svg>
+            数据库设计
+          </a>
+          <a
+            href="#prototype"
+            class="nav-link flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-300 hover:text-white"
+          >
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"
+              />
+            </svg>
+            界面原型
+          </a>
+        </nav>
+      </aside>
+
+      <!-- 主内容区 -->
+      <main class="flex-1 lg:ml-64 p-8">
+        <!-- 文档头部信息 -->
+        <div class="mb-8 bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <h1 class="text-3xl font-bold text-white mb-2">企业审批系统需求文档</h1>
+              <p class="text-slate-400">IP-NFT Asset Management System - Approval Workflow</p>
+            </div>
+            <div class="flex items-center gap-4">
+              <div class="text-right">
+                <div class="text-sm text-slate-400">版本</div>
+                <div class="text-lg font-semibold text-emerald-400">v1.0.0</div>
+              </div>
+              <div class="text-right">
+                <div class="text-sm text-slate-400">状态</div>
+                <div class="text-lg font-semibold text-amber-400">待开发</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 概述 -->
+        <section id="overview" class="mb-12">
+          <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+            <span
+              class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center"
+            >
+              <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+            </span>
+            1. 概述
+          </h2>
+
+          <div class="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-white/10 p-6 mb-6">
+            <h3 class="text-lg font-semibold text-white mb-3">1.1 文档目的</h3>
+            <p class="text-slate-300 leading-relaxed">
+              本文档详细描述了IP-NFT企业管理系统中<strong class="text-cyan-400"
+                >审批工作流功能</strong
+              >的需求规格，包括审批流程设计、权限控制、API接口、前端界面及通知机制等。
+            </p>
+          </div>
+
+          <div class="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-white/10 p-6 mb-6">
+            <h3 class="text-lg font-semibold text-white mb-3">1.2 背景</h3>
+            <p class="text-slate-300 leading-relaxed">
+              当前系统已实现企业创建和基础管理功能，但<strong class="text-amber-400"
+                >缺乏完整的审批流程</strong
+              >。企业创建后需要经过审批才能正式运营，成员邀请也需要相应审批机制，以确保平台的合规性和安全性。
+            </p>
+          </div>
+
+          <div class="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-white/10 p-6">
+            <h3 class="text-lg font-semibold text-white mb-3">1.3 范围</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 class="font-medium text-emerald-400 mb-2">✅ 包含功能</h4>
+                <ul class="space-y-1 text-slate-300 text-sm">
+                  <li>• 企业创建审批流程</li>
+                  <li>• 企业信息变更审批</li>
+                  <li>• 成员加入审批</li>
+                  <li>• 审批权限管理</li>
+                  <li>• 审批通知机制</li>
+                  <li>• 审批历史记录</li>
+                </ul>
+              </div>
+              <div>
+                <h4 class="font-medium text-red-400 mb-2">❌ 不包含功能</h4>
+                <ul class="space-y-1 text-slate-300 text-sm">
+                  <li>• 财务相关审批</li>
+                  <li>• 多级审批流程（后续版本）</li>
+                  <li>• 自定义审批模板</li>
+                  <li>• 外部系统对接审批</li>
+                  <li>• 智能审批决策</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 快速导航 -->
+        <section class="mb-12">
+          <h2 class="text-2xl font-bold text-white mb-6">快速导航</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <a
+              href="#overview"
+              class="section-card bg-slate-800/50 backdrop-blur-sm rounded-xl p-5 border border-white/10 hover:border-cyan-500/30"
+            >
+              <div class="flex items-center gap-3 mb-3">
+                <div
+                  class="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center"
+                >
+                  <span class="text-white font-bold">1</span>
+                </div>
+                <h3 class="font-semibold text-white">概述</h3>
+              </div>
+              <p class="text-sm text-slate-400">文档目的、背景和范围说明</p>
+            </a>
+
+            <a
+              href="#business-flow"
+              class="section-card bg-slate-800/50 backdrop-blur-sm rounded-xl p-5 border border-white/10 hover:border-purple-500/30"
+            >
+              <div class="flex items-center gap-3 mb-3">
+                <div
+                  class="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center"
+                >
+                  <span class="text-white font-bold">2</span>
+                </div>
+                <h3 class="font-semibold text-white">业务流程</h3>
+              </div>
+              <p class="text-sm text-slate-400">企业审批和成员审批流程</p>
+            </a>
+
+            <a
+              href="#features"
+              class="section-card bg-slate-800/50 backdrop-blur-sm rounded-xl p-5 border border-white/10 hover:border-emerald-500/30"
+            >
+              <div class="flex items-center gap-3 mb-3">
+                <div
+                  class="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center"
+                >
+                  <span class="text-white font-bold">3</span>
+                </div>
+                <h3 class="font-semibold text-white">功能需求</h3>
+              </div>
+              <p class="text-sm text-slate-400">详细的功能需求说明</p>
+            </a>
+
+            <a
+              href="#api"
+              class="section-card bg-slate-800/50 backdrop-blur-sm rounded-xl p-5 border border-white/10 hover:border-amber-500/30"
+            >
+              <div class="flex items-center gap-3 mb-3">
+                <div
+                  class="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center"
+                >
+                  <span class="text-white font-bold">4</span>
+                </div>
+                <h3 class="font-semibold text-white">API设计</h3>
+              </div>
+              <p class="text-sm text-slate-400">RESTful API接口规范</p>
+            </a>
+
+            <a
+              href="#database"
+              class="section-card bg-slate-800/50 backdrop-blur-sm rounded-xl p-5 border border-white/10 hover:border-rose-500/30"
+            >
+              <div class="flex items-center gap-3 mb-3">
+                <div
+                  class="w-10 h-10 rounded-lg bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center"
+                >
+                  <span class="text-white font-bold">5</span>
+                </div>
+                <h3 class="font-semibold text-white">数据库设计</h3>
+              </div>
+              <p class="text-sm text-slate-400">数据表结构设计</p>
+            </a>
+
+            <a
+              href="#prototype"
+              class="section-card bg-slate-800/50 backdrop-blur-sm rounded-xl p-5 border border-white/10 hover:border-indigo-500/30"
+            >
+              <div class="flex items-center gap-3 mb-3">
+                <div
+                  class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center"
+                >
+                  <span class="text-white font-bold">6</span>
+                </div>
+                <h3 class="font-semibold text-white">界面原型</h3>
+              </div>
+              <p class="text-sm text-slate-400">UI界面设计说明</p>
+            </a>
+          </div>
+        </section>
+
+        <!-- 文档信息卡片 -->
+        <section class="mb-12">
+          <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
+            <h2 class="text-xl font-semibold text-white mb-4">文档信息</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div class="bg-slate-700/30 rounded-lg p-4">
+                <div class="text-sm text-slate-400">版本</div>
+                <div class="text-lg font-semibold text-emerald-400">v1.0.0</div>
+              </div>
+              <div class="bg-slate-700/30 rounded-lg p-4">
+                <div class="text-sm text-slate-400">创建日期</div>
+                <div class="text-lg font-semibold text-white">2024-12-14</div>
+              </div>
+              <div class="bg-slate-700/30 rounded-lg p-4">
+                <div class="text-sm text-slate-400">状态</div>
+                <div class="text-lg font-semibold text-amber-400">待开发</div>
+              </div>
+              <div class="bg-slate-700/30 rounded-lg p-4">
+                <div class="text-sm text-slate-400">优先级</div>
+                <div class="text-lg font-semibold text-red-400">P0 最高</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 简要内容展示区 -->
+        <section class="mb-12">
+          <h2 class="text-2xl font-bold text-white mb-6">内容概览</h2>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-white/10 p-6">
+              <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <span
+                  class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white text-sm"
+                  >1</span
+                >
+                业务流程
+              </h3>
+              <ul class="space-y-2 text-slate-300 text-sm">
+                <li class="flex items-center gap-2">
+                  <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+                  企业创建审批流程
+                </li>
+                <li class="flex items-center gap-2">
+                  <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+                  企业信息变更审批
+                </li>
+                <li class="flex items-center gap-2">
+                  <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+                  成员邀请审批流程
+                </li>
+                <li class="flex items-center gap-2">
+                  <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+                  成员加入申请审批
+                </li>
+              </ul>
+            </div>
+
+            <div class="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-white/10 p-6">
+              <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <span
+                  class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white text-sm"
+                  >2</span
+                >
+                核心功能
+              </h3>
+              <ul class="space-y-2 text-slate-300 text-sm">
+                <li class="flex items-center gap-2">
+                  <span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
+                  待审批列表管理
+                </li>
+                <li class="flex items-center gap-2">
+                  <span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
+                  审批详情查看
+                </li>
+                <li class="flex items-center gap-2">
+                  <span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
+                  审批历史记录
+                </li>
+                <li class="flex items-center gap-2">
+                  <span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
+                  审批通知机制
+                </li>
+              </ul>
+            </div>
+
+            <div class="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-white/10 p-6">
+              <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <span
+                  class="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-sm"
+                  >3</span
+                >
+                API接口
+              </h3>
+              <ul class="space-y-2 text-slate-300 text-sm">
+                <li class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-xs"
+                    >GET</span
+                  >
+                  <code class="text-cyan-300">/api/v1/approvals/pending</code>
+                </li>
+                <li class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 text-xs">POST</span>
+                  <code class="text-cyan-300">/api/v1/approvals/{id}/action</code>
+                </li>
+                <li class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-xs"
+                    >GET</span
+                  >
+                  <code class="text-cyan-300">/api/v1/approvals/history</code>
+                </li>
+                <li class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-xs"
+                    >GET</span
+                  >
+                  <code class="text-cyan-300">/api/v1/approvals/{id}</code>
+                </li>
+              </ul>
+            </div>
+
+            <div class="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-white/10 p-6">
+              <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <span
+                  class="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white text-sm"
+                  >4</span
+                >
+                数据表
+              </h3>
+              <ul class="space-y-2 text-slate-300 text-sm">
+                <li class="flex items-center gap-2">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                  <code class="text-amber-300">approvals</code>
+                  <span class="text-slate-500">- 审批记录主表</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                  <code class="text-amber-300">approval_processes</code>
+                  <span class="text-slate-500">- 审批流程记录</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                  <code class="text-amber-300">approval_notifications</code>
+                  <span class="text-slate-500">- 审批通知表</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- 完整内容提示 -->
+        <section class="mb-12">
+          <div
+            class="bg-gradient-to-br from-cyan-500/10 to-purple-500/10 backdrop-blur-sm rounded-2xl border border-cyan-500/20 p-8"
+          >
+            <div class="flex items-start gap-6">
+              <div
+                class="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center flex-shrink-0"
+              >
+                <svg
+                  class="w-8 h-8 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+              </div>
+              <div class="flex-1">
+                <h2 class="text-2xl font-bold text-white mb-3">完整的审批系统需求文档</h2>
+                <p class="text-slate-300 mb-4 leading-relaxed">
+                  本文档包含了企业审批系统的完整需求规格，总计超过 2
+                  万字，涵盖了业务流程、功能需求、API设计、数据库设计、界面原型等各个方面。
+                </p>
+                <div class="flex items-center gap-6 text-sm">
+                  <div class="flex items-center gap-2 text-slate-400">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    2.3 万字
+                  </div>
+                  <div class="flex items-center gap-2 text-slate-400">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+                      />
+                    </svg>
+                    10 个主要模块
+                  </div>
+                  <div class="flex items-center gap-2 text-slate-400">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                      />
+                    </svg>
+                    20+ API 接口
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 查看完整文档提示 -->
+        <section class="mb-12">
+          <div
+            class="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-white/10 p-8 text-center"
+          >
+            <h2 class="text-2xl font-bold text-white mb-4">查看完整的需求文档</h2>
+            <p class="text-slate-400 mb-6 max-w-2xl mx-auto">
+              完整的审批系统需求文档包含详细的业务流程图、功能需求说明、API接口设计、数据库表结构、界面原型等丰富内容。
+            </p>
+            <div class="flex items-center justify-center gap-4">
+              <a
+                href="./approval-requirements.md"
+                target="_blank"
+                class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold hover:shadow-lg hover:shadow-cyan-500/30 transition-all"
+              >
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+                打开 Markdown 文档
+              </a>
+            </div>
+            <p class="text-xs text-slate-500 mt-4">文档路径: docs/approval-requirements.md</p>
+          </div>
+        </section>
+
+        <!-- 底部信息 -->
+        <footer class="border-t border-white/10 pt-8">
+          <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="text-slate-400 text-sm">
+              <p>&copy; 2024 IP-NFT Asset Management System. All rights reserved.</p>
+            </div>
+            <div class="flex items-center gap-6">
+              <span class="text-slate-400 text-sm">文档版本: v1.0.0</span>
+              <span class="text-slate-400 text-sm">最后更新: 2024-12-14</span>
+            </div>
+          </div>
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      // 平滑滚动
+      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.addEventListener('click', function (e) {
+          e.preventDefault();
+          const target = document.querySelector(this.getAttribute('href'));
+          if (target) {
+            target.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start',
+            });
+          }
+        });
+      });
+
+      // 卡片动画
+      document.querySelectorAll('.section-card').forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+          card.style.transition = 'all 0.5s ease';
+          card.style.opacity = '1';
+          card.style.transform = 'translateY(0)';
+        }, index * 100);
+      });
+    </script>
+  </body>
+</html>

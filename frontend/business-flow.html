@@ -1,0 +1,1566 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>企业业务流程图 - IP-NFT资产管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family:
+          'Inter',
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          sans-serif;
+      }
+
+      /* 极光背景效果 */
+      .aurora-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: -1;
+        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+      }
+
+      .aurora-layer {
+        position: absolute;
+        width: 200%;
+        height: 200%;
+        top: -50%;
+        left: -50%;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.4;
+        animation: aurora 20s ease-in-out infinite;
+      }
+
+      .aurora-1 {
+        background: linear-gradient(45deg, rgba(56, 189, 248, 0.3), rgba(168, 85, 247, 0.2));
+        animation-delay: 0s;
+      }
+
+      .aurora-2 {
+        background: linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(59, 130, 246, 0.3));
+        animation-delay: -7s;
+      }
+
+      .aurora-3 {
+        background: linear-gradient(225deg, rgba(34, 211, 238, 0.2), rgba(168, 85, 247, 0.3));
+        animation-delay: -14s;
+      }
+
+      @keyframes aurora {
+        0%,
+        100% {
+          transform: translate(0, 0) rotate(0deg);
+        }
+        33% {
+          transform: translate(30px, -30px) rotate(5deg);
+        }
+        66% {
+          transform: translate(-20px, 20px) rotate(-5deg);
+        }
+      }
+
+      /* 网格背景 */
+      .grid-pattern {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 50px 50px;
+        z-index: -1;
+      }
+
+      /* 流程节点样式 */
+      .flow-node {
+        transition: all 0.3s ease;
+      }
+
+      .flow-node:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+      }
+
+      /* 连接线动画 */
+      .connector-line {
+        stroke-dasharray: 5, 5;
+        animation: dash 20s linear infinite;
+      }
+
+      @keyframes dash {
+        to {
+          stroke-dashoffset: -100;
+        }
+      }
+
+      /* 标签样式 */
+      .tab-active {
+        background: rgba(56, 189, 248, 0.2);
+        border-color: rgba(56, 189, 248, 0.5);
+        color: #38bdf8;
+      }
+
+      /* 滚动条样式 */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
+
+      /* 代码块样式 */
+      .code-block {
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 1rem;
+        font-family: 'Fira Code', 'Consolas', monospace;
+        font-size: 0.85rem;
+        overflow-x: auto;
+      }
+    </style>
+  </head>
+  <body class="text-slate-200">
+    <!-- 背景效果 -->
+    <div class="aurora-bg">
+      <div class="aurora-layer aurora-1"></div>
+      <div class="aurora-layer aurora-2"></div>
+      <div class="aurora-layer aurora-3"></div>
+    </div>
+    <div class="grid-pattern"></div>
+
+    <!-- 主容器 -->
+    <div class="min-h-screen">
+      <!-- 顶部导航 -->
+      <header class="sticky top-0 z-50 backdrop-blur-xl bg-slate-900/70 border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex items-center justify-between h-16">
+            <div class="flex items-center gap-3">
+              <div
+                class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center shadow-lg shadow-cyan-500/20"
+              >
+                <svg
+                  class="w-6 h-6 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h1
+                  class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400"
+                >
+                  IP-NFT 企业管理系统
+                </h1>
+                <p class="text-xs text-slate-400">业务流程图与设计文档</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-4">
+              <span
+                class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-medium border border-emerald-500/20"
+                >v2.0.0</span
+              >
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- 标签导航 -->
+      <div class="sticky top-16 z-40 backdrop-blur-md bg-slate-900/50 border-b border-white/5">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <nav class="flex space-x-1 py-2" id="tab-nav">
+            <button
+              class="tab-btn tab-active px-4 py-2 rounded-lg text-sm font-medium border border-transparent transition-all"
+              data-tab="overview"
+            >
+              业务概览
+            </button>
+            <button
+              class="tab-btn px-4 py-2 rounded-lg text-sm font-medium border border-transparent transition-all hover:bg-white/5"
+              data-tab="flow"
+            >
+              流程图
+            </button>
+            <button
+              class="tab-btn px-4 py-2 rounded-lg text-sm font-medium border border-transparent transition-all hover:bg-white/5"
+              data-tab="architecture"
+            >
+              系统架构
+            </button>
+            <button
+              class="tab-btn px-4 py-2 rounded-lg text-sm font-medium border border-transparent transition-all hover:bg-white/5"
+              data-tab="api"
+            >
+              API设计
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      <!-- 主内容区 -->
+      <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- 业务概览标签 -->
+        <div id="tab-overview" class="tab-content">
+          <!-- 核心业务模块卡片 -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div
+              class="flow-node bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-cyan-500/30"
+            >
+              <div
+                class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mb-4 shadow-lg shadow-cyan-500/20"
+              >
+                <svg
+                  class="w-6 h-6 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                  />
+                </svg>
+              </div>
+              <h3 class="text-lg font-semibold text-white mb-2">企业管理</h3>
+              <p class="text-sm text-slate-400">企业信息维护、状态管理、基础设置</p>
+              <div class="mt-4 flex items-center gap-2 text-xs text-cyan-400">
+                <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                4个核心功能
+              </div>
+            </div>
+
+            <div
+              class="flow-node bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-purple-500/30"
+            >
+              <div
+                class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center mb-4 shadow-lg shadow-purple-500/20"
+              >
+                <svg
+                  class="w-6 h-6 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                  />
+                </svg>
+              </div>
+              <h3 class="text-lg font-semibold text-white mb-2">成员管理</h3>
+              <p class="text-sm text-slate-400">成员邀请、角色分配、权限控制</p>
+              <div class="mt-4 flex items-center gap-2 text-xs text-purple-400">
+                <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+                3级角色体系
+              </div>
+            </div>
+
+            <div
+              class="flow-node bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-emerald-500/30"
+            >
+              <div
+                class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mb-4 shadow-lg shadow-emerald-500/20"
+              >
+                <svg
+                  class="w-6 h-6 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+              </div>
+              <h3 class="text-lg font-semibold text-white mb-2">资产管理</h3>
+              <p class="text-sm text-slate-400">IP资产上传、NFT铸造、权益分配</p>
+              <div class="mt-4 flex items-center gap-2 text-xs text-emerald-400">
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                Web3集成
+              </div>
+            </div>
+
+            <div
+              class="flow-node bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-amber-500/30"
+            >
+              <div
+                class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center mb-4 shadow-lg shadow-amber-500/20"
+              >
+                <svg
+                  class="w-6 h-6 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <h3 class="text-lg font-semibold text-white mb-2">审计日志</h3>
+              <p class="text-sm text-slate-400">操作记录、变更追踪、合规报告</p>
+              <div class="mt-4 flex items-center gap-2 text-xs text-amber-400">
+                <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                全程追溯
+              </div>
+            </div>
+          </div>
+
+          <!-- 业务流程详解 -->
+          <div
+            class="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden mb-8"
+          >
+            <div class="p-6 border-b border-white/10">
+              <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+                <span
+                  class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center"
+                >
+                  <svg
+                    class="w-5 h-5 text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                    />
+                  </svg>
+                </span>
+                企业创建业务流程
+              </h2>
+            </div>
+
+            <div class="p-6">
+              <!-- 流程步骤 -->
+              <div class="relative">
+                <!-- 连接线 -->
+                <div
+                  class="absolute left-8 top-16 bottom-16 w-0.5 bg-gradient-to-b from-cyan-500 via-purple-500 to-emerald-500"
+                ></div>
+
+                <!-- 步骤1 -->
+                <div class="relative flex gap-6 mb-8">
+                  <div
+                    class="flex-shrink-0 w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 z-10"
+                  >
+                    <span class="text-2xl font-bold text-white">1</span>
+                  </div>
+                  <div class="flex-1 bg-slate-700/30 rounded-xl p-5 border border-white/5">
+                    <h3 class="text-lg font-semibold text-white mb-2">发起创建申请</h3>
+                    <p class="text-slate-400 text-sm mb-3">
+                      用户填写企业基本信息，包括企业名称、描述、地址、联系方式等。
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                      <span class="px-2 py-1 rounded-md bg-cyan-500/10 text-cyan-400 text-xs"
+                        >企业名称</span
+                      >
+                      <span class="px-2 py-1 rounded-md bg-cyan-500/10 text-cyan-400 text-xs"
+                        >企业描述</span
+                      >
+                      <span class="px-2 py-1 rounded-md bg-cyan-500/10 text-cyan-400 text-xs"
+                        >联系信息</span
+                      >
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 步骤2 -->
+                <div class="relative flex gap-6 mb-8">
+                  <div
+                    class="flex-shrink-0 w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/30 z-10"
+                  >
+                    <span class="text-2xl font-bold text-white">2</span>
+                  </div>
+                  <div class="flex-1 bg-slate-700/30 rounded-xl p-5 border border-white/5">
+                    <h3 class="text-lg font-semibold text-white mb-2">系统验证与创建</h3>
+                    <p class="text-slate-400 text-sm mb-3">
+                      后端验证数据合法性，创建企业记录，设置创建者为所有者。
+                    </p>
+                    <div class="grid grid-cols-3 gap-3">
+                      <div class="bg-slate-800/50 rounded-lg p-3 text-center">
+                        <div class="text-purple-400 font-semibold">数据验证</div>
+                        <div class="text-xs text-slate-500 mt-1">校验必填字段</div>
+                      </div>
+                      <div class="bg-slate-800/50 rounded-lg p-3 text-center">
+                        <div class="text-purple-400 font-semibold">创建记录</div>
+                        <div class="text-xs text-slate-500 mt-1">生成企业ID</div>
+                      </div>
+                      <div class="bg-slate-800/50 rounded-lg p-3 text-center">
+                        <div class="text-purple-400 font-semibold">设置权限</div>
+                        <div class="text-xs text-slate-500 mt-1">创建者→Owner</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 步骤3 -->
+                <div class="relative flex gap-6 mb-8">
+                  <div
+                    class="flex-shrink-0 w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/30 z-10"
+                  >
+                    <span class="text-2xl font-bold text-white">3</span>
+                  </div>
+                  <div class="flex-1 bg-slate-700/30 rounded-xl p-5 border border-white/5">
+                    <h3 class="text-lg font-semibold text-white mb-2">企业状态流转</h3>
+                    <p class="text-slate-400 text-sm mb-3">
+                      新创建企业默认进入"审核中"状态，经审批后可转为"运营中"。
+                    </p>
+                    <div class="flex items-center justify-between bg-slate-800/50 rounded-xl p-4">
+                      <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-2">
+                          <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+                          <span class="text-sm font-medium text-slate-300">pending</span>
+                        </div>
+                        <svg
+                          class="w-5 h-5 text-slate-500"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                        <div class="flex items-center gap-2">
+                          <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                          <span class="text-sm font-medium text-slate-300">active</span>
+                        </div>
+                      </div>
+                      <div class="text-xs text-slate-500">审批流程</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 步骤4 -->
+                <div class="relative flex gap-6">
+                  <div
+                    class="flex-shrink-0 w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/30 z-10"
+                  >
+                    <span class="text-2xl font-bold text-white">4</span>
+                  </div>
+                  <div class="flex-1 bg-slate-700/30 rounded-xl p-5 border border-white/5">
+                    <h3 class="text-lg font-semibold text-white mb-2">后续业务开展</h3>
+                    <p class="text-slate-400 text-sm mb-3">
+                      企业创建完成后，可开展成员邀请、资产管理、交易等业务。
+                    </p>
+                    <div class="grid grid-cols-3 gap-3">
+                      <div
+                        class="bg-slate-800/50 rounded-lg p-3 border border-white/5 hover:border-amber-500/30 transition-colors cursor-pointer"
+                      >
+                        <div class="text-amber-400 font-semibold mb-1">成员管理</div>
+                        <div class="text-xs text-slate-500">邀请、角色分配</div>
+                      </div>
+                      <div
+                        class="bg-slate-800/50 rounded-lg p-3 border border-white/5 hover:border-amber-500/30 transition-colors cursor-pointer"
+                      >
+                        <div class="text-amber-400 font-semibold mb-1">资产管理</div>
+                        <div class="text-xs text-slate-500">IP资产、NFT铸造</div>
+                      </div>
+                      <div
+                        class="bg-slate-800/50 rounded-lg p-3 border border-white/5 hover:border-amber-500/30 transition-colors cursor-pointer"
+                      >
+                        <div class="text-amber-400 font-semibold mb-1">交易流转</div>
+                        <div class="text-xs text-slate-500">资产交易、授权</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 成员邀请流程 -->
+          <div
+            class="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden mb-8"
+          >
+            <div class="p-6 border-b border-white/10">
+              <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+                <span
+                  class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center"
+                >
+                  <svg
+                    class="w-5 h-5 text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                    />
+                  </svg>
+                </span>
+                成员邀请与权限管理流程
+              </h2>
+            </div>
+            <div class="p-6">
+              <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- 左侧：流程步骤 -->
+                <div class="lg:col-span-2 space-y-4">
+                  <div class="flex gap-4">
+                    <div
+                      class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white font-bold"
+                    >
+                      1
+                    </div>
+                    <div class="flex-1 bg-slate-700/30 rounded-xl p-4 border border-white/5">
+                      <h4 class="font-semibold text-white mb-2">所有者/管理员发起邀请</h4>
+                      <p class="text-sm text-slate-400">
+                        在成员管理页面，点击"邀请成员"按钮，输入被邀请人的邮箱地址，选择角色权限。
+                      </p>
+                      <div class="mt-3 flex gap-2">
+                        <span class="px-2 py-1 bg-purple-500/10 text-purple-400 rounded text-xs"
+                          >邮箱必填</span
+                        >
+                        <span class="px-2 py-1 bg-purple-500/10 text-purple-400 rounded text-xs"
+                          >角色可选</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="flex gap-4">
+                    <div
+                      class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-pink-600 flex items-center justify-center text-white font-bold"
+                    >
+                      2
+                    </div>
+                    <div class="flex-1 bg-slate-700/30 rounded-xl p-4 border border-white/5">
+                      <h4 class="font-semibold text-white mb-2">系统发送邀请邮件</h4>
+                      <p class="text-sm text-slate-400">
+                        后端生成邀请令牌（token），发送包含邀请链接的邮件给被邀请人。邀请默认7天内有效。
+                      </p>
+                      <div
+                        class="mt-3 bg-slate-800/50 rounded-lg p-3 font-mono text-xs text-slate-400"
+                      >
+                        https://app.example.com/invite?token=xxx&enterprise=xxx
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="flex gap-4">
+                    <div
+                      class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white font-bold"
+                    >
+                      3
+                    </div>
+                    <div class="flex-1 bg-slate-700/30 rounded-xl p-4 border border-white/5">
+                      <h4 class="font-semibold text-white mb-2">被邀请人接受邀请</h4>
+                      <p class="text-sm text-slate-400">
+                        被邀请人点击邮件链接，登录/注册账号后确认加入企业。系统自动创建成员记录。
+                      </p>
+                      <div class="mt-3 grid grid-cols-2 gap-2">
+                        <div class="bg-slate-800/50 rounded-lg p-2 text-center">
+                          <div class="text-amber-400 font-semibold">登录</div>
+                          <div class="text-xs text-slate-500">已有账号</div>
+                        </div>
+                        <div class="bg-slate-800/50 rounded-lg p-2 text-center">
+                          <div class="text-amber-400 font-semibold">注册</div>
+                          <div class="text-xs text-slate-500">新用户</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="flex gap-4">
+                    <div
+                      class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white font-bold"
+                    >
+                      4
+                    </div>
+                    <div class="flex-1 bg-slate-700/30 rounded-xl p-4 border border-white/5">
+                      <h4 class="font-semibold text-white mb-2">成员权限生效</h4>
+                      <p class="text-sm text-slate-400">
+                        成员根据被分配的角色获得相应权限，可开始参与企业业务。
+                      </p>
+                      <div class="mt-3 flex gap-2">
+                        <div
+                          class="px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30"
+                        >
+                          <span class="text-amber-400 text-sm font-medium">Owner</span>
+                          <span class="text-slate-400 text-xs ml-2">完全控制</span>
+                        </div>
+                        <div
+                          class="px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30"
+                        >
+                          <span class="text-purple-400 text-sm font-medium">Admin</span>
+                          <span class="text-slate-400 text-xs ml-2">管理成员</span>
+                        </div>
+                        <div
+                          class="px-3 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-500/30"
+                        >
+                          <span class="text-cyan-400 text-sm font-medium">Member</span>
+                          <span class="text-slate-400 text-xs ml-2">参与协作</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 右侧：补充信息 -->
+                <div class="space-y-4">
+                  <div class="bg-slate-700/30 rounded-xl p-4 border border-white/5">
+                    <h4 class="font-semibold text-white mb-3 flex items-center gap-2">
+                      <svg
+                        class="w-5 h-5 text-purple-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                        />
+                      </svg>
+                      权限说明
+                    </h4>
+                    <ul class="space-y-2 text-sm">
+                      <li class="flex items-start gap-2">
+                        <span
+                          class="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 flex-shrink-0"
+                        ></span>
+                        <span class="text-slate-300"
+                          ><strong class="text-amber-400">Owner</strong
+                          >：可删除企业、转移所有权、管理所有成员</span
+                        >
+                      </li>
+                      <li class="flex items-start gap-2">
+                        <span
+                          class="w-1.5 h-1.5 rounded-full bg-purple-400 mt-1.5 flex-shrink-0"
+                        ></span>
+                        <span class="text-slate-300"
+                          ><strong class="text-purple-400">Admin</strong
+                          >：可邀请成员、编辑企业信息、管理普通成员</span
+                        >
+                      </li>
+                      <li class="flex items-start gap-2">
+                        <span
+                          class="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-1.5 flex-shrink-0"
+                        ></span>
+                        <span class="text-slate-300"
+                          ><strong class="text-cyan-400">Member</strong
+                          >：可查看企业信息、参与项目、上传资产</span
+                        >
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div class="bg-slate-700/30 rounded-xl p-4 border border-white/5">
+                    <h4 class="font-semibold text-white mb-3 flex items-center gap-2">
+                      <svg
+                        class="w-5 h-5 text-emerald-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                      关键业务规则
+                    </h4>
+                    <ul class="space-y-2 text-sm text-slate-300">
+                      <li class="flex items-center gap-2">
+                        <span class="text-emerald-400">✓</span>
+                        每个用户可创建/加入多个企业
+                      </li>
+                      <li class="flex items-center gap-2">
+                        <span class="text-emerald-400">✓</span>
+                        邀请链接7天内有效
+                      </li>
+                      <li class="flex items-center gap-2">
+                        <span class="text-emerald-400">✓</span>
+                        Owner可转移所有权给Admin
+                      </li>
+                      <li class="flex items-center gap-2">
+                        <span class="text-emerald-400">✓</span>
+                        删除企业需二次确认
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 技术架构标签 -->
+          <div id="tab-architecture" class="tab-content hidden">
+            <div
+              class="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden"
+            >
+              <div class="p-6 border-b border-white/10">
+                <h2 class="text-2xl font-bold text-white">系统技术架构</h2>
+                <p class="text-slate-400 mt-2">前后端分离架构，采用现代化的技术栈实现</p>
+              </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <!-- 前端层 -->
+                  <div class="bg-slate-700/30 rounded-xl p-5 border border-white/5">
+                    <div class="flex items-center gap-3 mb-4">
+                      <div
+                        class="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center"
+                      >
+                        <svg
+                          class="w-5 h-5 text-white"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                          />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 class="font-semibold text-white">前端层</h3>
+                        <p class="text-xs text-slate-400">Frontend Layer</p>
+                      </div>
+                    </div>
+                    <ul class="space-y-2 text-sm">
+                      <li class="flex items-center gap-2 text-slate-300">
+                        <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+                        React 19 + TypeScript
+                      </li>
+                      <li class="flex items-center gap-2 text-slate-300">
+                        <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+                        Tailwind CSS
+                      </li>
+                      <li class="flex items-center gap-2 text-slate-300">
+                        <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+                        Zustand 状态管理
+                      </li>
+                      <li class="flex items-center gap-2 text-slate-300">
+                        <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+                        Ethers.js Web3
+                      </li>
+                    </ul>
+                  </div>
+
+                  <!-- 后端层 -->
+                  <div class="bg-slate-700/30 rounded-xl p-5 border border-white/5">
+                    <div class="flex items-center gap-3 mb-4">
+                      <div
+                        class="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center"
+                      >
+                        <svg
+                          class="w-5 h-5 text-white"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"
+                          />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 class="font-semibold text-white">后端层</h3>
+                        <p class="text-xs text-slate-400">Backend Layer</p>
+                      </div>
+                    </div>
+                    <ul class="space-y-2 text-sm">
+                      <li class="flex items-center gap-2 text-slate-300">
+                        <span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
+                        FastAPI (Python)
+                      </li>
+                      <li class="flex items-center gap-2 text-slate-300">
+                        <span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
+                        PostgreSQL 数据库
+                      </li>
+                      <li class="flex items-center gap-2 text-slate-300">
+                        <span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
+                        Redis 缓存
+                      </li>
+                      <li class="flex items-center gap-2 text-slate-300">
+                        <span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
+                        JWT 认证
+                      </li>
+                    </ul>
+                  </div>
+
+                  <!-- 区块链层 -->
+                  <div class="bg-slate-700/30 rounded-xl p-5 border border-white/5">
+                    <div class="flex items-center gap-3 mb-4">
+                      <div
+                        class="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center"
+                      >
+                        <svg
+                          class="w-5 h-5 text-white"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M13 10V3L4 14h7v7l9-11h-7z"
+                          />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 class="font-semibold text-white">区块链层</h3>
+                        <p class="text-xs text-slate-400">Blockchain Layer</p>
+                      </div>
+                    </div>
+                    <ul class="space-y-2 text-sm">
+                      <li class="flex items-center gap-2 text-slate-300">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                        Ethereum / Polygon
+                      </li>
+                      <li class="flex items-center gap-2 text-slate-300">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                        Solidity 智能合约
+                      </li>
+                      <li class="flex items-center gap-2 text-slate-300">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                        IPFS 分布式存储
+                      </li>
+                      <li class="flex items-center gap-2 text-slate-300">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                        ERC-721/1155 NFT
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <!-- 数据流图 -->
+                <div class="mt-8 bg-slate-900/50 rounded-xl p-6 border border-white/5">
+                  <h3 class="text-lg font-semibold text-white mb-4">数据流向示意</h3>
+                  <div class="flex items-center justify-between gap-4 flex-wrap">
+                    <div class="flex items-center gap-4">
+                      <div
+                        class="w-32 p-3 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-center"
+                      >
+                        <div class="text-cyan-400 font-medium text-sm">前端应用</div>
+                        <div class="text-xs text-slate-500 mt-1">React + TS</div>
+                      </div>
+                      <svg
+                        class="w-6 h-6 text-slate-500"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M14 5l7 7m0 0l-7 7m7-7H3"
+                        />
+                      </svg>
+                      <div
+                        class="w-32 p-3 rounded-lg bg-purple-500/10 border border-purple-500/30 text-center"
+                      >
+                        <div class="text-purple-400 font-medium text-sm">后端API</div>
+                        <div class="text-xs text-slate-500 mt-1">FastAPI</div>
+                      </div>
+                      <svg
+                        class="w-6 h-6 text-slate-500"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M14 5l7 7m0 0l-7 7m7-7H3"
+                        />
+                      </svg>
+                    </div>
+                    <div class="flex items-center gap-4">
+                      <div
+                        class="w-32 p-3 rounded-lg bg-pink-500/10 border border-pink-500/30 text-center"
+                      >
+                        <div class="text-pink-400 font-medium text-sm">PostgreSQL</div>
+                        <div class="text-xs text-slate-500 mt-1">关系数据</div>
+                      </div>
+                      <div
+                        class="w-32 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-center"
+                      >
+                        <div class="text-emerald-400 font-medium text-sm">区块链</div>
+                        <div class="text-xs text-slate-500 mt-1">智能合约</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 流程图标签 -->
+          <div id="tab-flow" class="tab-content hidden">
+            <div class="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-white/10 p-8">
+              <h2 class="text-2xl font-bold text-white mb-6">可视化流程图</h2>
+              <p class="text-slate-400 mb-8">
+                以下是企业核心业务模块的完整流程图，展示了从创建到日常运营的全过程。
+              </p>
+
+              <!-- SVG 流程图 -->
+              <div class="bg-slate-900/50 rounded-xl p-8 overflow-x-auto">
+                <svg viewBox="0 0 1000 600" class="w-full min-w-[800px]" style="max-height: 600px">
+                  <!-- 背景网格 -->
+                  <defs>
+                    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                      <path
+                        d="M 40 0 L 0 0 0 40"
+                        fill="none"
+                        stroke="rgba(255,255,255,0.03)"
+                        stroke-width="1"
+                      />
+                    </pattern>
+                    <marker
+                      id="arrowhead"
+                      markerWidth="10"
+                      markerHeight="7"
+                      refX="9"
+                      refY="3.5"
+                      orient="auto"
+                    >
+                      <polygon points="0 0, 10 3.5, 0 7" fill="#64748b" />
+                    </marker>
+                    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" style="stop-color: #06b6d4; stop-opacity: 0.3" />
+                      <stop offset="100%" style="stop-color: #3b82f6; stop-opacity: 0.3" />
+                    </linearGradient>
+                  </defs>
+                  <rect width="100%" height="100%" fill="url(#grid)" />
+
+                  <!-- 标题 -->
+                  <text
+                    x="500"
+                    y="30"
+                    text-anchor="middle"
+                    fill="#f8fafc"
+                    font-size="20"
+                    font-weight="bold"
+                  >
+                    企业业务流程全景图
+                  </text>
+
+                  <!-- 第一层：企业创建 -->
+                  <rect
+                    x="50"
+                    y="70"
+                    width="200"
+                    height="60"
+                    rx="10"
+                    fill="url(#grad1)"
+                    stroke="#06b6d4"
+                    stroke-width="2"
+                  />
+                  <text
+                    x="150"
+                    y="105"
+                    text-anchor="middle"
+                    fill="#f8fafc"
+                    font-size="14"
+                    font-weight="600"
+                  >
+                    用户注册/登录
+                  </text>
+
+                  <path
+                    d="M 250 100 L 300 100"
+                    stroke="#64748b"
+                    stroke-width="2"
+                    marker-end="url(#arrowhead)"
+                  />
+
+                  <rect
+                    x="300"
+                    y="70"
+                    width="200"
+                    height="60"
+                    rx="10"
+                    fill="url(#grad1)"
+                    stroke="#06b6d4"
+                    stroke-width="2"
+                  />
+                  <text
+                    x="400"
+                    y="105"
+                    text-anchor="middle"
+                    fill="#f8fafc"
+                    font-size="14"
+                    font-weight="600"
+                  >
+                    填写企业信息
+                  </text>
+
+                  <path
+                    d="M 500 100 L 550 100"
+                    stroke="#64748b"
+                    stroke-width="2"
+                    marker-end="url(#arrowhead)"
+                  />
+
+                  <rect
+                    x="550"
+                    y="70"
+                    width="200"
+                    height="60"
+                    rx="10"
+                    fill="url(#grad1)"
+                    stroke="#06b6d4"
+                    stroke-width="2"
+                  />
+                  <text
+                    x="650"
+                    y="105"
+                    text-anchor="middle"
+                    fill="#f8fafc"
+                    font-size="14"
+                    font-weight="600"
+                  >
+                    系统验证创建
+                  </text>
+
+                  <path
+                    d="M 650 130 L 650 160"
+                    stroke="#64748b"
+                    stroke-width="2"
+                    marker-end="url(#arrowhead)"
+                  />
+
+                  <!-- 第二层：状态流转 -->
+                  <rect
+                    x="550"
+                    y="160"
+                    width="200"
+                    height="60"
+                    rx="10"
+                    fill="url(#grad1)"
+                    stroke="#f59e0b"
+                    stroke-width="2"
+                  />
+                  <text
+                    x="650"
+                    y="195"
+                    text-anchor="middle"
+                    fill="#f8fafc"
+                    font-size="14"
+                    font-weight="600"
+                  >
+                    审核中 (Pending)
+                  </text>
+
+                  <path
+                    d="M 750 190 L 800 190"
+                    stroke="#64748b"
+                    stroke-width="2"
+                    marker-end="url(#arrowhead)"
+                  />
+
+                  <rect
+                    x="800"
+                    y="160"
+                    width="150"
+                    height="60"
+                    rx="10"
+                    fill="url(#grad1)"
+                    stroke="#10b981"
+                    stroke-width="2"
+                  />
+                  <text
+                    x="875"
+                    y="195"
+                    text-anchor="middle"
+                    fill="#f8fafc"
+                    font-size="14"
+                    font-weight="600"
+                  >
+                    运营中 (Active)
+                  </text>
+
+                  <!-- 第三层：成员管理 -->
+                  <path
+                    d="M 400 160 L 400 240"
+                    stroke="#64748b"
+                    stroke-width="2"
+                    marker-end="url(#arrowhead)"
+                  />
+
+                  <rect
+                    x="300"
+                    y="240"
+                    width="200"
+                    height="60"
+                    rx="10"
+                    fill="url(#grad1)"
+                    stroke="#a855f7"
+                    stroke-width="2"
+                  />
+                  <text
+                    x="400"
+                    y="275"
+                    text-anchor="middle"
+                    fill="#f8fafc"
+                    font-size="14"
+                    font-weight="600"
+                  >
+                    Owner/Admin发起邀请
+                  </text>
+
+                  <path
+                    d="M 500 270 L 550 270"
+                    stroke="#64748b"
+                    stroke-width="2"
+                    marker-end="url(#arrowhead)"
+                  />
+
+                  <rect
+                    x="550"
+                    y="240"
+                    width="200"
+                    height="60"
+                    rx="10"
+                    fill="url(#grad1)"
+                    stroke="#a855f7"
+                    stroke-width="2"
+                  />
+                  <text
+                    x="650"
+                    y="275"
+                    text-anchor="middle"
+                    fill="#f8fafc"
+                    font-size="14"
+                    font-weight="600"
+                  >
+                    被邀请人接受邀请
+                  </text>
+
+                  <path
+                    d="M 650 300 L 650 330"
+                    stroke="#64748b"
+                    stroke-width="2"
+                    marker-end="url(#arrowhead)"
+                  />
+
+                  <rect
+                    x="550"
+                    y="330"
+                    width="200"
+                    height="60"
+                    rx="10"
+                    fill="url(#grad1)"
+                    stroke="#10b981"
+                    stroke-width="2"
+                  />
+                  <text
+                    x="650"
+                    y="365"
+                    text-anchor="middle"
+                    fill="#f8fafc"
+                    font-size="14"
+                    font-weight="600"
+                  >
+                    成员加入，权限生效
+                  </text>
+
+                  <!-- 第四层：资产管理 -->
+                  <path
+                    d="M 400 390 L 400 430"
+                    stroke="#64748b"
+                    stroke-width="2"
+                    marker-end="url(#arrowhead)"
+                  />
+
+                  <rect
+                    x="300"
+                    y="430"
+                    width="200"
+                    height="60"
+                    rx="10"
+                    fill="url(#grad1)"
+                    stroke="#10b981"
+                    stroke-width="2"
+                  />
+                  <text
+                    x="400"
+                    y="465"
+                    text-anchor="middle"
+                    fill="#f8fafc"
+                    font-size="14"
+                    font-weight="600"
+                  >
+                    上传IP资产文件
+                  </text>
+
+                  <path
+                    d="M 500 460 L 550 460"
+                    stroke="#64748b"
+                    stroke-width="2"
+                    marker-end="url(#arrowhead)"
+                  />
+
+                  <rect
+                    x="550"
+                    y="430"
+                    width="200"
+                    height="60"
+                    rx="10"
+                    fill="url(#grad1)"
+                    stroke="#10b981"
+                    stroke-width="2"
+                  />
+                  <text
+                    x="650"
+                    y="465"
+                    text-anchor="middle"
+                    fill="#f8fafc"
+                    font-size="14"
+                    font-weight="600"
+                  >
+                    NFT铸造与上链
+                  </text>
+
+                  <path
+                    d="M 750 460 L 800 460"
+                    stroke="#64748b"
+                    stroke-width="2"
+                    marker-end="url(#arrowhead)"
+                  />
+
+                  <rect
+                    x="800"
+                    y="430"
+                    width="150"
+                    height="60"
+                    rx="10"
+                    fill="url(#grad1)"
+                    stroke="#f59e0b"
+                    stroke-width="2"
+                  />
+                  <text
+                    x="875"
+                    y="465"
+                    text-anchor="middle"
+                    fill="#f8fafc"
+                    font-size="14"
+                    font-weight="600"
+                  >
+                    资产确权完成
+                  </text>
+                </svg>
+              </div>
+
+              <div class="mt-6 text-center text-slate-400 text-sm">
+                <p>
+                  完整的业务流程从用户注册开始，经过企业创建、成员邀请、资产管理等多个环节，形成闭环的企业资产管理生态系统。
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- API设计标签 -->
+          <div id="tab-api" class="tab-content hidden">
+            <div
+              class="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden"
+            >
+              <div class="p-6 border-b border-white/10">
+                <h2 class="text-2xl font-bold text-white">核心API设计</h2>
+                <p class="text-slate-400 mt-2">RESTful API 设计规范，遵循标准的HTTP方法和状态码</p>
+              </div>
+              <div class="p-6 space-y-6">
+                <!-- 企业管理API -->
+                <div class="bg-slate-700/30 rounded-xl overflow-hidden border border-white/5">
+                  <div class="px-4 py-3 bg-slate-800/50 border-b border-white/5">
+                    <h3 class="font-semibold text-white flex items-center gap-2">
+                      <span class="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 text-xs"
+                        >ENTERPRISE</span
+                      >
+                      企业管理API
+                    </h3>
+                  </div>
+                  <div class="p-4 space-y-3">
+                    <div
+                      class="flex items-center gap-3 p-3 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition-colors"
+                    >
+                      <span
+                        class="px-2 py-1 rounded bg-emerald-500/20 text-emerald-400 text-xs font-mono"
+                        >GET</span
+                      >
+                      <code class="text-cyan-300 font-mono text-sm">/api/v1/enterprises</code>
+                      <span class="text-slate-400 text-sm">获取企业列表</span>
+                    </div>
+                    <div
+                      class="flex items-center gap-3 p-3 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition-colors"
+                    >
+                      <span class="px-2 py-1 rounded bg-blue-500/20 text-blue-400 text-xs font-mono"
+                        >POST</span
+                      >
+                      <code class="text-cyan-300 font-mono text-sm">/api/v1/enterprises</code>
+                      <span class="text-slate-400 text-sm">创建企业</span>
+                    </div>
+                    <div
+                      class="flex items-center gap-3 p-3 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition-colors"
+                    >
+                      <span
+                        class="px-2 py-1 rounded bg-emerald-500/20 text-emerald-400 text-xs font-mono"
+                        >GET</span
+                      >
+                      <code class="text-cyan-300 font-mono text-sm">/api/v1/enterprises/{id}</code>
+                      <span class="text-slate-400 text-sm">获取企业详情</span>
+                    </div>
+                    <div
+                      class="flex items-center gap-3 p-3 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition-colors"
+                    >
+                      <span
+                        class="px-2 py-1 rounded bg-amber-500/20 text-amber-400 text-xs font-mono"
+                        >PUT</span
+                      >
+                      <code class="text-cyan-300 font-mono text-sm">/api/v1/enterprises/{id}</code>
+                      <span class="text-slate-400 text-sm">更新企业信息</span>
+                    </div>
+                    <div
+                      class="flex items-center gap-3 p-3 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition-colors"
+                    >
+                      <span class="px-2 py-1 rounded bg-red-500/20 text-red-400 text-xs font-mono"
+                        >DEL</span
+                      >
+                      <code class="text-cyan-300 font-mono text-sm">/api/v1/enterprises/{id}</code>
+                      <span class="text-slate-400 text-sm">删除企业</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 成员管理API -->
+                <div class="bg-slate-700/30 rounded-xl overflow-hidden border border-white/5">
+                  <div class="px-4 py-3 bg-slate-800/50 border-b border-white/5">
+                    <h3 class="font-semibold text-white flex items-center gap-2">
+                      <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-400 text-xs"
+                        >MEMBER</span
+                      >
+                      成员管理API
+                    </h3>
+                  </div>
+                  <div class="p-4 space-y-3">
+                    <div
+                      class="flex items-center gap-3 p-3 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition-colors"
+                    >
+                      <span
+                        class="px-2 py-1 rounded bg-emerald-500/20 text-emerald-400 text-xs font-mono"
+                        >GET</span
+                      >
+                      <code class="text-purple-300 font-mono text-sm"
+                        >/api/v1/enterprises/{id}/members</code
+                      >
+                      <span class="text-slate-400 text-sm">获取成员列表</span>
+                    </div>
+                    <div
+                      class="flex items-center gap-3 p-3 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition-colors"
+                    >
+                      <span class="px-2 py-1 rounded bg-blue-500/20 text-blue-400 text-xs font-mono"
+                        >POST</span
+                      >
+                      <code class="text-purple-300 font-mono text-sm"
+                        >/api/v1/enterprises/{id}/members</code
+                      >
+                      <span class="text-slate-400 text-sm">邀请成员</span>
+                    </div>
+                    <div
+                      class="flex items-center gap-3 p-3 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition-colors"
+                    >
+                      <span
+                        class="px-2 py-1 rounded bg-amber-500/20 text-amber-400 text-xs font-mono"
+                        >PUT</span
+                      >
+                      <code class="text-purple-300 font-mono text-sm"
+                        >/api/v1/enterprises/{id}/members/{userId}</code
+                      >
+                      <span class="text-slate-400 text-sm">更新成员角色</span>
+                    </div>
+                    <div
+                      class="flex items-center gap-3 p-3 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition-colors"
+                    >
+                      <span class="px-2 py-1 rounded bg-red-500/20 text-red-400 text-xs font-mono"
+                        >DEL</span
+                      >
+                      <code class="text-purple-300 font-mono text-sm"
+                        >/api/v1/enterprises/{id}/members/{userId}</code
+                      >
+                      <span class="text-slate-400 text-sm">移除成员</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 响应示例 -->
+                <div class="bg-slate-700/30 rounded-xl overflow-hidden border border-white/5">
+                  <div class="px-4 py-3 bg-slate-800/50 border-b border-white/5">
+                    <h3 class="font-semibold text-white">API响应示例</h3>
+                  </div>
+                  <div class="p-4">
+                    <div class="code-block">
+                      <span style="color: #64748b">// GET /api/v1/enterprises/{id}</span><br />
+                      <span style="color: #7dd3fc">{</span><br />
+                      &nbsp;&nbsp;<span style="color: #a5b4fc">"id"</span
+                      ><span style="color: #f472b6">:</span>
+                      <span style="color: #86efac">"ent_123456"</span
+                      ><span style="color: #f472b6">,</span><br />
+                      &nbsp;&nbsp;<span style="color: #a5b4fc">"name"</span
+                      ><span style="color: #f472b6">:</span>
+                      <span style="color: #86efac">"科技创新有限公司"</span
+                      ><span style="color: #f472b6">,</span><br />
+                      &nbsp;&nbsp;<span style="color: #a5b4fc">"status"</span
+                      ><span style="color: #f472b6">:</span>
+                      <span style="color: #86efac">"active"</span
+                      ><span style="color: #f472b6">,</span><br />
+                      &nbsp;&nbsp;<span style="color: #a5b4fc">"member_count"</span
+                      ><span style="color: #f472b6">:</span> <span style="color: #fbbf24">12</span
+                      ><span style="color: #f472b6">,</span><br />
+                      &nbsp;&nbsp;<span style="color: #a5b4fc">"created_at"</span
+                      ><span style="color: #f472b6">:</span>
+                      <span style="color: #86efac">"2024-01-15T00:00:00Z"</span><br />
+                      <span style="color: #7dd3fc">}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- 底部信息 -->
+      <footer class="border-t border-white/10 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="text-slate-400 text-sm">
+              <p>&copy; 2024 IP-NFT Asset Management System. All rights reserved.</p>
+            </div>
+            <div class="flex items-center gap-6">
+              <a href="#" class="text-slate-400 hover:text-white transition-colors text-sm">文档</a>
+              <a href="#" class="text-slate-400 hover:text-white transition-colors text-sm">API</a>
+              <a href="#" class="text-slate-400 hover:text-white transition-colors text-sm">支持</a>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script>
+      // 标签切换功能
+      document.addEventListener('DOMContentLoaded', function () {
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabBtns.forEach((btn) => {
+          btn.addEventListener('click', function () {
+            const tabId = this.getAttribute('data-tab');
+
+            // 移除所有活动状态
+            tabBtns.forEach((b) => {
+              b.classList.remove('tab-active');
+              b.classList.add('hover:bg-white/5');
+            });
+            tabContents.forEach((c) => c.classList.add('hidden'));
+
+            // 添加当前活动状态
+            this.classList.add('tab-active');
+            this.classList.remove('hover:bg-white/5');
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+          });
+        });
+
+        // 流程图动画
+        const flowNodes = document.querySelectorAll('.flow-node');
+        flowNodes.forEach((node, index) => {
+          node.style.opacity = '0';
+          node.style.transform = 'translateY(20px)';
+          setTimeout(() => {
+            node.style.transition = 'all 0.5s ease';
+            node.style.opacity = '1';
+            node.style.transform = 'translateY(0)';
+          }, index * 100);
+        });
+
+        // 添加滚动触发动画
+        const observerOptions = {
+          root: null,
+          rootMargin: '0px',
+          threshold: 0.1,
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.style.opacity = '1';
+              entry.target.style.transform = 'translateY(0)';
+            }
+          });
+        }, observerOptions);
+
+        // 观察所有卡片元素
+        document.querySelectorAll('.flow-node, .bg-slate-700\\/30').forEach((el) => {
+          el.style.opacity = '0';
+          el.style.transform = 'translateY(20px)';
+          el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+          observer.observe(el);
+        });
+      });
+    </script>
+  </body>
+</html>
