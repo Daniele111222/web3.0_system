@@ -16,14 +16,14 @@ from app.schemas.enterprise import (
     UpdateMemberRoleRequest,
     BindWalletRequest,
 )
-from app.schemas.auth import MessageResponse
+from app.schemas.response import ApiResponse
 
 router = APIRouter(prefix="/enterprises", tags=["Enterprises"])
 
 
 @router.post(
     "",
-    response_model=EnterpriseDetailResponse,
+    response_model=ApiResponse[EnterpriseDetailResponse],
     summary="创建企业",
     description="创建一个新企业，创建者自动成为企业所有者",
 )
@@ -31,17 +31,21 @@ async def create_enterprise(
     data: EnterpriseCreateRequest,
     db: DBSession,
     current_user_id: CurrentUserId,
-) -> EnterpriseDetailResponse:
+) -> ApiResponse[EnterpriseDetailResponse]:
     """创建新企业。"""
     service = EnterpriseService(db)
     result = await service.create_enterprise(data, UUID(current_user_id))
     await db.commit()
-    return result
+    return ApiResponse(
+        code="SUCCESS",
+        message="企业创建成功",
+        data=result,
+    )
 
 
 @router.get(
     "",
-    response_model=EnterpriseListResponse,
+    response_model=ApiResponse[EnterpriseListResponse],
     summary="获取我的企业列表",
     description="获取当前用户所属的所有企业列表，支持分页",
 )
@@ -50,17 +54,22 @@ async def get_my_enterprises(
     current_user_id: CurrentUserId,
     page: int = Query(default=1, ge=1, description="页码"),
     page_size: int = Query(default=20, ge=1, le=100, description="每页数量"),
-) -> EnterpriseListResponse:
+) -> ApiResponse[EnterpriseListResponse]:
     """获取当前用户所属的企业列表。"""
     service = EnterpriseService(db)
-    return await service.get_user_enterprises(
+    result = await service.get_user_enterprises(
         UUID(current_user_id), page, page_size
+    )
+    return ApiResponse(
+        code="SUCCESS",
+        message="获取企业列表成功",
+        data=result,
     )
 
 
 @router.get(
     "/{enterprise_id}",
-    response_model=EnterpriseDetailResponse,
+    response_model=ApiResponse[EnterpriseDetailResponse],
     summary="获取企业详情",
     description="获取指定企业的详细信息，包括成员列表",
 )
@@ -68,17 +77,22 @@ async def get_enterprise(
     enterprise_id: str,
     db: DBSession,
     current_user_id: CurrentUserId,
-) -> EnterpriseDetailResponse:
+) -> ApiResponse[EnterpriseDetailResponse]:
     """获取企业详情。"""
     service = EnterpriseService(db)
-    return await service.get_enterprise(
+    result = await service.get_enterprise(
         UUID(enterprise_id), UUID(current_user_id)
+    )
+    return ApiResponse(
+        code="SUCCESS",
+        message="获取企业详情成功",
+        data=result,
     )
 
 
 @router.put(
     "/{enterprise_id}",
-    response_model=EnterpriseDetailResponse,
+    response_model=ApiResponse[EnterpriseDetailResponse],
     summary="更新企业信息",
     description="更新企业基本信息（仅企业所有者和管理员可操作）",
 )
@@ -87,19 +101,23 @@ async def update_enterprise(
     data: EnterpriseUpdateRequest,
     db: DBSession,
     current_user_id: CurrentUserId,
-) -> EnterpriseDetailResponse:
+) -> ApiResponse[EnterpriseDetailResponse]:
     """更新企业信息。"""
     service = EnterpriseService(db)
     result = await service.update_enterprise(
         UUID(enterprise_id), data, UUID(current_user_id)
     )
     await db.commit()
-    return result
+    return ApiResponse(
+        code="SUCCESS",
+        message="企业信息更新成功",
+        data=result,
+    )
 
 
 @router.delete(
     "/{enterprise_id}",
-    response_model=MessageResponse,
+    response_model=ApiResponse[dict],
     summary="删除企业",
     description="删除企业（仅企业所有者可操作，将同时删除所有成员关系）",
 )
@@ -107,17 +125,21 @@ async def delete_enterprise(
     enterprise_id: str,
     db: DBSession,
     current_user_id: CurrentUserId,
-) -> MessageResponse:
+) -> ApiResponse[dict]:
     """删除企业。"""
     service = EnterpriseService(db)
     await service.delete_enterprise(UUID(enterprise_id), UUID(current_user_id))
     await db.commit()
-    return MessageResponse(message="企业已成功删除")
+    return ApiResponse(
+        code="SUCCESS",
+        message="企业已成功删除",
+        data={},
+    )
 
 
 @router.get(
     "/{enterprise_id}/members",
-    response_model=list[MemberResponse],
+    response_model=ApiResponse[list[MemberResponse]],
     summary="获取企业成员列表",
     description="获取指定企业的所有成员列表",
 )
@@ -125,17 +147,22 @@ async def get_enterprise_members(
     enterprise_id: str,
     db: DBSession,
     current_user_id: CurrentUserId,
-) -> list[MemberResponse]:
+) -> ApiResponse[list[MemberResponse]]:
     """获取企业成员列表。"""
     service = EnterpriseService(db)
-    return await service.get_enterprise_members(
+    result = await service.get_enterprise_members(
         UUID(enterprise_id), UUID(current_user_id)
+    )
+    return ApiResponse(
+        code="SUCCESS",
+        message="获取成员列表成功",
+        data=result,
     )
 
 
 @router.post(
     "/{enterprise_id}/members",
-    response_model=MemberResponse,
+    response_model=ApiResponse[MemberResponse],
     summary="邀请成员加入企业",
     description="邀请用户加入企业，可指定成员角色",
 )
@@ -144,19 +171,23 @@ async def invite_member(
     data: InviteMemberRequest,
     db: DBSession,
     current_user_id: CurrentUserId,
-) -> MemberResponse:
+) -> ApiResponse[MemberResponse]:
     """邀请成员加入企业。"""
     service = EnterpriseService(db)
     result = await service.invite_member(
         UUID(enterprise_id), data, UUID(current_user_id)
     )
     await db.commit()
-    return result
+    return ApiResponse(
+        code="SUCCESS",
+        message="成员邀请成功",
+        data=result,
+    )
 
 
 @router.put(
     "/{enterprise_id}/members/{user_id}",
-    response_model=MemberResponse,
+    response_model=ApiResponse[MemberResponse],
     summary="更新成员角色",
     description="更新企业成员的的角色（仅企业所有者和管理员可操作）",
 )
@@ -166,19 +197,23 @@ async def update_member_role(
     data: UpdateMemberRoleRequest,
     db: DBSession,
     current_user_id: CurrentUserId,
-) -> MemberResponse:
+) -> ApiResponse[MemberResponse]:
     """更新成员角色。"""
     service = EnterpriseService(db)
     result = await service.update_member_role(
         UUID(enterprise_id), UUID(user_id), data, UUID(current_user_id)
     )
     await db.commit()
-    return result
+    return ApiResponse(
+        code="SUCCESS",
+        message="成员角色更新成功",
+        data=result,
+    )
 
 
 @router.delete(
     "/{enterprise_id}/members/{user_id}",
-    response_model=MessageResponse,
+    response_model=ApiResponse[dict],
     summary="移除企业成员",
     description="从企业中移除指定成员（企业所有者不能被移除）",
 )
@@ -187,19 +222,23 @@ async def remove_member(
     user_id: str,
     db: DBSession,
     current_user_id: CurrentUserId,
-) -> MessageResponse:
+) -> ApiResponse[dict]:
     """移除企业成员。"""
     service = EnterpriseService(db)
     await service.remove_member(
         UUID(enterprise_id), UUID(user_id), UUID(current_user_id)
     )
     await db.commit()
-    return MessageResponse(message="成员已成功移除")
+    return ApiResponse(
+        code="SUCCESS",
+        message="成员已成功移除",
+        data={},
+    )
 
 
 @router.post(
     "/{enterprise_id}/wallet",
-    response_model=EnterpriseDetailResponse,
+    response_model=ApiResponse[EnterpriseDetailResponse],
     summary="绑定企业钱包",
     description="将区块链钱包地址绑定到企业（仅企业所有者和管理员可操作）",
 )
@@ -208,7 +247,7 @@ async def bind_enterprise_wallet(
     data: BindWalletRequest,
     db: DBSession,
     current_user_id: CurrentUserId,
-) -> EnterpriseDetailResponse:
+) -> ApiResponse[EnterpriseDetailResponse]:
     """为企业绑定钱包地址。"""
     service = EnterpriseService(db)
     result = await service.bind_wallet(
@@ -219,4 +258,8 @@ async def bind_enterprise_wallet(
         UUID(current_user_id),
     )
     await db.commit()
-    return result
+    return ApiResponse(
+        code="SUCCESS",
+        message="钱包绑定成功",
+        data=result,
+    )

@@ -7,7 +7,7 @@ interface WalletBindProps {
 }
 
 export const WalletBind = ({ onSuccess }: WalletBindProps) => {
-  const { user, bindWallet, isLoading: isAuthLoading, error: authError, clearError } = useAuth();
+  const { user, bindWallet, isLoading: isAuthLoading } = useAuth();
   const {
     isConnected,
     account,
@@ -16,15 +16,12 @@ export const WalletBind = ({ onSuccess }: WalletBindProps) => {
     connect,
     disconnect,
     signMessage,
-    clearError: clearWeb3Error,
   } = useWeb3();
 
   const [isBinding, setIsBinding] = useState(false);
   const [bindError, setBindError] = useState<string | null>(null);
 
   const handleConnect = async () => {
-    clearError();
-    clearWeb3Error();
     setBindError(null);
     await connect();
   };
@@ -42,7 +39,6 @@ export const WalletBind = ({ onSuccess }: WalletBindProps) => {
 
     setIsBinding(true);
     setBindError(null);
-    clearError();
 
     try {
       // 生成待签名消息
@@ -74,7 +70,7 @@ export const WalletBind = ({ onSuccess }: WalletBindProps) => {
     }
   };
 
-  const displayError = bindError || authError || web3Error;
+  const displayError = bindError || web3Error;
   const isLoading = isConnecting || isAuthLoading || isBinding;
   const hasWalletBound = !!user?.wallet_address;
 

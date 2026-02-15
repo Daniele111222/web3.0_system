@@ -21,7 +21,7 @@ const passwordRequirements: PasswordRequirement[] = [
 ];
 
 export const RegisterForm = ({ onSuccess, onLoginClick }: RegisterFormProps) => {
-  const { register, isLoading, error, clearError } = useAuth();
+  const { register, isLoading } = useAuth();
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -57,7 +57,6 @@ export const RegisterForm = ({ onSuccess, onLoginClick }: RegisterFormProps) => 
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    clearError();
 
     if (!validateForm()) {
       return;
@@ -75,7 +74,7 @@ export const RegisterForm = ({ onSuccess, onLoginClick }: RegisterFormProps) => 
     }
   };
 
-  const displayError = validationError || error;
+  const displayError = validationError;
 
   const getRequirementStatus = (test: (password: string) => boolean) => {
     if (!password) return 'neutral';

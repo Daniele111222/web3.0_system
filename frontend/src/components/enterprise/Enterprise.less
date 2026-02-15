@@ -882,7 +882,7 @@
 }
 
 /* ============================================
-   MODAL STYLES
+   MODAL STYLES - Enhanced with animations
    ============================================ */
 
 .modal-overlay {
@@ -891,13 +891,23 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   padding: 2rem;
+  animation: overlay-fade-in 0.3s ease-out;
+}
+
+@keyframes overlay-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .modal {
@@ -905,26 +915,112 @@
   border: 1px solid var(--ent-border-primary);
   border-radius: var(--ent-radius-xl);
   width: 100%;
-  max-width: 600px;
+  max-width: 800px;
   max-height: 90vh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  box-shadow:
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  position: relative;
+  animation: modal-slide-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modal-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-modal-in {
+  animation: modal-slide-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Modal Glow Effect */
+.modal-glow {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(ellipse at 30% 0%, rgba(0, 212, 170, 0.08) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Modal Header Pattern */
+.modal-header-pattern {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 120px;
+  background:
+    linear-gradient(180deg, rgba(0, 212, 170, 0.03) 0%, transparent 100%),
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.02) 0%,
+      transparent 50%,
+      rgba(255, 255, 255, 0.02) 100%
+    );
+  pointer-events: none;
+  z-index: 0;
 }
 
 .modal-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  padding: 1.5rem 1.75rem;
+  padding: 1.75rem 1.75rem 1.5rem;
   border-bottom: 1px solid var(--ent-border-primary);
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(17, 17, 24, 0.8) 0%, rgba(17, 17, 24, 0.4) 100%);
+}
+
+.modal-header-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.modal-icon-wrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--ent-radius-md);
+  background: linear-gradient(135deg, var(--ent-primary) 0%, var(--ent-primary-dark) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ent-bg-primary);
+  flex-shrink: 0;
+  box-shadow: 0 4px 15px rgba(0, 212, 170, 0.3);
+}
+
+.modal-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .modal-title {
-  font-size: 1.25rem;
+  font-size: 1.375rem;
   font-weight: 600;
   color: var(--ent-text-primary);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.modal-subtitle {
+  font-size: 0.875rem;
+  color: var(--ent-text-secondary);
   margin: 0;
 }
 
@@ -935,23 +1031,46 @@
   border: none;
   background: transparent;
   color: var(--ent-text-muted);
-  font-size: 1.5rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all var(--ent-transition-fast);
+  flex-shrink: 0;
+  margin-top: 0.25rem;
 }
 
 .modal-close:hover {
   background: var(--ent-bg-hover);
   color: var(--ent-text-primary);
+  transform: rotate(90deg);
+}
+
+.modal-close-icon {
+  font-size: 1.5rem;
+  line-height: 1;
 }
 
 .modal-body {
   padding: 1.75rem;
   overflow-y: auto;
   flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+/* Scrollbar for modal */
+.modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: var(--ent-border-primary);
+  border-radius: 3px;
 }
 
 /* ============================================
@@ -1022,6 +1141,7 @@
   left: 1rem;
   color: var(--ent-text-muted);
   pointer-events: none;
+  z-index: 1;
 }
 
 .form-input,
@@ -1215,7 +1335,7 @@
   .enterprise-detail-layout {
     grid-template-columns: 1fr;
   }
-  
+
   .detail-sidebar-column {
     order: -1;
   }
@@ -1608,7 +1728,7 @@
 /* 带图标的输入框 */
 .form-input.with-icon,
 .form-select.with-icon {
-  padding-left: 2.75rem;
+  padding-left: 2.75rem !important;
 }
 
 /* 错误状态 */
@@ -1711,16 +1831,16 @@
   .enterprise-form {
     gap: 1.5rem;
   }
-  
+
   .form-section {
     gap: 1rem;
   }
-  
+
   .form-actions {
     flex-direction: column-reverse;
     align-items: stretch;
   }
-  
+
   .form-actions .btn {
     width: 100%;
   }

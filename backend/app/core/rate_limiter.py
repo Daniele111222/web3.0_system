@@ -175,6 +175,5 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             response.headers["X-RateLimit-Remaining-Hour"] = str(remaining["hour_remaining"])
             return response
         except Exception as e:
-            logger.error(f"添加限流响应头时出错：{e}")
-            # 即使添加响应头失败也继续处理
-            return await call_next(request)
+            # 如果异常已经被处理（如验证错误），直接抛出
+            raise

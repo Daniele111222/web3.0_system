@@ -114,6 +114,10 @@ interface EnterpriseState {
   deleteEnterprise: (id: string) => Promise<void>;
   updateEnterpriseSettings: (id: string, settings: EnterpriseSettings) => Promise<void>;
   removeMember: (enterpriseId: string, userId: string) => Promise<void>;
+  inviteMember: (
+    enterpriseId: string,
+    data: { email?: string; user_id?: string; role: string }
+  ) => Promise<void>;
   updateMemberRole: (enterpriseId: string, userId: string, role: string) => Promise<void>;
 }
 
@@ -218,6 +222,25 @@ export const useEnterpriseStore = create<EnterpriseState>()((set, get) => ({
       set({ members, isLoading: false });
     } catch (err) {
       set({ error: err instanceof Error ? err.message : '移除成员失败', isLoading: false });
+      throw err;
+    }
+  },
+
+  inviteMember: async (
+    enterpriseId: string,
+    data: { email?: string; user_id?: string; role: string }
+  ) => {
+    set({ isLoading: true, error: null });
+    try {
+      const newMember = await enterpriseService.inviteMember(enterpriseId, {
+        email: data.email,
+        user_id: data.user_id,
+        role: data.role as 'admin' | 'member' | 'viewer',
+      });
+      const members = get().members.concat(newMember);
+      set({ members, isLoading: false });
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : '邀请成员失败', isLoading: false });
       throw err;
     }
   },

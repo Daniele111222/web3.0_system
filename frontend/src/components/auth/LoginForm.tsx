@@ -7,15 +7,13 @@ interface LoginFormProps {
 }
 
 export const LoginForm = ({ onSuccess, onRegisterClick }: LoginFormProps) => {
-  const { login, isLoading, error, clearError } = useAuth();
+  const { login, isLoading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    clearError();
-
     const success = await login({ email, password });
     if (success && onSuccess) {
       onSuccess();
@@ -39,19 +37,6 @@ export const LoginForm = ({ onSuccess, onRegisterClick }: LoginFormProps) => {
         <h2>欢迎回来</h2>
         <p className="form-subtitle">登录您的 IP-NFT 账户</p>
       </div>
-
-      {error && (
-        <div className="error-message">
-          <span className="error-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="8" x2="12" y2="12" />
-              <line x1="12" y1="16" x2="12.01" y2="16" />
-            </svg>
-          </span>
-          {error}
-        </div>
-      )}
 
       <form onSubmit={handleSubmit} className="auth-form">
         <div className={`form-group ${focusedField === 'email' ? 'focused' : ''}`}>

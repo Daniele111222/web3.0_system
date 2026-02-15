@@ -131,6 +131,7 @@ class EnterpriseService:
             logo_url=data.logo_url,
             website=data.website,
             contact_email=data.contact_email,
+            address=data.address,
         )
         enterprise = await self.enterprise_repo.create(enterprise)
         

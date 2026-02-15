@@ -50,6 +50,16 @@ export interface PaginatedResponse<T> {
   page_size: number;
 }
 
+/**
+ * 通用 API 响应格式 (后端返回格式: code, message, data)
+ */
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  code: string;
+  data: T;
+}
+
 // 用户类型
 export interface User {
   id: string;

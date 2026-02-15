@@ -1,21 +1,18 @@
-import { useState } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
 import { EnterpriseList } from '../../components/enterprise/EnterpriseList';
-import { EnterpriseDetail } from '../../components/enterprise/EnterpriseDetail';
 import './index.less';
 
 const Enterprise = () => {
-  const [selectedEnterpriseId, setSelectedEnterpriseId] = useState<string | null>(null);
+  const location = useLocation();
+  const isDetailPage =
+    location.pathname.includes('/enterprises/') && location.pathname !== '/enterprises';
 
-  if (selectedEnterpriseId) {
-    return (
-      <EnterpriseDetail
-        enterpriseId={selectedEnterpriseId}
-        onBack={() => setSelectedEnterpriseId(null)}
-      />
-    );
-  }
-
-  return <EnterpriseList onSelectEnterprise={setSelectedEnterpriseId} />;
+  return (
+    <>
+      {!isDetailPage && <EnterpriseList />}
+      <Outlet />
+    </>
+  );
 };
 
 export default Enterprise;

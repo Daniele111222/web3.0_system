@@ -14,19 +14,29 @@ if TYPE_CHECKING:
 
 
 class MemberRole(str, Enum):
-    """
-    企业成员角色枚举。
+    """企业成员角色枚举
     
-    定义企业内成员的权限级别：
+    定义了企业成员的不同角色及其权限等级：
     - OWNER: 所有者，拥有最高权限
-    - ADMIN: 管理员，可管理成员和资产
-    - MEMBER: 普通成员，可查看和操作资产
-    - VIEWER: 观察者，仅可查看资产
+    - ADMIN: 管理员，可以管理日常运营
+    - MEMBER: 普通成员，可以参与协作
+    - VIEWER: 观察者，只能查看信息
     """
     OWNER = "owner"
     ADMIN = "admin"
     MEMBER = "member"
     VIEWER = "viewer"
+
+    def __str__(self) -> str:
+        """返回枚举的值（小写字符串），用于数据库操作
+        
+        PostgreSQL 枚举使用小写值（如 'owner'），
+        此方法确保在转换为字符串时返回正确的值而非枚举名称。
+        
+        Returns:
+            str: 枚举的小写字符串值
+        """
+        return self.value
 
 
 class Enterprise(Base):
@@ -75,6 +85,11 @@ class Enterprise(Base):
         String(255),
         nullable=True,
         comment="联系邮箱",
+    )
+    address: Mapped[Optional[str]] = mapped_column(
+        String(500),
+        nullable=True,
+        comment="企业地址",
     )
     
     # 区块链相关
@@ -174,7 +189,7 @@ class EnterpriseMember(Base):
     
     # 角色
     role: Mapped[MemberRole] = mapped_column(
-        SQLEnum(MemberRole),
+        SQLEnum(MemberRole, values_callable=lambda x: [e.value for e in x]),
         default=MemberRole.MEMBER,
         nullable=False,
         comment="成员角色",

@@ -4,6 +4,7 @@ import { ProtectedRoute } from './components/routes';
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import Enterprise from './pages/Enterprise';
+import EnterpriseDetailPage from './pages/Enterprise/Detail';
 import Assets from './pages/Assets';
 import NFT from './pages/NFT';
 import ApprovalLayout from './pages/Approval';
@@ -38,6 +39,12 @@ export const router = createBrowserRouter([
       {
         path: 'enterprises',
         element: <Enterprise />,
+        children: [
+          {
+            path: ':enterpriseId',
+            element: <EnterpriseDetailPage />,
+          },
+        ],
       },
       {
         path: 'assets',

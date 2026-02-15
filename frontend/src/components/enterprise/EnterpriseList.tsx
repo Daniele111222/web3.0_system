@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Building2,
   Plus,
@@ -8,7 +9,6 @@ import {
   Shield,
   MoreVertical,
   Filter,
-  AlertCircle,
   Loader2,
 } from 'lucide-react';
 import { EnterpriseForm } from './EnterpriseForm';
@@ -17,7 +17,7 @@ import type { Enterprise } from '../../types';
 import './Enterprise.less';
 
 interface EnterpriseListProps {
-  onSelectEnterprise: (id: string) => void;
+  onSelectEnterprise?: (id: string) => void;
 }
 
 // 生成漂浮粒子
@@ -34,13 +34,23 @@ const generateParticles = (count: number) => {
 };
 
 export const EnterpriseList = ({ onSelectEnterprise }: EnterpriseListProps) => {
-  const { enterprises, isLoading, error, fetchEnterprises, createEnterprise, actionLoading } =
+  const navigate = useNavigate();
+  const { enterprises, isLoading, fetchEnterprises, createEnterprise, setCurrentEnterprise } =
     useEnterprise();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [particles] = useState(() => generateParticles(20));
+
+  // 处理选择企业 - 使用路由导航
+  const handleSelectEnterprise = (id: string) => {
+    if (onSelectEnterprise) {
+      onSelectEnterprise(id);
+    } else {
+      navigate(`/enterprises/${id}`);
+    }
+  };
 
   // 加载企业列表
   useEffect(() => {
@@ -108,21 +118,7 @@ export const EnterpriseList = ({ onSelectEnterprise }: EnterpriseListProps) => {
     );
   }
 
-  // 渲染错误状态
-  if (error && enterprises.length === 0) {
-    return (
-      <div className="enterprise-page">
-        <div className="enterprise-error">
-          <AlertCircle size={48} />
-          <h3>加载失败</h3>
-          <p>{error}</p>
-          <button className="btn btn-primary" onClick={() => fetchEnterprises()}>
-            重试
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // 错误状态不单独处理，由全局错误提示统一显示
 
   return (
     <div className="enterprise-page">
@@ -245,34 +241,38 @@ export const EnterpriseList = ({ onSelectEnterprise }: EnterpriseListProps) => {
                 key={enterprise.id}
                 className="enterprise-card animate-fade-in"
                 style={{ animationDelay: `${index * 0.05}s` }}
-                onClick={() => onSelectEnterprise(enterprise.id)}
+                onClick={() => {
+                  setCurrentEnterprise({
+                    ...enterprise,
+                    members: [],
+                  } as import('../../types').EnterpriseDetail);
+                  handleSelectEnterprise(enterprise.id);
+                }}
               >
                 <div className="enterprise-card-header">
                   <div className="enterprise-logo">{enterprise.name?.charAt(0) ?? '?'}</div>
                   <div className="enterprise-info">
                     <h3 className="enterprise-name">{enterprise.name ?? '未命名企业'}</h3>
-                    <span className="enterprise-id">ID: {enterprise.id}</span>
+                    <span className="enterprise-id">ID: {enterprise.id.slice(0, 8)}...</span>
                   </div>
                 </div>
                 <div className="enterprise-card-body">
                   <p className="enterprise-description">{enterprise.description ?? '暂无描述'}</p>
                   <div className="enterprise-meta">
-                    <div className="enterprise-meta-row">
-                      <Building2 className="enterprise-meta-icon" size={16} />
-                      <span>
-                        {(enterprise as Enterprise & { address?: string }).address ?? '暂无地址'}
-                      </span>
-                    </div>
+                    {enterprise.address && (
+                      <div className="enterprise-meta-row">
+                        <Building2 className="enterprise-meta-icon" size={16} />
+                        <span className="enterprise-website">{enterprise.address}</span>
+                      </div>
+                    )}
                     <div className="enterprise-meta-row">
                       <Users className="enterprise-meta-icon" size={16} />
-                      <span>24 名成员</span>
+                      <span>{enterprise.member_count ?? 0} 名成员</span>
                     </div>
                   </div>
                 </div>
                 <div className="enterprise-card-footer">
-                  {getStatusBadge(
-                    (enterprise as Enterprise & { status?: string }).status ?? 'inactive'
-                  )}
+                  {getStatusBadge(enterprise.is_verified === true ? 'active' : 'pending')}
                   <div className="enterprise-card-actions">
                     <button
                       className="btn btn-ghost btn-sm btn-icon-only"
@@ -287,7 +287,7 @@ export const EnterpriseList = ({ onSelectEnterprise }: EnterpriseListProps) => {
                       className="btn btn-primary btn-sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        onSelectEnterprise(enterprise.id);
+                        handleSelectEnterprise(enterprise.id);
                       }}
                     >
                       查看详情
@@ -319,19 +319,29 @@ export const EnterpriseList = ({ onSelectEnterprise }: EnterpriseListProps) => {
       {/* Create Enterprise Modal */}
       {showForm && (
         <div className="modal-overlay" onClick={() => setShowForm(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
+          <div className="modal animate-modal-in" onClick={(e) => e.stopPropagation()}>
+            {/* Modal Decorative Glow */}
+            <div className="modal-glow" />
+
+            {/* Header Pattern */}
+            <div className="modal-header-pattern" />
+
             <div className="modal-header">
-              <h2 className="modal-title">创建新企业</h2>
+              <div className="modal-header-content">
+                <div className="modal-icon-wrapper">
+                  <Building2 size={20} />
+                </div>
+                <div className="modal-title-group">
+                  <h2 className="modal-title">创建新企业</h2>
+                  <p className="modal-subtitle">填写企业信息以创建新组织</p>
+                </div>
+              </div>
               <button className="modal-close" onClick={() => setShowForm(false)}>
-                ×
+                <span className="modal-close-icon">×</span>
               </button>
             </div>
             <div className="modal-body">
-              <EnterpriseForm
-                onSubmit={handleFormSubmit}
-                onCancel={() => setShowForm(false)}
-                isSubmitting={actionLoading}
-              />
+              <EnterpriseForm onSubmit={handleFormSubmit} onCancel={() => setShowForm(false)} />
             </div>
           </div>
         </div>

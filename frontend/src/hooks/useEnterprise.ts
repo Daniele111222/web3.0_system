@@ -43,6 +43,13 @@ export function useEnterprise() {
       try {
         const response = await enterpriseService.getMyEnterprises(page, pageSize);
         setEnterprises(response.items);
+        // 如果当前没有选中企业且列表不为空，自动设置第一个企业为当前企业
+        if (!currentEnterprise && response.items.length > 0) {
+          setCurrentEnterprise({
+            ...response.items[0],
+            members: [],
+          } as import('../types').EnterpriseDetail);
+        }
         return response;
       } catch (err) {
         const message = extractErrorMessage(err);
@@ -52,7 +59,7 @@ export function useEnterprise() {
         setLoading(false);
       }
     },
-    [setEnterprises, setLoading, setError]
+    [setEnterprises, setCurrentEnterprise, setLoading, setError, currentEnterprise]
   );
 
   // 获取企业详情
@@ -83,6 +90,10 @@ export function useEnterprise() {
       try {
         const enterprise = await enterpriseService.createEnterprise(data);
         setEnterprises([...enterprises, enterprise]);
+        // 如果当前没有选中企业，自动设置刚创建的企业为当前企业
+        if (!currentEnterprise) {
+          setCurrentEnterprise(enterprise);
+        }
         return enterprise;
       } catch (err) {
         const message = extractErrorMessage(err);
@@ -92,7 +103,7 @@ export function useEnterprise() {
         setActionLoading(false);
       }
     },
-    [enterprises, setEnterprises, setError]
+    [enterprises, currentEnterprise, setEnterprises, setCurrentEnterprise, setError]
   );
 
   // 更新企业
@@ -228,6 +239,7 @@ export function useEnterprise() {
     inviteMember,
     updateMemberRole,
     removeMember,
+    setCurrentEnterprise,
   };
 }
 

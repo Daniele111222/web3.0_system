@@ -15,8 +15,8 @@ import {
   Tooltip,
   Empty,
   Spin,
-  Alert,
   Popconfirm,
+  Modal,
 } from 'antd';
 import {
   ArrowLeftOutlined,
@@ -29,7 +29,7 @@ import {
   CrownOutlined,
 } from '@ant-design/icons';
 import { useEnterpriseStore, useAuthStore } from '../../store';
-import type { Enterprise, EnterpriseMember, EnterpriseRole } from '../../types';
+import type { Enterprise, EnterpriseMember, EnterpriseRole, EnterpriseSettings } from '../../types';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -63,9 +63,16 @@ const getRoleBadge = (role: EnterpriseRole): React.ReactNode => {
   );
 };
 
-export const EnterpriseDetail: React.FC = () => {
+interface EnterpriseDetailProps {
+  enterpriseId: string;
+  onBack?: () => void;
+}
+
+export const EnterpriseDetail: React.FC<EnterpriseDetailProps> = ({ enterpriseId, onBack }) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  // 优先使用 props 传入的 enterpriseId，否则使用路由参数
+  const effectiveId = enterpriseId || id;
   const [form] = Form.useForm<FormData>();
   const [settingsForm] = Form.useForm();
 
@@ -74,7 +81,6 @@ export const EnterpriseDetail: React.FC = () => {
     members,
     settings,
     isLoading,
-    error,
     fetchEnterpriseById,
     fetchEnterpriseMembers,
     fetchEnterpriseSettings,
@@ -82,7 +88,8 @@ export const EnterpriseDetail: React.FC = () => {
     deleteEnterprise,
     updateEnterpriseSettings,
     removeMember,
-    // updateMemberRole, // TODO: 未来实现角色更改功能时启用
+    inviteMember,
+    updateMemberRole,
     clearCurrentEnterprise,
   } = useEnterpriseStore();
 
@@ -92,20 +99,29 @@ export const EnterpriseDetail: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSettingsEditing, setIsSettingsEditing] = useState(false);
+  const [isInviteModalVisible, setIsInviteModalVisible] = useState(false);
+  const [isRoleModalVisible, setIsRoleModalVisible] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<EnterpriseMember | null>(null);
+  const [inviteLoading, setInviteLoading] = useState(false);
+  const [roleLoading, setRoleLoading] = useState(false);
 
   // 检查当前用户是否是管理员或所有者
   const canManageEnterprise = () => {
     if (!currentEnterprise || !user) return false;
-    // 添加类型注解
-    const member = members.find((m: EnterpriseMember) => m.userId === user.id);
+    // 同时检查 userId 和 user_id
+    const member = members.find(
+      (m: EnterpriseMember) => m.userId === user.id || m.user_id === user.id
+    );
     return member?.role === 'admin' || member?.role === 'owner';
   };
 
   // 检查当前用户是否是所有者
   const isOwner = () => {
     if (!currentEnterprise || !user) return false;
-    // 添加类型注解
-    const member = members.find((m: EnterpriseMember) => m.userId === user.id);
+    // 同时检查 userId 和 user_id
+    const member = members.find(
+      (m: EnterpriseMember) => m.userId === user.id || m.user_id === user.id
+    );
     return member?.role === 'owner';
   };
 
@@ -117,17 +133,17 @@ export const EnterpriseDetail: React.FC = () => {
   ];
 
   useEffect(() => {
-    if (id) {
-      fetchEnterpriseById(id);
-      fetchEnterpriseMembers(id);
-      fetchEnterpriseSettings(id);
+    if (effectiveId) {
+      fetchEnterpriseById(effectiveId);
+      fetchEnterpriseMembers(effectiveId);
+      fetchEnterpriseSettings(effectiveId);
     }
 
     return () => {
       clearCurrentEnterprise();
     };
   }, [
-    id,
+    effectiveId,
     fetchEnterpriseById,
     fetchEnterpriseMembers,
     fetchEnterpriseSettings,
@@ -158,10 +174,10 @@ export const EnterpriseDetail: React.FC = () => {
   }, [settings, isSettingsEditing, settingsForm]);
 
   const handleUpdate = async (values: FormData) => {
-    if (!id || !currentEnterprise) return;
+    if (!effectiveId || !currentEnterprise) return;
 
     try {
-      await updateEnterprise(id, {
+      await updateEnterprise(effectiveId, {
         ...currentEnterprise,
         ...values,
       });
@@ -173,24 +189,28 @@ export const EnterpriseDetail: React.FC = () => {
   };
 
   const handleDelete = async () => {
-    if (!id) return;
+    if (!effectiveId) return;
 
     setIsDeleting(true);
     try {
-      await deleteEnterprise(id);
+      await deleteEnterprise(effectiveId);
       message.success('企业删除成功');
-      navigate('/enterprises');
+      if (onBack) {
+        onBack();
+      } else {
+        navigate('/enterprises');
+      }
     } catch (err) {
       message.error('删除失败：' + (err instanceof Error ? err.message : '未知错误'));
       setIsDeleting(false);
     }
   };
 
-  const handleUpdateSettings = async (values: any) => {
-    if (!id) return;
+  const handleUpdateSettings = async (values: EnterpriseSettings) => {
+    if (!effectiveId) return;
 
     try {
-      await updateEnterpriseSettings(id, values);
+      await updateEnterpriseSettings(effectiveId, values);
       message.success('设置更新成功');
       setIsSettingsEditing(false);
     } catch (err) {
@@ -200,10 +220,10 @@ export const EnterpriseDetail: React.FC = () => {
 
   // 处理移除成员
   const handleRemoveMember = async (memberId: string) => {
-    if (!id) return;
+    if (!effectiveId) return;
 
     try {
-      await removeMember(id, memberId);
+      await removeMember(effectiveId, memberId);
       message.success('成员移除成功');
     } catch (err) {
       message.error('移除失败：' + (err instanceof Error ? err.message : '未知错误'));
@@ -238,6 +258,51 @@ export const EnterpriseDetail: React.FC = () => {
     } catch {
       return '未知';
     }
+  };
+
+  // 处理邀请成员
+  const handleInviteMember = async (values: { email: string; role: string }) => {
+    if (!effectiveId) return;
+    setInviteLoading(true);
+    try {
+      await inviteMember(effectiveId, { email: values.email, role: values.role });
+      message.success('成员邀请成功');
+      setIsInviteModalVisible(false);
+      // 刷新成员列表
+      fetchEnterpriseMembers(effectiveId);
+    } catch (err) {
+      message.error('邀请失败：' + (err instanceof Error ? err.message : '未知错误'));
+    } finally {
+      setInviteLoading(false);
+    }
+  };
+
+  // 处理更新成员角色
+  const handleUpdateMemberRole = async (values: { role: string }) => {
+    if (!effectiveId || !selectedMember) return;
+    setRoleLoading(true);
+    try {
+      const userId = selectedMember.userId || selectedMember.id;
+      await updateMemberRole(effectiveId, userId, values.role);
+      message.success('角色更新成功');
+      setIsRoleModalVisible(false);
+      setSelectedMember(null);
+    } catch (err) {
+      message.error('更新失败：' + (err instanceof Error ? err.message : '未知错误'));
+    } finally {
+      setRoleLoading(false);
+    }
+  };
+
+  // 打开邀请成员弹窗
+  const openInviteModal = () => {
+    setIsInviteModalVisible(true);
+  };
+
+  // 打开编辑角色弹窗
+  const openRoleModal = (member: EnterpriseMember) => {
+    setSelectedMember(member);
+    setIsRoleModalVisible(true);
   };
 
   const renderOverview = () => {
@@ -344,6 +409,20 @@ export const EnterpriseDetail: React.FC = () => {
               <Descriptions.Item label="企业描述" span={2}>
                 {currentEnterprise.description || '暂无描述'}
               </Descriptions.Item>
+              <Descriptions.Item label="Logo">
+                {currentEnterprise.logo_url ? (
+                  <img
+                    src={currentEnterprise.logo_url}
+                    alt="企业Logo"
+                    style={{ maxWidth: 80, maxHeight: 80, borderRadius: 4 }}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  '未设置'
+                )}
+              </Descriptions.Item>
               <Descriptions.Item label="企业官网">
                 {currentEnterprise.website ? (
                   <a href={currentEnterprise.website} target="_blank" rel="noopener noreferrer">
@@ -356,17 +435,23 @@ export const EnterpriseDetail: React.FC = () => {
               <Descriptions.Item label="联系邮箱">
                 {currentEnterprise.contactEmail || '未设置'}
               </Descriptions.Item>
-              <Descriptions.Item label="联系电话">
-                {currentEnterprise.contactPhone || '未设置'}
+              <Descriptions.Item label="企业地址">
+                {currentEnterprise.address || '未设置'}
+              </Descriptions.Item>
+              <Descriptions.Item label="钱包地址">
+                {currentEnterprise.wallet_address ? (
+                  <span className="font-mono text-sm">{currentEnterprise.wallet_address}</span>
+                ) : (
+                  <Tag color="default">未绑定</Tag>
+                )}
+              </Descriptions.Item>
+              <Descriptions.Item label="认证状态">
+                <Tag color={currentEnterprise.is_verified ? 'green' : 'orange'}>
+                  {currentEnterprise.is_verified ? '已认证' : '未认证'}
+                </Tag>
               </Descriptions.Item>
               <Descriptions.Item label="创建时间">
                 {formatDate(currentEnterprise.createdAt)}
-              </Descriptions.Item>
-              <Descriptions.Item label="成员数量">{members.length} 人</Descriptions.Item>
-              <Descriptions.Item label="状态">
-                <Tag color={isEnterpriseActive(currentEnterprise) ? 'green' : 'red'}>
-                  {isEnterpriseActive(currentEnterprise) ? '活跃' : '停用'}
-                </Tag>
               </Descriptions.Item>
               <Descriptions.Item label="成员数量">{members.length} 人</Descriptions.Item>
               <Descriptions.Item label="状态">
@@ -388,14 +473,7 @@ export const EnterpriseDetail: React.FC = () => {
           <div className="flex justify-between items-center">
             <span className="text-lg font-semibold">成员管理</span>
             {canManageEnterprise() && (
-              <Button
-                type="primary"
-                icon={<UserAddOutlined />}
-                onClick={() => {
-                  // TODO: 打开邀请成员弹窗
-                  message.info('邀请成员功能待实现');
-                }}
-              >
+              <Button type="primary" icon={<UserAddOutlined />} onClick={openInviteModal}>
                 邀请成员
               </Button>
             )}
@@ -427,31 +505,29 @@ export const EnterpriseDetail: React.FC = () => {
                 <div className="flex items-center gap-4">
                   {getRoleBadge(member.role)}
 
-                  {canManageEnterprise() && member.userId !== user?.id && (
-                    <Space>
-                      <Tooltip title="更改角色">
-                        <Button
-                          size="small"
-                          icon={<EditOutlined />}
-                          onClick={() => {
-                            // TODO: 更改角色逻辑
-                            message.info('更改角色功能待实现');
-                          }}
-                        />
-                      </Tooltip>
-                      <Tooltip title="移除成员">
-                        <Button
-                          size="small"
-                          danger
-                          icon={<DeleteOutlined />}
-                          onClick={() => {
-                            // 调用移除成员函数
-                            handleRemoveMember(member.id);
-                          }}
-                        />
-                      </Tooltip>
-                    </Space>
-                  )}
+                  {canManageEnterprise() &&
+                    (member.userId !== user?.id || member.user_id !== user?.id) && (
+                      <Space>
+                        <Tooltip title="更改角色">
+                          <Button
+                            size="small"
+                            icon={<EditOutlined />}
+                            onClick={() => openRoleModal(member)}
+                          />
+                        </Tooltip>
+                        <Tooltip title="移除成员">
+                          <Button
+                            size="small"
+                            danger
+                            icon={<DeleteOutlined />}
+                            onClick={() => {
+                              // 调用移除成员函数
+                              handleRemoveMember(member.id);
+                            }}
+                          />
+                        </Tooltip>
+                      </Space>
+                    )}
                 </div>
               </div>
             ))}
@@ -619,30 +695,10 @@ export const EnterpriseDetail: React.FC = () => {
     );
   }
 
-  if (error) {
-    return (
-      <div className="p-6">
-        <Alert
-          message="加载失败"
-          description={error}
-          type="error"
-          showIcon
-          action={<Button onClick={() => id && fetchEnterpriseById(id)}>重试</Button>}
-        />
-      </div>
-    );
-  }
-
   if (!currentEnterprise) {
     return (
-      <div className="p-6">
-        <Alert
-          message="企业不存在"
-          description="无法找到指定的企业信息"
-          type="warning"
-          showIcon
-          action={<Button onClick={() => navigate('/enterprises')}>返回列表</Button>}
-        />
+      <div className="flex items-center justify-center h-96">
+        <Spin size="large" tip="加载中..." />
       </div>
     );
   }
@@ -653,7 +709,7 @@ export const EnterpriseDetail: React.FC = () => {
       <div className="mb-6">
         <Button
           icon={<ArrowLeftOutlined />}
-          onClick={() => navigate('/enterprises')}
+          onClick={() => (onBack ? onBack() : navigate('/enterprises'))}
           className="mb-4"
         >
           返回企业列表
@@ -706,6 +762,91 @@ export const EnterpriseDetail: React.FC = () => {
           {activeTab === 'settings' && renderSettings()}
         </div>
       </div>
+
+      {/* 邀请成员弹窗 */}
+      <Modal
+        title="邀请成员"
+        open={isInviteModalVisible}
+        onCancel={() => setIsInviteModalVisible(false)}
+        footer={null}
+        destroyOnClose
+      >
+        <Form layout="vertical" onFinish={handleInviteMember} initialValues={{ role: 'member' }}>
+          <Form.Item
+            name="email"
+            label="邮箱地址"
+            rules={[
+              { required: true, message: '请输入邮箱地址' },
+              { type: 'email', message: '请输入有效的邮箱地址' },
+            ]}
+          >
+            <Input placeholder="请输入要邀请的用户邮箱" />
+          </Form.Item>
+          <Form.Item name="role" label="角色" rules={[{ required: true, message: '请选择角色' }]}>
+            <Select placeholder="选择成员角色">
+              <Option value="admin">管理员</Option>
+              <Option value="member">成员</Option>
+              <Option value="viewer">观察者</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item>
+            <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
+              <Button onClick={() => setIsInviteModalVisible(false)}>取消</Button>
+              <Button type="primary" htmlType="submit" loading={inviteLoading}>
+                邀请
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* 更新成员角色弹窗 */}
+      <Modal
+        title="更改成员角色"
+        open={isRoleModalVisible}
+        onCancel={() => {
+          setIsRoleModalVisible(false);
+          setSelectedMember(null);
+        }}
+        footer={null}
+        destroyOnClose
+      >
+        <Form
+          layout="vertical"
+          onFinish={handleUpdateMemberRole}
+          initialValues={{ role: selectedMember?.role || 'member' }}
+        >
+          <Form.Item label="当前成员">
+            <div>{selectedMember?.username || selectedMember?.userId}</div>
+          </Form.Item>
+          <Form.Item
+            name="role"
+            label="新角色"
+            rules={[{ required: true, message: '请选择新角色' }]}
+          >
+            <Select placeholder="选择新角色">
+              <Option value="admin">管理员</Option>
+              <Option value="member">成员</Option>
+              <Option value="viewer">观察者</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item>
+            <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
+              <Button
+                onClick={() => {
+                  setIsRoleModalVisible(false);
+                  setSelectedMember(null);
+                }}
+              >
+                取消
+              </Button>
+              <Button type="primary" htmlType="submit" loading={roleLoading}>
+                保存
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

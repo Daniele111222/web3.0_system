@@ -40,6 +40,11 @@ class EnterpriseCreateRequest(BaseModel):
         max_length=255,
         description="联系邮箱",
     )
+    address: Optional[str] = Field(
+        None,
+        max_length=500,
+        description="企业地址",
+    )
     
     @field_validator("name")
     @classmethod
@@ -138,6 +143,11 @@ class EnterpriseUpdateRequest(BaseModel):
         max_length=255,
         description="联系邮箱",
     )
+    address: Optional[str] = Field(
+        None,
+        max_length=500,
+        description="企业地址",
+    )
     
     @field_validator("name")
     @classmethod
@@ -216,6 +226,7 @@ class EnterpriseResponse(BaseModel):
     logo_url: Optional[str] = Field(None, description="企业 Logo URL")
     website: Optional[str] = Field(None, description="企业官网")
     contact_email: Optional[str] = Field(None, description="联系邮箱")
+    address: Optional[str] = Field(None, description="企业地址")
     wallet_address: Optional[str] = Field(None, description="企业钱包地址")
     is_active: bool = Field(..., description="企业是否激活")
     is_verified: bool = Field(..., description="企业是否已认证")

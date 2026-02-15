@@ -33,10 +33,20 @@ def register_exception_handlers(app: FastAPI) -> None:
         """处理请求验证错误。"""
         errors = exc.errors()
         error_messages = []
+        # 处理错误数据，确保可以序列化为JSON
+        serializable_errors = []
         for error in errors:
             field = ".".join(str(loc) for loc in error["loc"])
             error_messages.append(f"{field}: {error['msg']}")
-        
+            # 创建可序列化的错误对象，移除不可序列化的ctx字段中的异常对象
+            serializable_error = {
+                "type": error.get("type"),
+                "loc": [str(loc) for loc in error.get("loc", [])],
+                "msg": error.get("msg"),
+                "input": str(error.get("input")) if error.get("input") is not None else None
+            }
+            serializable_errors.append(serializable_error)
+
         logger.warning(f"验证错误: {error_messages}")
         return JSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -44,7 +54,7 @@ def register_exception_handlers(app: FastAPI) -> None:
                 success=False,
                 message="请求参数验证失败",
                 code="VALIDATION_ERROR",
-                data=errors,
+                data=serializable_errors,
             ).model_dump(),
         )
     
