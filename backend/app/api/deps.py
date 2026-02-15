@@ -1,9 +1,12 @@
 from typing import Annotated
+from uuid import UUID
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.security import decode_token
+from app.models.user import User
+from app.repositories.user_repository import UserRepository
 
 # Security scheme
 security = HTTPBearer(auto_error=False)
@@ -54,3 +57,19 @@ DBSession = Annotated[AsyncSession, Depends(get_db)]
 
 CurrentUserId = Annotated[str, Depends(get_current_user_id)]
 """当前用户ID依赖类型注解。"""
+
+
+async def get_current_user(
+    user_id: CurrentUserId,
+    db: DBSession,
+) -> User:
+    """Get current user object from user ID."""
+    user_repo = UserRepository(db)
+    user = await user_repo.get_by_id(UUID(user_id))
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+    return user
+

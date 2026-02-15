@@ -7,13 +7,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, get_db
 from app.core.exceptions import AppException
+from app.models.approval import ApprovalAction, ApprovalType
 from app.models.user import User
 from app.schemas.approval import (
     ApprovalCreateRequest,
     ApprovalProcessRequest,
     ApprovalResponse,
     ApprovalDetailResponse,
-    ApprovalListResponse,
     ApprovalProcessHistoryResponse,
     NotificationResponse,
     NotificationListResponse,
@@ -21,7 +21,7 @@ from app.schemas.approval import (
 from app.schemas.response import ApiResponse, PageResult
 from app.services.approval_service import ApprovalService
 
-router = APIRouter()
+router = APIRouter(prefix="/approvals")
 
 
 @router.post(
