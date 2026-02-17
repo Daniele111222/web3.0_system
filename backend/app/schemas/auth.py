@@ -74,6 +74,10 @@ class UserLoginRequest(BaseModel):
     
     email: EmailStr = Field(..., description="用户电子邮箱地址")
     password: str = Field(..., description="用户密码")
+    remember_me: bool = Field(
+        default=False,
+        description="记住登录状态，勾选后Refresh Token有效期延长至30天",
+    )
 
     @field_validator("password")
     @classmethod
@@ -164,6 +168,47 @@ class WalletBindRequest(BaseModel):
         if not re.match(r"^0x[a-fA-F0-9]{40}$", v):
             raise ValueError("无效的以太坊钱包地址格式")
         return v.lower()
+
+
+class ForgotPasswordRequest(BaseModel):
+    """忘记密码请求的架构。"""
+    
+    email: EmailStr = Field(..., description="用户注册邮箱")
+
+
+class ResetPasswordRequest(BaseModel):
+    """重置密码请求的架构。"""
+    
+    token: str = Field(..., description="密码重置令牌")
+    new_password: str = Field(
+        ...,
+        min_length=6,
+        max_length=128,
+        description="新密码（6-128 个字符）",
+    )
+    
+    @field_validator("new_password")
+    @classmethod
+    def validate_password(cls, v: str) -> str:
+        """验证密码长度。"""
+        if len(v.encode("utf-8")) > 72:
+            raise ValueError("密码长度不能超过 72 字节")
+        return v
+
+
+class VerifyEmailRequest(BaseModel):
+    """验证邮箱请求的架构。"""
+    
+    token: str = Field(..., description="邮箱验证令牌")
+
+
+class VerificationStatusResponse(BaseModel):
+    """邮箱验证状态响应的架构。"""
+    
+    is_verified: bool = Field(..., description="邮箱是否已验证")
+    email: str = Field(..., description="用户邮箱")
+    has_pending_token: bool = Field(..., description="是否有待处理的验证令牌")
+    pending_tokens_count: int = Field(..., description="待处理令牌数量")
 
 
 class MessageResponse(BaseModel):

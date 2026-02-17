@@ -1,0 +1,169 @@
+// 忘记密码页面样式
+
+// 容器样式
+.container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+// 卡片样式
+.card {
+  width: 100%;
+  max-width: 480px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  z-index: 1;
+  padding: 40px;
+}
+
+@media (max-width: 576px) {
+  .card {
+    padding: 24px;
+    margin: 16px;
+  }
+}
+
+// 返回链接
+.backLink {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  padding: 0;
+  color: #6366f1;
+  font-size: 14px;
+}
+
+.backLink:hover {
+  color: #4f46e5;
+}
+
+@media (max-width: 576px) {
+  .backLink {
+    top: 16px;
+    left: 16px;
+  }
+}
+
+// 头部区域
+.header {
+  text-align: center;
+  margin-bottom: 32px;
+  margin-top: 16px;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+// 提示信息
+.alert {
+  margin-bottom: 24px;
+  border-radius: 8px;
+}
+
+// 表单样式
+.submitItem {
+  margin-top: 24px;
+  margin-bottom: 0;
+}
+
+.submitButton {
+  height: 44px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  border: none;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+  transition: all 0.3s ease;
+}
+
+.submitButton:hover {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+  transform: translateY(-1px);
+}
+
+.submitButton:active {
+  transform: translateY(0);
+}
+
+.submitButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+// 帮助链接
+.helpLinks {
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #f3f4f6;
+}
+
+// 成功页面样式
+.successContent {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.successIcon {
+  font-size: 64px;
+  color: #10b981;
+  margin-bottom: 20px;
+}
+
+.successTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 12px;
+}
+
+.successDescription {
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  display: block;
+}
+
+.emailInfo {
+  background: #f3f4f6;
+  padding: 12px 20px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #374151;
+  font-weight: 500;
+}
+
+.backButton {
+  min-width: 160px;
+  height: 44px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 10px;
+}

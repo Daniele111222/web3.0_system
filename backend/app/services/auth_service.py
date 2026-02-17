@@ -28,6 +28,10 @@ from app.models.user import User
 from app.models.refresh_token import RefreshToken
 from app.repositories.user_repository import UserRepository
 from app.repositories.token_repository import TokenRepository
+from app.repositories.password_reset_token_repository import PasswordResetTokenRepository
+from app.repositories.email_verification_token_repository import EmailVerificationTokenRepository
+from app.models.password_reset_token import PasswordResetToken
+from app.models.email_verification_token import EmailVerificationToken
 from app.schemas.auth import (
     UserRegisterRequest,
     UserLoginRequest,
@@ -35,6 +39,7 @@ from app.schemas.auth import (
     UserResponse,
     AuthResponse,
 )
+from app.services.email_service import email_service
 
 
 class InvalidCredentialsError(UnauthorizedException):
@@ -77,6 +82,34 @@ class WalletBindError(BadRequestException):
     
     def __init__(self, message: str):
         super().__init__(message, "WALLET_BIND_ERROR")
+
+
+class EmailNotVerifiedError(ForbiddenException):
+    """当邮箱未验证时抛出。"""
+    
+    def __init__(self):
+        super().__init__("请先验证您的邮箱", "EMAIL_NOT_VERIFIED")
+
+
+class ResetTokenError(BadRequestException):
+    """当重置令牌无效时抛出。"""
+    
+    def __init__(self, message: str = "重置令牌无效或已过期"):
+        super().__init__(message, "RESET_TOKEN_ERROR")
+
+
+class VerificationTokenError(BadRequestException):
+    """当验证令牌无效时抛出。"""
+    
+    def __init__(self, message: str = "验证令牌无效或已过期"):
+        super().__init__(message, "VERIFICATION_TOKEN_ERROR")
+
+
+class TooManyRequestsError(BadRequestException):
+    """当请求过于频繁时抛出。"""
+    
+    def __init__(self, message: str = "请求过于频繁，请稍后再试"):
+        super().__init__(message, "TOO_MANY_REQUESTS")
 
 
 class AuthService:
@@ -146,6 +179,7 @@ class AuthService:
         data: UserLoginRequest,
         ip_address: Optional[str] = None,
         device_info: Optional[str] = None,
+        remember_me: bool = False,
     ) -> AuthResponse:
         """
         认证用户并返回令牌。
@@ -154,6 +188,7 @@ class AuthService:
             data (UserLoginRequest): 登录请求数据。
             ip_address (Optional[str]): 登录时的 IP 地址。
             device_info (Optional[str]): 登录时的设备信息。
+            remember_me (bool): 是否记住登录状态。
             
         Returns:
             AuthResponse: 包含用户信息和认证令牌的响应。
@@ -179,8 +214,8 @@ class AuthService:
         # 更新最后登录时间
         await self.user_repo.update_last_login(user.id)
         
-        # 生成令牌
-        tokens = await self._create_tokens(user, ip_address, device_info)
+        # 生成令牌（传递remember_me参数）
+        tokens = await self._create_tokens(user, ip_address, device_info, remember_me)
         
         # 刷新用户数据
         user = await self.user_repo.get_by_id(user.id)
@@ -325,6 +360,7 @@ class AuthService:
         user: User,
         ip_address: Optional[str] = None,
         device_info: Optional[str] = None,
+        remember_me: bool = False,
     ) -> TokenResponse:
         """
         创建访问令牌和刷新令牌。
@@ -333,6 +369,7 @@ class AuthService:
             user (User): 用户模型实例。
             ip_address (Optional[str]): 客户端 IP 地址。
             device_info (Optional[str]): 客户端设备信息。
+            remember_me (bool): 是否记住登录状态，True则延长Refresh Token有效期到30天
             
         Returns:
             TokenResponse: 包含新生成的令牌的响应。
@@ -355,9 +392,16 @@ class AuthService:
         
         # 存储刷新令牌哈希
         token_hash = self._hash_token(refresh_token)
-        expires_at = datetime.now(timezone.utc) + timedelta(
-            days=settings.REFRESH_TOKEN_EXPIRE_DAYS
-        )
+        
+        # 根据remember_me设置不同的过期时间
+        if remember_me:
+            # 记住我：30天
+            expires_at = datetime.now(timezone.utc) + timedelta(days=30)
+        else:
+            # 不记住：7天（默认值）
+            expires_at = datetime.now(timezone.utc) + timedelta(
+                days=settings.REFRESH_TOKEN_EXPIRE_DAYS
+            )
         
         stored_token = RefreshToken(
             token_hash=token_hash,
@@ -436,3 +480,234 @@ class AuthService:
             created_at=user.created_at,
             last_login_at=user.last_login_at,
         )
+    
+    # ==================== 密码重置方法 ====================
+    
+    async def request_password_reset(self, email: str) -> bool:
+        """
+        请求密码重置，发送重置邮件。
+        
+        Args:
+            email: 用户邮箱地址
+            
+        Returns:
+            bool: 是否成功发送邮件
+            
+        Raises:
+            UserNotFoundError: 如果用户不存在
+            TooManyRequestsError: 如果请求过于频繁
+        """
+        # 查找用户
+        user = await self.user_repo.get_by_email(email)
+        if not user:
+            # 为了安全，即使用户不存在也返回True，防止枚举攻击
+            return True
+        
+        # 初始化密码重置令牌仓库
+        reset_token_repo = PasswordResetTokenRepository(self.db)
+        
+        # 检查是否最近已经发送过（5分钟内）
+        if await reset_token_repo.has_recent_request(user.id, minutes=5):
+            raise TooManyRequestsError("请稍后再试，邮件发送过于频繁")
+        
+        # 撤销该用户所有未使用的旧令牌
+        await reset_token_repo.revoke_user_tokens(user.id)
+        
+        # 生成新的重置令牌
+        import secrets
+        import hashlib
+        raw_token = secrets.token_urlsafe(32)
+        token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+        
+        # 创建令牌记录（30分钟过期）
+        expires_at = datetime.now(timezone.utc) + timedelta(minutes=30)
+        reset_token = PasswordResetToken(
+            token_hash=token_hash,
+            user_id=user.id,
+            expires_at=expires_at,
+        )
+        await reset_token_repo.create(reset_token)
+        
+        # 发送重置邮件
+        await email_service.send_password_reset_email(
+            to_email=user.email,
+            reset_token=raw_token,
+            user_name=user.full_name or user.username,
+        )
+        
+        return True
+    
+    async def verify_reset_token(self, token: str) -> bool:
+        """
+        验证密码重置令牌是否有效。
+        
+        Args:
+            token: 原始重置令牌
+            
+        Returns:
+            bool: 令牌是否有效
+        """
+        import hashlib
+        token_hash = hashlib.sha256(token.encode()).hexdigest()
+        
+        reset_token_repo = PasswordResetTokenRepository(self.db)
+        reset_token = await reset_token_repo.get_valid_token(token_hash)
+        
+        return reset_token is not None
+    
+    async def reset_password(self, token: str, new_password: str) -> bool:
+        """
+        使用重置令牌重置密码。
+        
+        Args:
+            token: 原始重置令牌
+            new_password: 新密码
+            
+        Returns:
+            bool: 是否成功重置
+            
+        Raises:
+            ResetTokenError: 如果令牌无效或已过期
+        """
+        import hashlib
+        token_hash = hashlib.sha256(token.encode()).hexdigest()
+        
+        reset_token_repo = PasswordResetTokenRepository(self.db)
+        reset_token = await reset_token_repo.get_valid_token(token_hash)
+        
+        if not reset_token:
+            raise ResetTokenError("重置令牌无效或已过期")
+        
+        # 更新用户密码
+        from app.core.security import get_password_hash
+        user = await self.user_repo.get_by_id(reset_token.user_id)
+        if not user:
+            raise ResetTokenError("用户不存在")
+        
+        user.hashed_password = get_password_hash(new_password)
+        await self.db.flush()
+        
+        # 标记令牌为已使用
+        await reset_token_repo.mark_as_used(token_hash)
+        
+        # 撤销该用户的所有刷新令牌（强制重新登录）
+        await self.token_repo.revoke_all_user_tokens(user.id)
+        
+        return True
+    
+    # ==================== 邮箱验证方法 ====================
+    
+    async def send_verification_email(self, user_id: UUID) -> bool:
+        """
+        发送邮箱验证邮件。
+        
+        Args:
+            user_id: 用户ID
+            
+        Returns:
+            bool: 是否成功发送
+            
+        Raises:
+            UserNotFoundError: 如果用户不存在
+            TooManyRequestsError: 如果请求过于频繁
+        """
+        user = await self.user_repo.get_by_id(user_id)
+        if not user:
+            raise UserNotFoundError()
+        
+        # 如果已经验证过，直接返回
+        if user.is_verified:
+            return True
+        
+        # 初始化验证令牌仓库
+        verification_repo = EmailVerificationTokenRepository(self.db)
+        
+        # 检查是否最近已经发送过（60秒内）
+        if await verification_repo.has_recent_request(user.id, seconds=60):
+            raise TooManyRequestsError("请稍后再试，邮件发送过于频繁")
+        
+        # 撤销该用户所有未使用的旧令牌
+        await verification_repo.revoke_user_tokens(user.id)
+        
+        # 生成新的验证令牌
+        import secrets
+        import hashlib
+        raw_token = secrets.token_urlsafe(32)
+        token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+        
+        # 创建令牌记录（24小时过期）
+        expires_at = datetime.now(timezone.utc) + timedelta(hours=24)
+        verification_token = EmailVerificationToken(
+            token_hash=token_hash,
+            user_id=user.id,
+            expires_at=expires_at,
+        )
+        await verification_repo.create(verification_token)
+        
+        # 发送验证邮件
+        await email_service.send_verification_email(
+            to_email=user.email,
+            verification_token=raw_token,
+            user_name=user.full_name or user.username,
+        )
+        
+        return True
+    
+    async def verify_email(self, token: str) -> bool:
+        """
+        验证邮箱。
+        
+        Args:
+            token: 原始验证令牌
+            
+        Returns:
+            bool: 是否验证成功
+            
+        Raises:
+            VerificationTokenError: 如果令牌无效或已过期
+        """
+        import hashlib
+        token_hash = hashlib.sha256(token.encode()).hexdigest()
+        
+        verification_repo = EmailVerificationTokenRepository(self.db)
+        verification_token = await verification_repo.get_valid_token(token_hash)
+        
+        if not verification_token:
+            raise VerificationTokenError("验证令牌无效或已过期")
+        
+        # 更新用户的验证状态
+        user = await self.user_repo.get_by_id(verification_token.user_id)
+        if not user:
+            raise VerificationTokenError("用户不存在")
+        
+        user.is_verified = True
+        await self.db.flush()
+        
+        # 标记令牌为已使用
+        await verification_repo.mark_as_used(token_hash)
+        
+        return True
+    
+    async def get_verification_status(self, user_id: UUID) -> dict:
+        """
+        获取用户的邮箱验证状态。
+        
+        Args:
+            user_id: 用户ID
+            
+        Returns:
+            dict: 包含验证状态和待处理令牌信息的字典
+        """
+        user = await self.user_repo.get_by_id(user_id)
+        if not user:
+            raise UserNotFoundError()
+        
+        verification_repo = EmailVerificationTokenRepository(self.db)
+        pending_tokens = await verification_repo.get_user_valid_tokens(user_id)
+        
+        return {
+            "is_verified": user.is_verified,
+            "email": user.email,
+            "has_pending_token": len(pending_tokens) > 0,
+            "pending_tokens_count": len(pending_tokens),
+        }

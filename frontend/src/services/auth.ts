@@ -43,6 +43,34 @@ export interface WalletBindRequest {
   message: string;
 }
 
+/**
+ * 忘记密码请求
+ */
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+/**
+ * 重置密码请求
+ */
+export interface ResetPasswordRequest {
+  token: string;
+  new_password: string;
+}
+
+/**
+ * 通用API响应
+ */
+export interface ApiResponse<T = unknown> {
+  success: boolean;
+  message: string;
+  data?: T;
+  error?: {
+    message: string;
+    code: string;
+  };
+}
+
 export const authService = {
   login: async (data: LoginRequest): Promise<AuthResponse> => {
     const response = await apiClient.post<AuthResponse>('/auth/login', data);
@@ -72,6 +100,35 @@ export const authService = {
 
   getCurrentUser: async (): Promise<UserResponse> => {
     const response = await apiClient.get<UserResponse>('/auth/me');
+    return response.data;
+  },
+
+  /**
+   * 请求密码重置
+   * 发送密码重置邮件到指定邮箱
+   */
+  forgotPassword: async (data: ForgotPasswordRequest): Promise<ApiResponse> => {
+    const response = await apiClient.post<ApiResponse>('/auth/forgot-password', data);
+    return response.data;
+  },
+
+  /**
+   * 验证重置令牌
+   * 检查密码重置令牌是否有效
+   */
+  verifyResetToken: async (token: string): Promise<ApiResponse> => {
+    const response = await apiClient.get<ApiResponse>(
+      `/auth/verify-reset-token?token=${encodeURIComponent(token)}`
+    );
+    return response.data;
+  },
+
+  /**
+   * 重置密码
+   * 使用重置令牌设置新密码
+   */
+  resetPassword: async (data: ResetPasswordRequest): Promise<ApiResponse> => {
+    const response = await apiClient.post<ApiResponse>('/auth/reset-password', data);
     return response.data;
   },
 };

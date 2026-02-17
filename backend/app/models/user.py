@@ -10,6 +10,8 @@ from app.core.database import Base
 
 if TYPE_CHECKING:
     from app.models.refresh_token import RefreshToken
+    from app.models.password_reset_token import PasswordResetToken
+    from app.models.email_verification_token import EmailVerificationToken
     from app.models.enterprise import EnterpriseMember
     from app.models.asset import Asset
     from app.models.approval import Approval, ApprovalProcess, ApprovalNotification
@@ -79,6 +81,18 @@ class User(Base):
     # 关系
     refresh_tokens: Mapped[List["RefreshToken"]] = relationship(
         "RefreshToken",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+    password_reset_tokens: Mapped[List["PasswordResetToken"]] = relationship(
+        "PasswordResetToken",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+    email_verification_tokens: Mapped[List["EmailVerificationToken"]] = relationship(
+        "EmailVerificationToken",
         back_populates="user",
         cascade="all, delete-orphan",
         lazy="selectin",

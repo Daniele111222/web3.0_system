@@ -36,6 +36,17 @@ class Settings(BaseSettings):
     # Blockchain
     WEB3_PROVIDER_URL: str = "https://polygon-mumbai.g.alchemy.com/v2/your-api-key"
     CONTRACT_ADDRESS: str = ""
+    
+    # Email Service Configuration
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    EMAIL_FROM: str = ""
+    EMAIL_FROM_NAME: str = "IP-NFT Platform"
+    
+    # Frontend URL for email links
+    FRONTEND_URL: str = "http://localhost:5173"
 
 
 @lru_cache()

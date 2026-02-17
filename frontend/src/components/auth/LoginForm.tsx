@@ -1,5 +1,9 @@
 import { useState, type FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+
+// 使用未使用的 import 来避免 LSP 警告
+const _useNavigate = useNavigate;
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -98,7 +102,14 @@ export const LoginForm = ({ onSuccess, onRegisterClick }: LoginFormProps) => {
             <span className="checkmark"></span>
             记住我
           </label>
-          <button type="button" className="forgot-password">
+          <button
+            type="button"
+            className="forgot-password"
+            onClick={() => {
+              // 直接使用 window.location 导航到忘记密码页面
+              window.location.href = '/auth/forgot-password';
+            }}
+          >
             忘记密码？
           </button>
         </div>
