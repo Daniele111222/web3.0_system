@@ -17,6 +17,7 @@ import {
   User,
   AlertCircle,
   FileSpreadsheet,
+  FileText,
 } from 'lucide-react';
 import { useApprovalHistory } from '../../../hooks/useApproval';
 import type {
@@ -59,6 +60,7 @@ const statusConfig: Record<
 const typeConfig: Record<ApprovalType, { color: string; label: string; icon: LucideIcon }> = {
   enterprise: { color: '#1890ff', label: '企业', icon: Building2 },
   member: { color: '#52c41a', label: '成员', icon: User },
+  asset_submit: { color: '#13c2c2', label: '资产提交审批', icon: FileText },
 };
 
 /**

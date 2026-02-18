@@ -71,6 +71,22 @@ export interface AssetListResponse extends PaginatedResponse<Asset> {
 }
 
 /**
+ * 资产提交审批请求
+ */
+export interface AssetSubmitRequest {
+  remarks?: string;
+}
+
+/**
+ * 资产提交审批响应
+ */
+export interface AssetSubmitResponse {
+  asset_id: string;
+  status: string;
+  approval_id: string;
+}
+
+/**
  * 资产 API 服务类
  */
 class AssetService {
@@ -120,6 +136,14 @@ class AssetService {
    */
   async uploadAttachment(assetId: string, data: AttachmentUploadRequest): Promise<Attachment> {
     const response = await api.post<Attachment>(`/assets/${assetId}/attachments`, data);
+    return response.data;
+  }
+
+  /**
+   * 提交资产审批
+   */
+  async submitForApproval(assetId: string, data: AssetSubmitRequest): Promise<AssetSubmitResponse> {
+    const response = await api.post<AssetSubmitResponse>(`/assets/${assetId}/submit`, data);
     return response.data;
   }
 }

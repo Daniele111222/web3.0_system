@@ -1,10 +1,14 @@
 import type { Asset } from '../../types';
 import './Asset.less';
+import { Button, message, Modal } from 'antd';
+import assetService from '../../services/asset';
+import { useCallback, useRef, useEffect } from 'react';
 
 interface AssetListProps {
   assets: Asset[];
   isLoading: boolean;
   onAssetClick: (asset: Asset) => void;
+  onRefresh?: () => void;
 }
 
 /**
@@ -16,7 +20,17 @@ interface AssetListProps {
  * @param isLoading - 加载状态
  * @param onAssetClick - 点击资产卡片时的回调
  */
-export function AssetList({ assets, isLoading, onAssetClick }: AssetListProps) {
+export function AssetList({ assets, isLoading, onAssetClick, onRefresh }: AssetListProps) {
+  // 使用 ref 跟踪组件挂载状态，防止内存泄漏
+  const isMountedRef = useRef(true);
+
+  // 组件卸载时重置挂载状态
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   /**
    * 获取资产类型显示名称
    */
@@ -51,7 +65,9 @@ export function AssetList({ assets, isLoading, onAssetClick }: AssetListProps) {
   const getAssetStatusName = (status: string): string => {
     const statusMap: Record<string, string> = {
       DRAFT: '草稿',
+      PENDING: '待审批',
       MINTED: '已铸造',
+      REJECTED: '已拒绝',
       TRANSFERRED: '已转移',
       LICENSED: '已授权',
       STAKED: '已质押',
@@ -65,7 +81,9 @@ export function AssetList({ assets, isLoading, onAssetClick }: AssetListProps) {
   const getStatusBadgeClass = (status: string): string => {
     const classMap: Record<string, string> = {
       DRAFT: 'badge-draft',
+      PENDING: 'badge-pending',
       MINTED: 'badge-minted',
+      REJECTED: 'badge-rejected',
       TRANSFERRED: 'badge-minted',
       LICENSED: 'badge-minted',
       STAKED: 'badge-minted',
@@ -84,6 +102,56 @@ export function AssetList({ assets, isLoading, onAssetClick }: AssetListProps) {
       day: '2-digit',
     });
   };
+
+  /**
+   * 提交资产审批
+   * 使用 useCallback 避免不必要的重渲染
+   */
+  const handleSubmitForApproval = useCallback(
+    async (asset: Asset, e: React.MouseEvent) => {
+      e.stopPropagation();
+
+      // 检查是否有附件
+      if (!asset.attachments || asset.attachments.length === 0) {
+        Modal.warning({
+          title: '无法提交审批',
+          content: '资产必须至少有一个附件才能提交审批，请先上传附件。',
+        });
+        return;
+      }
+
+      Modal.confirm({
+        title: '确认提交审批',
+        content: `确定要提交"${asset.name}"进行审批吗？`,
+        okText: '确认',
+        cancelText: '取消',
+        onOk: async () => {
+          const loading = message.loading('正在提交审批...', 0);
+          try {
+            await assetService.submitForApproval(asset.id, {});
+            // 检查组件是否仍然挂载，避免内存泄漏
+            if (isMountedRef.current) {
+              loading();
+              message.success('提交审批成功');
+              if (onRefresh) {
+                onRefresh();
+              }
+            }
+          } catch (error) {
+            // 检查组件是否仍然挂载
+            if (isMountedRef.current) {
+              loading();
+              const errorMsg = error instanceof Error ? error.message : '提交审批失败';
+              message.error(`提交审批失败: ${errorMsg}`);
+              // 记录错误日志
+              console.error('提交资产审批失败:', error);
+            }
+          }
+        },
+      });
+    },
+    [onRefresh]
+  );
 
   // 加载状态
   if (isLoading) {
@@ -128,9 +196,9 @@ export function AssetList({ assets, isLoading, onAssetClick }: AssetListProps) {
           </div>
 
           <p className="asset-card-description">
-            {asset.description.length > 150
-              ? `${asset.description.substring(0, 150)}...`
-              : asset.description}
+            {(asset.description?.length || 0) > 150
+              ? `${asset.description!.substring(0, 150)}...`
+              : asset.description || ''}
           </p>
 
           <div className="asset-card-meta">
@@ -153,6 +221,18 @@ export function AssetList({ assets, isLoading, onAssetClick }: AssetListProps) {
               </span>
             )}
           </div>
+
+          {asset.status === 'DRAFT' && (
+            <div className="asset-card-actions">
+              <Button
+                type="primary"
+                size="small"
+                onClick={(e) => handleSubmitForApproval(asset, e)}
+              >
+                提交审批
+              </Button>
+            </div>
+          )}
         </div>
       ))}
     </div>

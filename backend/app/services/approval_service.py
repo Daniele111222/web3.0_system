@@ -21,12 +21,14 @@ from app.models.approval import (
 )
 from app.models.enterprise import Enterprise, EnterpriseMember
 from app.models.user import User
+from app.models.asset import AssetStatus
 from app.repositories.approval_repository import (
     ApprovalRepository,
     ApprovalProcessRepository,
     ApprovalNotificationRepository,
 )
 from app.repositories.enterprise_repository import EnterpriseRepository
+from app.repositories.asset_repository import AssetRepository
 
 
 # ============================================================================
@@ -363,6 +365,7 @@ class ApprovalService:
             ApprovalType.ENTERPRISE_CREATE: "企业创建",
             ApprovalType.ENTERPRISE_UPDATE: "企业信息变更",
             ApprovalType.MEMBER_JOIN: "成员加入",
+            ApprovalType.ASSET_SUBMIT: "资产提交审批",
         }
         return type_names.get(approval_type, "申请")
     
@@ -380,10 +383,14 @@ class ApprovalService:
                 await self._handle_enterprise_create_approval(approval)
             elif approval.type == ApprovalType.ENTERPRISE_UPDATE:
                 await self._handle_enterprise_update_approval(approval)
+            elif approval.type == ApprovalType.ASSET_SUBMIT:
+                await self._handle_asset_submit_approval(approval)
         elif approval.status == ApprovalStatus.REJECTED:
-            pass
+            if approval.type == ApprovalType.ASSET_SUBMIT:
+                await self._handle_asset_submit_rejected(approval)
         elif approval.status == ApprovalStatus.RETURNED:
-            pass
+            if approval.type == ApprovalType.ASSET_SUBMIT:
+                await self._handle_asset_submit_returned(approval)
     
     async def _handle_enterprise_create_approval(self, approval: Approval) -> None:
         """
@@ -413,6 +420,65 @@ class ApprovalService:
                         update_data[key] = value
                 if update_data:
                     await self.enterprise_repo.update(enterprise.id, **update_data)
+    
+    async def _handle_asset_submit_approval(self, approval: Approval) -> None:
+        """
+        处理资产提交审批通过，铸造 NFT。
+        
+        Args:
+            approval: 审批记录
+        """
+        if not approval.asset_id:
+            return
+        
+        from app.services.nft_service import NFTService
+        
+        nft_service = NFTService(self.db)
+        
+        enterprise = await self.enterprise_repo.get_by_id(approval.target_id)
+        
+        if not enterprise or not enterprise.wallet_address:
+            return
+        
+        try:
+            await nft_service.mint_asset_nft(
+                asset_id=approval.asset_id,
+                minter_address=enterprise.wallet_address,
+            )
+        except Exception:
+            pass
+    
+    async def _handle_asset_submit_rejected(self, approval: Approval) -> None:
+        """
+        处理资产提交审批被拒绝。
+        
+        Args:
+            approval: 审批记录
+        """
+        if not approval.asset_id:
+            return
+        
+        asset_repo = AssetRepository(self.db)
+        asset = await asset_repo.get_asset_by_id(approval.asset_id)
+        if asset:
+            asset.status = AssetStatus.REJECTED
+            await asset_repo.update_asset(asset)
+    
+    async def _handle_asset_submit_returned(self, approval: Approval) -> None:
+        """
+        处理资产提交审批被退回。
+        
+        Args:
+            approval: 审批记录
+        """
+        if not approval.asset_id:
+            return
+        
+        asset_repo = AssetRepository(self.db)
+        asset = await asset_repo.get_asset_by_id(approval.asset_id)
+        if asset:
+            asset.status = AssetStatus.DRAFT
+            await asset_repo.update_asset(asset)
     
     # ========================================================================
     # 查询相关方法

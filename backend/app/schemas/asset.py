@@ -279,3 +279,19 @@ class AssetFilterParams(BaseModel):
             if start_date is not None and v < start_date:
                 raise ValueError("结束日期不能早于开始日期")
         return v
+
+
+class AssetSubmitRequest(BaseModel):
+    """资产提交审批请求。"""
+    
+    remarks: Optional[str] = Field(None, description="申请备注")
+
+
+class AssetSubmitResponse(BaseModel):
+    """资产提交审批响应。"""
+    
+    asset_id: UUID
+    status: AssetStatus
+    approval_id: UUID
+    
+    model_config = ConfigDict(from_attributes=True)

@@ -20,7 +20,10 @@ from app.schemas.asset import (
     AssetFilterParams,
     AttachmentResponse,
     AttachmentUploadRequest,
+    AssetSubmitRequest,
+    AssetSubmitResponse,
 )
+from app.schemas.response import ApiResponse
 from app.schemas.auth import MessageResponse
 from app.models.asset import AssetType, AssetStatus, LegalStatus
 from datetime import date
@@ -400,3 +403,63 @@ async def upload_attachment(
     )
     
     return AttachmentResponse.model_validate(attachment)
+
+
+@router.post(
+    "/{asset_id}/submit",
+    response_model=ApiResponse[AssetSubmitResponse],
+    status_code=status.HTTP_201_CREATED,
+    summary="提交资产审批",
+    description="将资产提交审批（仅草稿状态且有附件的资产可提交）",
+)
+async def submit_asset_for_approval(
+    asset_id: UUID,
+    request: AssetSubmitRequest,
+    db: DBSession,
+    current_user_id: CurrentUserId,
+) -> ApiResponse[AssetSubmitResponse]:
+    """
+    提交资产进行审批。
+    
+    Args:
+        asset_id: 资产 ID
+        request: 提交审批请求数据
+        db: 数据库会话
+        current_user_id: 当前用户 ID
+        
+    Returns:
+        ApiResponse[AssetSubmitResponse]: 提交审批响应
+        
+    Raises:
+        HTTPException: 资产不存在、用户无权限、不是草稿状态或没有附件
+    """
+    asset_repo = AssetRepository(db)
+    asset_service = AssetService(asset_repo)
+    
+    asset = await asset_service.get_asset(asset_id)
+    
+    member_repo = EnterpriseMemberRepository(db)
+    user_id = parse_current_user_id(current_user_id)
+    member = await member_repo.get_member(asset.enterprise_id, user_id)
+    if not member:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="您无权操作此资产",
+        )
+    
+    asset, approval = await asset_service.submit_for_approval(
+        asset_id=asset_id,
+        enterprise_id=asset.enterprise_id,
+        applicant_id=user_id,
+        remarks=request.remarks,
+    )
+    
+    return ApiResponse(
+        code="SUCCESS",
+        message="资产已提交审批",
+        data=AssetSubmitResponse(
+            asset_id=asset.id,
+            status=asset.status,
+            approval_id=approval.id,
+        )
+    )

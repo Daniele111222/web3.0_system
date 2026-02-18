@@ -214,6 +214,38 @@
   }
 }
 
+// 待审批状态
+.badge-pending {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+
+  &::before {
+    background: #3b82f6;
+  }
+}
+
+// 已拒绝状态
+.badge-rejected {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--asset-error);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+
+  &::before {
+    background: var(--asset-error);
+  }
+}
+
+// 卡片操作按钮
+.asset-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--asset-border);
+}
+
 // 卡片描述
 .asset-card-description {
   font-size: 14px;

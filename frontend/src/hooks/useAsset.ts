@@ -5,6 +5,8 @@ import assetService, {
   type AssetFilterParams,
   type AttachmentUploadRequest,
   type AssetListResponse,
+  type AssetSubmitRequest,
+  type AssetSubmitResponse,
 } from '../services/asset';
 import type { Asset, Attachment } from '../types';
 
@@ -21,6 +23,10 @@ interface UseAssetReturn {
   updateAsset: (assetId: string, data: AssetUpdateRequest) => Promise<Asset | null>;
   deleteAsset: (assetId: string) => Promise<boolean>;
   uploadAttachment: (assetId: string, data: AttachmentUploadRequest) => Promise<Attachment | null>;
+  submitForApproval: (
+    assetId: string,
+    data: AssetSubmitRequest
+  ) => Promise<AssetSubmitResponse | null>;
   clearError: () => void;
 }
 
@@ -176,6 +182,27 @@ export function useAsset(): UseAssetReturn {
     setError(null);
   }, []);
 
+  /**
+   * 提交资产审批
+   */
+  const submitForApproval = useCallback(
+    async (assetId: string, data: AssetSubmitRequest): Promise<AssetSubmitResponse | null> => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await assetService.submitForApproval(assetId, data);
+        return response;
+      } catch (err: unknown) {
+        const errorMessage = extractErrorMessage(err);
+        setError(errorMessage);
+        return null;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
   return {
     assets,
     currentAsset,
@@ -189,6 +216,7 @@ export function useAsset(): UseAssetReturn {
     updateAsset,
     deleteAsset,
     uploadAttachment,
+    submitForApproval,
     clearError,
   };
 }

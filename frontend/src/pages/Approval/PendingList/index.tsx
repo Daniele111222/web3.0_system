@@ -71,6 +71,12 @@ const typeConfig: Record<string, { color: string; label: string; icon: LucideIco
     icon: User,
     bg: 'linear-gradient(135deg, #fff7e6 0%, #ffe7ba 100%)',
   },
+  asset_submit: {
+    color: '#13c2c2',
+    label: '资产提交审批',
+    icon: FileText,
+    bg: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
+  },
 };
 
 /**
@@ -255,14 +261,43 @@ export default function PendingList() {
           }
           description={
             <div className="approval-content">
+              {item.type === 'asset_submit' && item.asset_name && (
+                <div className="approval-row asset-info">
+                  <span className="label">资产名称:</span>
+                  <Text className="value asset-name">{item.asset_name}</Text>
+                  {item.asset_type && (
+                    <Tag color="cyan" className="asset-type-tag">
+                      {item.asset_type === 'PATENT'
+                        ? '专利'
+                        : item.asset_type === 'TRADEMARK'
+                          ? '商标'
+                          : item.asset_type === 'COPYRIGHT'
+                            ? '版权'
+                            : item.asset_type === 'TRADE_SECRET'
+                              ? '商业秘密'
+                              : item.asset_type === 'DIGITAL_WORK'
+                                ? '数字作品'
+                                : item.asset_type}
+                    </Tag>
+                  )}
+                </div>
+              )}
+              {item.type === 'asset_submit' && item.enterprise_name && (
+                <div className="approval-row">
+                  <span className="label">申请企业:</span>
+                  <Text className="value">{item.enterprise_name}</Text>
+                </div>
+              )}
               <div className="approval-row">
                 <span className="label">申请人备注:</span>
                 <span className="value">{item.remarks || '-'}</span>
               </div>
-              <div className="approval-row">
-                <span className="label">目标ID:</span>
-                <Text className="value target-id">{item.target_id?.slice(0, 8) || '-'}</Text>
-              </div>
+              {item.type !== 'asset_submit' && (
+                <div className="approval-row">
+                  <span className="label">目标ID:</span>
+                  <Text className="value target-id">{item.target_id?.slice(0, 8) || '-'}</Text>
+                </div>
+              )}
               <div className="approval-meta">
                 <span className="meta-item">
                   <Clock size={12} />
@@ -317,7 +352,7 @@ export default function PendingList() {
             <Select
               placeholder="全部类型"
               allowClear
-              style={{ width: 140 }}
+              style={{ width: 160 }}
               value={selectedType}
               onChange={handleTypeChange}
             >
@@ -326,6 +361,7 @@ export default function PendingList() {
               <Select.Option value="enterprise_delete">企业注销</Select.Option>
               <Select.Option value="member_add">成员加入</Select.Option>
               <Select.Option value="member_remove">成员移除</Select.Option>
+              <Select.Option value="asset_submit">资产提交审批</Select.Option>
             </Select>
           </div>
           <div className="filter-item">

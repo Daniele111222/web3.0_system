@@ -30,9 +30,7 @@ export function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
 
-  /**
-   * 监听滚动事件，更新导航栏样式
-   */
+  // 监听滚动事件，更新导航栏样式
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -42,10 +40,7 @@ export function Navigation() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  /**
-   * 处理登出
-   * 包含错误处理和加载状态
-   */
+  // 处理登出
   const handleLogout = useCallback(async () => {
     if (isLoggingOut) return;
 
@@ -131,11 +126,6 @@ export function Navigation() {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
-  // 未认证用户不显示导航
-  if (!isAuthenticated) {
-    return null;
-  }
-
   /**
    * 导航项配置
    */
@@ -177,6 +167,11 @@ export function Navigation() {
     },
     [handleLogout]
   );
+
+  // 未认证用户不显示导航
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <nav

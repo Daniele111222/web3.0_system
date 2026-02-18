@@ -6,7 +6,7 @@
 /**
  * 审批类型
  */
-export type ApprovalType = 'enterprise' | 'member';
+export type ApprovalType = 'enterprise' | 'member' | 'asset_submit';
 
 /**
  * 审批子类型
@@ -99,6 +99,10 @@ export interface Approval {
   created_at: string;
   updated_at: string;
   completed_at: string | null;
+  asset_id?: string;
+  asset_name?: string;
+  asset_type?: string;
+  enterprise_name?: string;
 }
 
 /**

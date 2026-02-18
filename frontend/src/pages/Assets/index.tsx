@@ -84,6 +84,19 @@ const Assets = () => {
   }, [currentEnterprise, getAssets]);
 
   /**
+   * 刷新资产列表
+   */
+  const handleRefreshAssets = () => {
+    if (currentEnterprise) {
+      getAssets({
+        enterprise_id: currentEnterprise.id,
+        page: 1,
+        page_size: 20,
+      });
+    }
+  };
+
+  /**
    * 处理创建资产
    */
   const handleCreateAsset = async (data: AssetCreateRequest) => {
@@ -190,7 +203,12 @@ const Assets = () => {
               />
             </div>
           ) : (
-            <AssetList assets={assets} isLoading={isLoading} onAssetClick={handleAssetClick} />
+            <AssetList
+              assets={assets}
+              isLoading={isLoading}
+              onAssetClick={handleAssetClick}
+              onRefresh={handleRefreshAssets}
+            />
           )}
         </>
       )}

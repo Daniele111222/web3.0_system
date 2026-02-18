@@ -1,7 +1,14 @@
 // 资产类型
 export type AssetType = 'PATENT' | 'TRADEMARK' | 'COPYRIGHT' | 'TRADE_SECRET' | 'DIGITAL_WORK';
 export type LegalStatus = 'PENDING' | 'GRANTED' | 'EXPIRED';
-export type AssetStatus = 'DRAFT' | 'MINTED' | 'TRANSFERRED' | 'LICENSED' | 'STAKED';
+export type AssetStatus =
+  | 'DRAFT'
+  | 'PENDING'
+  | 'MINTED'
+  | 'REJECTED'
+  | 'TRANSFERRED'
+  | 'LICENSED'
+  | 'STAKED';
 
 export interface Attachment {
   id: string;
@@ -14,6 +21,7 @@ export interface Attachment {
 
 export interface Asset {
   id: string;
+  enterprise_id: string;
   name: string;
   type: AssetType;
   description: string;
@@ -25,6 +33,9 @@ export interface Asset {
   metadata: Record<string, unknown>;
   nft_token_id?: string;
   nft_contract_address?: string;
+  mint_tx_hash?: string;
+  metadata_uri?: string;
+  nft_chain?: string;
   status: AssetStatus;
   created_at: string;
   updated_at: string;

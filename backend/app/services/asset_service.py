@@ -5,7 +5,9 @@ from datetime import datetime
 from fastapi import HTTPException, status
 
 from app.models.asset import Asset, Attachment, AssetStatus
+from app.models.approval import Approval, ApprovalType, ApprovalStatus
 from app.repositories.asset_repository import AssetRepository
+from app.repositories.approval_repository import ApprovalRepository
 from app.schemas.asset import (
     AssetCreateRequest,
     AssetUpdateRequest,
@@ -268,3 +270,65 @@ class AssetService:
             List[Attachment]: 附件列表
         """
         return await self.asset_repo.get_attachments_by_asset(asset_id)
+    
+    async def submit_for_approval(
+        self,
+        asset_id: UUID,
+        enterprise_id: UUID,
+        applicant_id: UUID,
+        remarks: Optional[str] = None,
+    ) -> Tuple[Asset, Approval]:
+        """
+        提交资产进行审批。
+        
+        Args:
+            asset_id: 资产 ID
+            enterprise_id: 企业 ID
+            applicant_id: 申请人用户 ID
+            remarks: 申请备注
+            
+        Returns:
+            Tuple[Asset, Approval]: (资产, 审批记录)
+            
+        Raises:
+            HTTPException: 资产不存在、不是草稿状态或没有附件
+        """
+        asset = await self.get_asset(asset_id)
+        
+        if asset.enterprise_id != enterprise_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="无权访问该资产",
+            )
+        
+        if asset.status != AssetStatus.DRAFT:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="只有草稿状态的资产才能提交审批",
+            )
+        
+        attachments = await self.asset_repo.get_attachments_by_asset(asset_id)
+        if not attachments:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="资产必须至少有一个附件才能提交审批",
+            )
+        
+        asset.status = AssetStatus.PENDING
+        asset.updated_at = datetime.utcnow()
+        await self.asset_repo.update_asset(asset)
+        
+        approval = Approval(
+            type=ApprovalType.ASSET_SUBMIT,
+            target_id=enterprise_id,
+            target_type="enterprise",
+            applicant_id=applicant_id,
+            status=ApprovalStatus.PENDING,
+            asset_id=asset_id,
+            remarks=remarks,
+        )
+        
+        approval_repo = ApprovalRepository(self.asset_repo.db)
+        approval = await approval_repo.create_approval(approval)
+        
+        return asset, approval

@@ -156,6 +156,15 @@ class Approval(Base):
         comment="变更内容（JSON格式，存储变更前后的值）",
     )
     
+    # 关联资产ID（用于资产提交审批）
+    asset_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("assets.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
+        comment="关联资产ID",
+    )
+    
     # 时间戳
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
