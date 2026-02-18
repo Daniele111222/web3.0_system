@@ -13,6 +13,7 @@ import ApprovalLayout from './pages/Approval';
 import PendingList from './pages/Approval/PendingList';
 import History from './pages/Approval/History';
 import ApprovalDetail from './pages/Approval/Detail';
+import BlockchainExplorer from './pages/BlockchainExplorer';
 
 /**
  * 应用路由配置
@@ -33,6 +34,10 @@ export const router = createBrowserRouter([
   {
     path: '/auth/reset-password',
     element: <ResetPasswordPage />,
+  },
+  {
+    path: '/blockchain-explorer',
+    element: <BlockchainExplorer />,
   },
   {
     path: '/',
@@ -94,6 +99,6 @@ export const router = createBrowserRouter([
   },
   {
     path: '*',
-    element: <Navigate to="/dashboard" replace />,
+    element: <Navigate to="/" replace />,
   },
 ]);

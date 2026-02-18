@@ -12,6 +12,7 @@ import {
   Wallet,
   ChevronDown,
   ClipboardCheck,
+  Link2,
 } from 'lucide-react';
 import './Navigation.less';
 
@@ -144,6 +145,7 @@ export function Navigation() {
     { key: '/assets', icon: Files, label: '资产管理' },
     { key: '/nft', icon: Gem, label: 'NFT 铸造' },
     { key: '/approvals', icon: ClipboardCheck, label: '审批中心' },
+    { key: '/blockchain-explorer', icon: Link2, label: '区块链浏览器' },
   ];
 
   // 用户下拉菜单
