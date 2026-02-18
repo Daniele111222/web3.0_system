@@ -22,10 +22,12 @@ class ApprovalType(str, Enum):
     - ENTERPRISE_CREATE: 企业创建
     - ENTERPRISE_UPDATE: 企业信息变更
     - MEMBER_JOIN: 成员加入
+    - ASSET_SUBMIT: 资产提交审批
     """
     ENTERPRISE_CREATE = "enterprise_create"
     ENTERPRISE_UPDATE = "enterprise_update"
     MEMBER_JOIN = "member_join"
+    ASSET_SUBMIT = "asset_submit"
 
 
 class ApprovalStatus(str, Enum):

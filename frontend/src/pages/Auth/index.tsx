@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { LoginForm } from '../../components/auth/LoginForm';
 import { RegisterForm } from '../../components/auth/RegisterForm';
@@ -16,6 +16,19 @@ const Auth = ({ initialMode = 'login', onAuthSuccess }: AuthProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // 使用 useMemo 生成粒子样式，避免在渲染中调用 Math.random
+  const particleStyles = useMemo(() => {
+    return [...Array(30)].map((_, i) => ({
+      key: i,
+      style: {
+        '--delay': `${Math.random() * 5}s`,
+        '--duration': `${10 + Math.random() * 10}s`,
+        '--x': `${Math.random() * 100}%`,
+        '--size': `${2 + Math.random() * 4}px`,
+      } as React.CSSProperties,
+    }));
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoaded(true), 100);
@@ -43,19 +56,8 @@ const Auth = ({ initialMode = 'login', onAuthSuccess }: AuthProps) => {
 
       {/* Floating Particles */}
       <div className="particles-container">
-        {[...Array(30)].map((_, i) => (
-          <span
-            key={i}
-            className="particle"
-            style={
-              {
-                '--delay': `${Math.random() * 5}s`,
-                '--duration': `${10 + Math.random() * 10}s`,
-                '--x': `${Math.random() * 100}%`,
-                '--size': `${2 + Math.random() * 4}px`,
-              } as React.CSSProperties
-            }
-          ></span>
+        {particleStyles.map((particle) => (
+          <span key={particle.key} className="particle" style={particle.style}></span>
         ))}
       </div>
 

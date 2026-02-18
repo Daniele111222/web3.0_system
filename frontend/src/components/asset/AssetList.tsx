@@ -9,6 +9,12 @@ interface AssetListProps {
 
 /**
  * 资产列表组件
+ *
+ * 以卡片网格形式展示资产列表
+ *
+ * @param assets - 资产数据数组
+ * @param isLoading - 加载状态
+ * @param onAssetClick - 点击资产卡片时的回调
  */
 export function AssetList({ assets, isLoading, onAssetClick }: AssetListProps) {
   /**
@@ -23,6 +29,20 @@ export function AssetList({ assets, isLoading, onAssetClick }: AssetListProps) {
       DIGITAL_WORK: '数字作品',
     };
     return typeMap[type] || type;
+  };
+
+  /**
+   * 获取资产类型图标
+   */
+  const getAssetTypeIcon = (type: string): string => {
+    const iconMap: Record<string, string> = {
+      PATENT: '⚡',
+      TRADEMARK: '™️',
+      COPYRIGHT: '©️',
+      TRADE_SECRET: '🔒',
+      DIGITAL_WORK: '🎨',
+    };
+    return iconMap[type] || '📄';
   };
 
   /**
@@ -65,10 +85,16 @@ export function AssetList({ assets, isLoading, onAssetClick }: AssetListProps) {
     });
   };
 
+  // 加载状态
   if (isLoading) {
-    return <div className="loading">加载中...</div>;
+    return (
+      <div className="loading">
+        <span>正在加载资产数据...</span>
+      </div>
+    );
   }
 
+  // 空状态
   if (assets.length === 0) {
     return (
       <div className="empty-state">
@@ -78,10 +104,22 @@ export function AssetList({ assets, isLoading, onAssetClick }: AssetListProps) {
     );
   }
 
+  // 渲染资产列表
   return (
     <div className="asset-list">
       {assets.map((asset) => (
-        <div key={asset.id} className="asset-card" onClick={() => onAssetClick(asset)}>
+        <div
+          key={asset.id}
+          className="asset-card"
+          onClick={() => onAssetClick(asset)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              onAssetClick(asset);
+            }
+          }}
+        >
           <div className="asset-card-header">
             <h3 className="asset-card-title">{asset.name}</h3>
             <span className={getStatusBadgeClass(asset.status)}>
@@ -96,11 +134,23 @@ export function AssetList({ assets, isLoading, onAssetClick }: AssetListProps) {
           </p>
 
           <div className="asset-card-meta">
-            <span>类型：{getAssetTypeName(asset.type)}</span>
-            <span>创作人：{asset.creator}</span>
-            <span>创建时间：{formatDate(asset.created_at)}</span>
+            <span title={`类型：${getAssetTypeName(asset.type)}`}>
+              <span>{getAssetTypeIcon(asset.type)}</span>
+              {getAssetTypeName(asset.type)}
+            </span>
+            <span title={`创作人：${asset.creator}`}>
+              <span>👤</span>
+              {asset.creator}
+            </span>
+            <span title={`创建时间：${formatDate(asset.created_at)}`}>
+              <span>📅</span>
+              {formatDate(asset.created_at)}
+            </span>
             {asset.attachments && asset.attachments.length > 0 && (
-              <span>附件：{asset.attachments.length} 个</span>
+              <span title={`附件：${asset.attachments.length} 个`}>
+                <span>📎</span>
+                {asset.attachments.length} 个附件
+              </span>
             )}
           </div>
         </div>

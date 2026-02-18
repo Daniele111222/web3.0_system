@@ -5,10 +5,9 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Table,
+  List,
   Button,
   Tag,
-  Space,
   Input,
   Select,
   DatePicker,
@@ -16,41 +15,62 @@ import {
   Tooltip,
   Empty,
   Popconfirm,
+  Typography,
+  Spin,
 } from 'antd';
+import type { LucideIcon } from 'lucide-react';
 import {
   Search,
-  Filter,
   Eye,
   CheckCircle2,
   XCircle,
   RotateCcw,
-  Clock,
   Building2,
   User,
-  AlertCircle,
+  Clock,
+  FileText,
 } from 'lucide-react';
 import { useApprovalList, useApprovalAction } from '../../../hooks/useApproval';
-import type { Approval, ApprovalType, ApprovalPriority } from '../../../types/approval';
+import type { ApprovalType, ApprovalPriority } from '../../../types/approval';
 import './PendingList.less';
 
+const { Text, Title } = Typography;
 const { RangePicker } = DatePicker;
-
-/**
- * 优先级配置
- */
-const priorityConfig: Record<ApprovalPriority, { color: string; label: string; icon: any }> = {
-  low: { color: '#8c8c8c', label: '低', icon: Clock },
-  medium: { color: '#faad14', label: '中', icon: AlertCircle },
-  high: { color: '#fa8c16', label: '高', icon: AlertCircle },
-  urgent: { color: '#ff4d4f', label: '紧急', icon: AlertCircle },
-};
 
 /**
  * 类型配置
  */
-const typeConfig: Record<ApprovalType, { color: string; label: string; icon: any }> = {
-  enterprise: { color: '#1890ff', label: '企业', icon: Building2 },
-  member: { color: '#52c41a', label: '成员', icon: User },
+const typeConfig: Record<string, { color: string; label: string; icon: LucideIcon; bg: string }> = {
+  enterprise_create: {
+    color: '#1677ff',
+    label: '企业创建',
+    icon: Building2,
+    bg: 'linear-gradient(135deg, #e6f4ff 0%, #d6e4ff 100%)',
+  },
+  enterprise_update: {
+    color: '#722ed1',
+    label: '企业变更',
+    icon: Building2,
+    bg: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+  },
+  enterprise_delete: {
+    color: '#ff4d4f',
+    label: '企业注销',
+    icon: Building2,
+    bg: 'linear-gradient(135deg, #fff2f0 0%, #ffebe8 100%)',
+  },
+  member_add: {
+    color: '#52c41a',
+    label: '成员加入',
+    icon: User,
+    bg: 'linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%)',
+  },
+  member_remove: {
+    color: '#fa8c16',
+    label: '成员移除',
+    icon: User,
+    bg: 'linear-gradient(135deg, #fff7e6 0%, #ffe7ba 100%)',
+  },
 };
 
 /**
@@ -106,6 +126,7 @@ export default function PendingList() {
   /**
    * 处理日期范围变化
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleDateChange = useCallback((dates: any) => {
     if (dates && dates[0] && dates[1]) {
       setDateRange([dates[0].toISOString(), dates[1].toISOString()]);
@@ -118,11 +139,8 @@ export default function PendingList() {
   /**
    * 处理分页变化
    */
-  const handleTableChange = useCallback((newPagination: any) => {
-    setPagination({
-      current: newPagination.current,
-      pageSize: newPagination.pageSize,
-    });
+  const handlePageChange = useCallback((page: number, pageSize: number) => {
+    setPagination({ current: page, pageSize });
   }, []);
 
   /**
@@ -151,187 +169,144 @@ export default function PendingList() {
   );
 
   /**
-   * 表格列定义
+   * 渲染列表项
    */
-  const columns = [
-    {
-      title: '审批编号',
-      dataIndex: 'approvalId',
-      key: 'approvalId',
-      width: 150,
-      render: (value: string) => <span className="approval-code">{value}</span>,
-    },
-    {
-      title: '类型',
-      dataIndex: 'type',
-      key: 'type',
-      width: 100,
-      render: (value: ApprovalType) => {
-        const config = typeConfig[value];
-        const Icon = config.icon;
-        return (
-          <Tag
-            className="type-tag"
-            style={{
-              backgroundColor: `${config.color}20`,
-              color: config.color,
-              borderColor: `${config.color}40`,
-            }}
-          >
-            <Icon size={12} style={{ marginRight: 4 }} />
-            {config.label}
-          </Tag>
-        );
-      },
-    },
-    {
-      title: '申请人',
-      dataIndex: 'applicant',
-      key: 'applicant',
-      width: 180,
-      render: (value: any) => (
-        <div className="applicant-info">
-          <div className="applicant-name">{value.name}</div>
-          <div className="applicant-email">{value.email}</div>
-        </div>
-      ),
-    },
-    {
-      title: '目标信息',
-      dataIndex: 'targetInfo',
-      key: 'targetInfo',
-      width: 200,
-      render: (value: any) => (
-        <div className="target-info">
-          <div className="target-name">{value.enterpriseName}</div>
-          {value.changes && <div className="target-changes">变更内容</div>}
-        </div>
-      ),
-    },
-    {
-      title: '优先级',
-      dataIndex: 'priority',
-      key: 'priority',
-      width: 100,
-      render: (value: string) => {
-        const config = priorityConfig[value as keyof typeof priorityConfig];
-        const Icon = config.icon;
-        return (
-          <Tag
-            className="priority-tag"
-            style={{
-              backgroundColor: `${config.color}20`,
-              color: config.color,
-              borderColor: `${config.color}40`,
-            }}
-          >
-            <Icon size={12} style={{ marginRight: 4 }} />
-            {config.label}
-          </Tag>
-        );
-      },
-    },
-    {
-      title: '申请时间',
-      dataIndex: 'applyTime',
-      key: 'applyTime',
-      width: 150,
-      render: (value: string) => (
-        <span className="apply-time">
-          {new Date(value).toLocaleString('zh-CN', {
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-          })}
-        </span>
-      ),
-    },
-    {
-      title: '操作',
-      key: 'action',
-      width: 200,
-      fixed: 'right',
-      render: (_: any, record: Approval) => (
-        <Space size="small" className="action-btns">
-          <Tooltip title="查看详情">
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const renderListItem = (item: any) => {
+    const typeInfo = typeConfig[item.type] || {
+      color: '#8c8c8c',
+      label: item.type,
+      icon: FileText,
+      bg: '#f5f5f5',
+    };
+    const TypeIcon = typeInfo.icon;
+
+    return (
+      <List.Item
+        className="approval-item"
+        actions={[
+          <Tooltip title="查看详情" key="view">
             <Button
               type="text"
-              size="small"
               icon={<Eye size={16} />}
-              onClick={() => handleViewDetail(record.approvalId)}
+              onClick={() => handleViewDetail(item.id)}
               className="action-btn view"
             />
-          </Tooltip>
-          <Tooltip title="通过">
+          </Tooltip>,
+          <Tooltip title="通过" key="approve">
             <Popconfirm
               title="确认通过"
               description="确定要批准该申请吗？"
-              onConfirm={() => handleAction(record.approvalId, 'approve', '审批通过')}
+              onConfirm={() => handleAction(item.id, 'approve', '审批通过')}
               okText="确认"
               cancelText="取消"
             >
               <Button
                 type="text"
-                size="small"
                 icon={<CheckCircle2 size={16} />}
                 className="action-btn approve"
               />
             </Popconfirm>
-          </Tooltip>
-          <Tooltip title="拒绝">
+          </Tooltip>,
+          <Tooltip title="拒绝" key="reject">
             <Popconfirm
               title="确认拒绝"
               description="确定要拒绝该申请吗？"
-              onConfirm={() => handleAction(record.approvalId, 'reject', '审批拒绝')}
+              onConfirm={() => handleAction(item.id, 'reject', '审批拒绝')}
               okText="确认"
               cancelText="取消"
             >
-              <Button
-                type="text"
-                size="small"
-                icon={<XCircle size={16} />}
-                className="action-btn reject"
-              />
+              <Button type="text" icon={<XCircle size={16} />} className="action-btn reject" />
             </Popconfirm>
-          </Tooltip>
-          <Tooltip title="退回">
+          </Tooltip>,
+          <Tooltip title="退回" key="return">
             <Popconfirm
               title="确认退回"
               description="确定要退回该申请吗？"
-              onConfirm={() => handleAction(record.approvalId, 'return', '需要补充材料')}
+              onConfirm={() => handleAction(item.id, 'return', '需要补充材料')}
               okText="确认"
               cancelText="取消"
             >
-              <Button
-                type="text"
-                size="small"
-                icon={<RotateCcw size={16} />}
-                className="action-btn return"
-              />
+              <Button type="text" icon={<RotateCcw size={16} />} className="action-btn return" />
             </Popconfirm>
-          </Tooltip>
-        </Space>
-      ),
-    },
-  ];
+          </Tooltip>,
+        ]}
+      >
+        <List.Item.Meta
+          avatar={
+            <div className="approval-icon" style={{ background: typeInfo.bg }}>
+              <TypeIcon size={24} color={typeInfo.color} />
+            </div>
+          }
+          title={
+            <div className="approval-header">
+              <Text className="approval-id">{item.id.slice(0, 8)}</Text>
+              <Tag
+                className="type-tag"
+                style={{
+                  backgroundColor: `${typeInfo.color}15`,
+                  color: typeInfo.color,
+                  border: `1px solid ${typeInfo.color}30`,
+                }}
+              >
+                {typeInfo.label}
+              </Tag>
+            </div>
+          }
+          description={
+            <div className="approval-content">
+              <div className="approval-row">
+                <span className="label">申请人备注:</span>
+                <span className="value">{item.remarks || '-'}</span>
+              </div>
+              <div className="approval-row">
+                <span className="label">目标ID:</span>
+                <Text className="value target-id">{item.target_id?.slice(0, 8) || '-'}</Text>
+              </div>
+              <div className="approval-meta">
+                <span className="meta-item">
+                  <Clock size={12} />
+                  {item.created_at
+                    ? new Date(item.created_at).toLocaleString('zh-CN', {
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })
+                    : '-'}
+                </span>
+                <span className="meta-item status">
+                  <Tag color="orange">待审批</Tag>
+                </span>
+              </div>
+            </div>
+          }
+        />
+      </List.Item>
+    );
+  };
 
   return (
     <div className="pending-list-page">
       {/* 页面头部 */}
       <div className="page-header">
         <div className="header-content">
-          <h1 className="page-title">待审批列表</h1>
-          <p className="page-subtitle">处理企业和成员的审批申请</p>
+          <Title level={3} className="page-title">
+            待审批列表
+          </Title>
+          <Text type="secondary" className="page-subtitle">
+            共 {total} 条待审批申请
+          </Text>
         </div>
-        <div className="header-actions">
-          <Button icon={<Filter size={16} />} onClick={() => {}} className="action-btn">
-            筛选
-          </Button>
-          <Button type="primary" onClick={refresh} loading={loading} className="refresh-btn">
-            刷新
-          </Button>
-        </div>
+        <Button
+          type="primary"
+          icon={<Search size={14} />}
+          onClick={() => refresh()}
+          loading={loading}
+          className="refresh-btn"
+        >
+          刷新
+        </Button>
       </div>
 
       {/* 筛选栏 */}
@@ -342,12 +317,15 @@ export default function PendingList() {
             <Select
               placeholder="全部类型"
               allowClear
-              style={{ width: 120 }}
+              style={{ width: 140 }}
               value={selectedType}
               onChange={handleTypeChange}
             >
-              <Select.Option value="enterprise">企业</Select.Option>
-              <Select.Option value="member">成员</Select.Option>
+              <Select.Option value="enterprise_create">企业创建</Select.Option>
+              <Select.Option value="enterprise_update">企业变更</Select.Option>
+              <Select.Option value="enterprise_delete">企业注销</Select.Option>
+              <Select.Option value="member_add">成员加入</Select.Option>
+              <Select.Option value="member_remove">成员移除</Select.Option>
             </Select>
           </div>
           <div className="filter-item">
@@ -355,7 +333,7 @@ export default function PendingList() {
             <Select
               placeholder="全部优先级"
               allowClear
-              style={{ width: 140 }}
+              style={{ width: 120 }}
               value={selectedPriority}
               onChange={handlePriorityChange}
             >
@@ -367,45 +345,47 @@ export default function PendingList() {
           </div>
           <div className="filter-item">
             <span className="filter-label">申请时间</span>
-            <RangePicker style={{ width: 240 }} onChange={handleDateChange} />
+            <RangePicker style={{ width: 260 }} onChange={handleDateChange} />
           </div>
           <div className="filter-item filter-search">
             <Input.Search
-              placeholder="搜索申请人或审批编号"
+              placeholder="搜索申请人备注"
               allowClear
               style={{ width: 280 }}
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               onSearch={handleSearch}
-              prefix={<Search size={16} />}
+              prefix={<Search size={14} />}
             />
           </div>
         </div>
       </Card>
 
-      {/* 数据表格 */}
-      <Card className="table-card" bordered={false}>
-        <Table
-          columns={columns as any}
-          dataSource={data}
-          rowKey="approvalId"
-          loading={loading}
-          pagination={{
-            ...pagination,
-            total,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total) => `共 ${total} 条记录`,
-            pageSizeOptions: ['10', '20', '50', '100'],
-          }}
-          onChange={handleTableChange}
-          scroll={{ x: 1400 }}
-          locale={{
-            emptyText: (
-              <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无待审批的申请" />
-            ),
-          }}
-        />
+      {/* 审批列表 */}
+      <Card className="list-card" bordered={false}>
+        <Spin spinning={loading}>
+          <List
+            className="approval-list"
+            itemLayout="vertical"
+            dataSource={data}
+            renderItem={renderListItem}
+            locale={{
+              emptyText: (
+                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无待审批的申请" />
+              ),
+            }}
+            pagination={{
+              current: pagination.current,
+              pageSize: pagination.pageSize,
+              total,
+              showSizeChanger: true,
+              showQuickJumper: true,
+              showTotal: (total) => `共 ${total} 条`,
+              pageSizeOptions: ['10', '20', '50'],
+              onChange: handlePageChange,
+            }}
+          />
+        </Spin>
       </Card>
     </div>
   );

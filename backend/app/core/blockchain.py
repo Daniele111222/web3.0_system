@@ -28,6 +28,8 @@ class BlockchainClient:
         self.provider_url = provider_url or settings.WEB3_PROVIDER_URL
         self.timeout = timeout
         self.w3: Optional[Web3] = None
+        self.contract_address = settings.CONTRACT_ADDRESS
+        self.chain_id: Optional[int] = None
         self._connect()
     
     def _connect(self) -> None:
@@ -200,12 +202,50 @@ class BlockchainClient:
             BlockchainConnectionError: 如果连接失败
         """
         try:
+            self.chain_id = self.w3.eth.chain_id
             return self.w3.eth.block_number
         except Exception as e:
             logger.error(f"获取区块号失败：{e}")
             raise BlockchainConnectionError(
                 f"获取区块号失败：{str(e)}"
             ) from e
+    
+    async def mint_nft(self, to_address: str, metadata_uri: str) -> tuple:
+        """
+        铸造 NFT。
+        
+        参数：
+            to_address: 接收 NFT 的地址
+            metadata_uri: NFT 元数据 URI
+            
+        返回：
+            tuple: (token_id, tx_hash)
+            
+        抛出：
+            BlockchainConnectionError: 如果连接失败或合约未部署
+        """
+        if not self.contract_address:
+            raise BlockchainConnectionError(
+                "NFT 合约未部署。请先部署合约并设置 CONTRACT_ADDRESS"
+            )
+        
+        try:
+            checksum_to = self.w3.to_checksum_address(to_address)
+            logger.info(f"Minting NFT to {checksum_to} with metadata {metadata_uri}")
+            
+            tx_hash = self.w3.eth.send_transaction({
+                'to': self.w3.to_checksum_address(self.contract_address),
+                'data': f'0x{metadata_uri.encode().hex()}'
+            })
+            
+            receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
+            
+            token_id = receipt.get('logs', [{}])[0].get('tokenId', 0) if receipt.get('logs') else 0
+            
+            return token_id, tx_hash.hex()
+        except Exception as e:
+            logger.error(f"NFT 铸造失败：{e}")
+            raise BlockchainConnectionError(f"NFT 铸造失败：{str(e)}")
     
     def close(self) -> None:
         """关闭区块链连接并清理资源。"""

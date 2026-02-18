@@ -5,6 +5,7 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Table, Button, Tag, Input, Select, DatePicker, Card, Empty, Tooltip } from 'antd';
+import type { LucideIcon } from 'lucide-react';
 import {
   Search,
   Eye,
@@ -31,19 +32,20 @@ const { RangePicker } = DatePicker;
 /**
  * 优先级配置
  */
-const priorityConfig: Record<ApprovalPriority, { color: string; label: string; icon: any }> = {
-  low: { color: '#8c8c8c', label: '低', icon: Clock },
-  medium: { color: '#faad14', label: '中', icon: AlertCircle },
-  high: { color: '#fa8c16', label: '高', icon: AlertCircle },
-  urgent: { color: '#ff4d4f', label: '紧急', icon: AlertCircle },
-};
+const priorityConfig: Record<ApprovalPriority, { color: string; label: string; icon: LucideIcon }> =
+  {
+    low: { color: '#8c8c8c', label: '低', icon: Clock },
+    medium: { color: '#faad14', label: '中', icon: AlertCircle },
+    high: { color: '#fa8c16', label: '高', icon: AlertCircle },
+    urgent: { color: '#ff4d4f', label: '紧急', icon: AlertCircle },
+  };
 
 /**
  * 状态配置
  */
 const statusConfig: Record<
   ApprovalStatus,
-  { color: string; label: string; icon: any; bgColor: string }
+  { color: string; label: string; icon: LucideIcon; bgColor: string }
 > = {
   pending: { color: '#1890ff', label: '待审批', icon: Clock, bgColor: '#e6f7ff' },
   approved: { color: '#52c41a', label: '已通过', icon: CheckCircle2, bgColor: '#f6ffed' },
@@ -54,7 +56,7 @@ const statusConfig: Record<
 /**
  * 类型配置
  */
-const typeConfig: Record<ApprovalType, { color: string; label: string; icon: any }> = {
+const typeConfig: Record<ApprovalType, { color: string; label: string; icon: LucideIcon }> = {
   enterprise: { color: '#1890ff', label: '企业', icon: Building2 },
   member: { color: '#52c41a', label: '成员', icon: User },
 };
@@ -120,6 +122,7 @@ export default function History() {
   /**
    * 处理日期范围变化
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleDateChange = useCallback((dates: any) => {
     if (dates && dates[0] && dates[1]) {
       setDateRange([dates[0].toISOString(), dates[1].toISOString()]);
@@ -132,6 +135,7 @@ export default function History() {
   /**
    * 处理分页变化
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleTableChange = useCallback((newPagination: any) => {
     setPagination({
       current: newPagination.current,
@@ -195,6 +199,7 @@ export default function History() {
       dataIndex: 'applicant',
       key: 'applicant',
       width: 180,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       render: (value: any) => (
         <div className="applicant-info">
           <div className="applicant-name">{value.name}</div>
@@ -207,6 +212,7 @@ export default function History() {
       dataIndex: 'targetInfo',
       key: 'targetInfo',
       width: 200,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       render: (value: any) => (
         <div className="target-info">
           <div className="target-name">{value.enterpriseName}</div>
@@ -282,13 +288,14 @@ export default function History() {
       key: 'action',
       width: 100,
       fixed: 'right',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       render: (_: any, record: Approval) => (
         <Tooltip title="查看详情">
           <Button
             type="text"
             size="small"
             icon={<Eye size={16} />}
-            onClick={() => handleViewDetail(record.approvalId)}
+            onClick={() => handleViewDetail(record.id)}
             className="action-btn view"
           />
         </Tooltip>
@@ -312,7 +319,12 @@ export default function History() {
           >
             导出
           </Button>
-          <Button type="primary" onClick={refresh} loading={loading} className="refresh-btn">
+          <Button
+            type="primary"
+            onClick={() => refresh()}
+            loading={loading}
+            className="refresh-btn"
+          >
             刷新
           </Button>
         </div>
@@ -384,6 +396,7 @@ export default function History() {
       {/* 数据表格 */}
       <Card className="table-card" bordered={false}>
         <Table
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           columns={columns as any}
           dataSource={data}
           rowKey="approvalId"

@@ -1,8 +1,13 @@
 import { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 import { Card, Row, Col, Statistic, Table, Tag, Spin, Alert, Divider, Typography } from 'antd';
-import { BlockOutlined, SwapOutlined, ClockCircleOutlined, DatabaseOutlined, LinkOutlined } from '@ant-design/icons';
-import type { Block, TransactionResponse } from 'ethers';
+import {
+  BlockOutlined,
+  SwapOutlined,
+  ClockCircleOutlined,
+  DatabaseOutlined,
+  LinkOutlined,
+} from '@ant-design/icons';
 
 const { Title, Text } = Typography;
 
@@ -33,31 +38,16 @@ export default function BlockchainExplorer() {
 
   const RPC_URL = import.meta.env.VITE_RPC_URL || 'http://127.0.0.1:8545';
 
-  useEffect(() => {
-    initProvider();
-    return () => {
-      setPolling(false);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (provider && polling) {
-      fetchData();
-      const interval = setInterval(fetchData, 5000); // 每5秒刷新一次
-      return () => clearInterval(interval);
-    }
-  }, [provider, polling]);
-
   const initProvider = async () => {
     try {
       const newProvider = new ethers.JsonRpcProvider(RPC_URL);
-      
+
       // 测试连接
       await newProvider.getBlockNumber();
-      
+
       setProvider(newProvider);
       setError(null);
-    } catch (err) {
+    } catch {
       setError('无法连接到区块链节点，请确保 Hardhat 节点已启动 (npm run node)');
       setLoading(false);
     }
@@ -88,8 +78,9 @@ export default function BlockchainExplorer() {
         const block = await provider.getBlock(blockNum);
         if (block) {
           recentBlocks.push({
-            number: block.number,
-            hash: block.hash,
+            number: block.number ?? 0,
+            hash:
+              block.hash ?? '0x0000000000000000000000000000000000000000000000000000000000000000',
             timestamp: Number(block.timestamp),
             transactions: block.transactions.length,
             gasUsed: block.gasUsed.toString(),
@@ -108,6 +99,21 @@ export default function BlockchainExplorer() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    initProvider();
+    return () => {
+      setPolling(false);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (provider && polling) {
+      fetchData();
+      const interval = setInterval(fetchData, 5000); // 每5秒刷新一次
+      return () => clearInterval(interval);
+    }
+  }, [provider, polling]);
 
   const formatTimestamp = (timestamp: number) => {
     const date = new Date(timestamp * 1000);
@@ -130,16 +136,16 @@ export default function BlockchainExplorer() {
       title: '区块哈希',
       dataIndex: 'hash',
       key: 'hash',
-      render: (hash: string) => (
-        <Text copyable={{ text: hash }}>{formatHash(hash, 8)}</Text>
-      ),
+      render: (hash: string) => <Text copyable={{ text: hash }}>{formatHash(hash, 8)}</Text>,
     },
     {
       title: '时间戳',
       dataIndex: 'timestamp',
       key: 'timestamp',
       render: (ts: number) => (
-        <span><ClockCircleOutlined /> {formatTimestamp(ts)}</span>
+        <span>
+          <ClockCircleOutlined /> {formatTimestamp(ts)}
+        </span>
       ),
     },
     {
@@ -209,9 +215,7 @@ export default function BlockchainExplorer() {
         <Title level={2}>
           <LinkOutlined /> 区块链浏览器
         </Title>
-        <Text type="secondary">
-          实时监控本地 Hardhat 区块链网络状态 | RPC: {RPC_URL}
-        </Text>
+        <Text type="secondary">实时监控本地 Hardhat 区块链网络状态 | RPC: {RPC_URL}</Text>
       </div>
 
       {loading && !stats ? (
@@ -271,7 +275,11 @@ export default function BlockchainExplorer() {
             title={
               <span>
                 <DatabaseOutlined /> 最新区块
-                {polling && <Tag color="green" style={{ marginLeft: 8 }}>实时更新中</Tag>}
+                {polling && (
+                  <Tag color="green" style={{ marginLeft: 8 }}>
+                    实时更新中
+                  </Tag>
+                )}
               </span>
             }
             extra={

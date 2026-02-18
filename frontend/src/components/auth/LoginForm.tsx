@@ -1,9 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-
-// 使用未使用的 import 来避免 LSP 警告
-const _useNavigate = useNavigate;
 
 interface LoginFormProps {
   onSuccess?: () => void;

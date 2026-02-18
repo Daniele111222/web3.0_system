@@ -1,5 +1,15 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { authService } from '../../../services/auth';
+import { useState, useEffect, useCallback } from 'react';
+import { authService } from '../services/auth';
+
+/**
+ * 邮箱验证状态响应数据
+ */
+interface VerificationStatusData {
+  is_verified: boolean;
+  email: string;
+  has_pending_token: boolean;
+  pending_tokens_count: number;
+}
 
 /**
  * 邮箱验证状态响应
@@ -39,11 +49,12 @@ export function useEmailVerification(): UseEmailVerificationReturn {
     try {
       const response = await authService.getVerificationStatus();
       if (response.success && response.data) {
+        const data = response.data as VerificationStatusData;
         setStatus({
-          isVerified: response.data.is_verified,
-          email: response.data.email,
-          hasPendingToken: response.data.has_pending_token,
-          pendingTokensCount: response.data.pending_tokens_count,
+          isVerified: data.is_verified,
+          email: data.email,
+          hasPendingToken: data.has_pending_token,
+          pendingTokensCount: data.pending_tokens_count,
         });
       }
     } catch (error) {

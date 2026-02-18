@@ -59,3 +59,10 @@ class ValidationException(AppException):
     
     def __init__(self, message: str = "验证失败", code: str = "VALIDATION_ERROR", details: Optional[Any] = None):
         super().__init__(message, code, 422, details)
+
+
+class BlockchainException(AppException):
+    """500 - 区块链交互错误。"""
+    
+    def __init__(self, message: str = "区块链交互失败", code: str = "BLOCKCHAIN_ERROR", details: Optional[Any] = None):
+        super().__init__(message, code, 500, details)

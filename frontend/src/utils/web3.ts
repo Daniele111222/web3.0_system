@@ -16,7 +16,7 @@ let contract: ethers.Contract | null = null;
 export const initProvider = async (): Promise<ethers.JsonRpcProvider> => {
   if (!provider) {
     provider = new ethers.JsonRpcProvider(RPC_URL);
-    
+
     // Verify connection
     const network = await provider.getNetwork();
     console.log('Connected to:', network.name, 'Chain ID:', network.chainId);
@@ -30,13 +30,13 @@ export const initProvider = async (): Promise<ethers.JsonRpcProvider> => {
  */
 export const getSigner = async (privateKey?: string): Promise<ethers.JsonRpcSigner> => {
   const prov = await initProvider();
-  
+
   if (privateKey) {
     // Create wallet from private key
     const wallet = new ethers.Wallet(privateKey, prov);
     return wallet as unknown as ethers.JsonRpcSigner;
   }
-  
+
   // Use default signer (first account)
   if (!signer) {
     signer = await prov.getSigner(0);
@@ -47,9 +47,11 @@ export const getSigner = async (privateKey?: string): Promise<ethers.JsonRpcSign
 /**
  * Get IPNFT contract instance
  */
-export const getContract = async (signerOrProvider?: ethers.Signer | ethers.Provider): Promise<ethers.Contract> => {
+export const getContract = async (
+  signerOrProvider?: ethers.Signer | ethers.Provider
+): Promise<ethers.Contract> => {
   if (!contract) {
-    const prov = signerOrProvider || await initProvider();
+    const prov = signerOrProvider || (await initProvider());
     contract = new ethers.Contract(CONTRACT_ADDRESS, IPNFT_ABI, prov);
   }
   return contract;

@@ -69,7 +69,7 @@ export interface TargetInfo {
   enterpriseId: string;
   enterpriseName: string;
   changes?: Record<string, ChangeInfo>;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -82,37 +82,37 @@ export interface OperatorInfo {
 }
 
 /**
- * 审批记录
+ * 审批记录（匹配后端返回的字段）
  */
 export interface Approval {
-  approvalId: string;
-  type: ApprovalType;
-  subType: ApprovalSubType;
-  targetId: string;
-  targetType: TargetType;
-  applicant: ApplicantInfo;
-  targetInfo: TargetInfo;
-  status: ApprovalStatus;
-  priority: ApprovalPriority;
+  id: string;
+  type: string;
+  target_id: string;
+  target_type: string;
+  applicant_id: string;
+  status: string;
+  current_step: number;
+  total_steps: number;
   remarks: string;
-  attachments: ApprovalAttachment[];
-  applyTime: string;
-  currentStep: number;
-  totalSteps: number;
-  updatedAt?: string;
-  completedAt?: string;
+  attachments: ApprovalAttachment[] | null;
+  changes: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
+  completed_at: string | null;
 }
 
 /**
  * 审批流程记录
  */
 export interface ApprovalProcessRecord {
+  id: string;
   step: number;
   action: string;
-  operator: OperatorInfo;
-  time: string;
+  operator_id: string;
+  operator_role: string;
   comment: string;
-  attachments?: ApprovalAttachment[];
+  attachments: ApprovalAttachment[] | null;
+  created_at: string;
 }
 
 /**
@@ -160,17 +160,9 @@ export interface ApprovalActionRequest {
  * 审批操作响应
  */
 export interface ApprovalActionResponse {
-  approvalId: string;
-  action: ApprovalAction;
-  operator: OperatorInfo;
-  actionTime: string;
-  comment: string;
-  result: {
-    targetId: string;
-    targetType: TargetType;
-    oldStatus: ApprovalStatus;
-    newStatus: ApprovalStatus;
-  };
+  id: string;
+  type: string;
+  status: string;
 }
 
 /**

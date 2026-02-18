@@ -48,7 +48,7 @@ export async function processApproval(
   approvalId: string,
   data: ApprovalActionRequest
 ): Promise<ApprovalActionResponse> {
-  const response = await apiClient.post(`/approvals/${approvalId}/action`, data);
+  const response = await apiClient.post(`/approvals/${approvalId}/process`, data);
   return response.data.data;
 }
 

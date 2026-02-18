@@ -19,6 +19,8 @@ from app.repositories.enterprise_repository import (
     EnterpriseMemberRepository,
 )
 from app.repositories.user_repository import UserRepository
+from app.repositories.approval_repository import ApprovalRepository
+from app.models.approval import Approval, ApprovalType, ApprovalStatus, ApprovalProcess, ApprovalAction
 from app.schemas.enterprise import (
     EnterpriseCreateRequest,
     EnterpriseUpdateRequest,
@@ -98,20 +100,23 @@ class EnterpriseService:
         self.enterprise_repo = EnterpriseRepository(db)
         self.member_repo = EnterpriseMemberRepository(db)
         self.user_repo = UserRepository(db)
+        self.approval_repo = ApprovalRepository(db)
     
     async def create_enterprise(
         self,
         data: EnterpriseCreateRequest,
         owner_id: UUID,
+        auto_submit_approval: bool = True,
     ) -> EnterpriseDetailResponse:
         """
         创建新企业。
         
-        创建企业并将创建者设为所有者。
+        创建企业并将创建者设为所有者。新创建的企业默认未认证，需要通过审批后才能正式运营。
         
         Args:
             data (EnterpriseCreateRequest): 创建企业的请求数据。
             owner_id (UUID): 创建者（所有者）的用户 ID。
+            auto_submit_approval: 是否自动提交审批申请，默认 True。
             
         Returns:
             EnterpriseDetailResponse: 创建后的企业详情。
@@ -119,12 +124,10 @@ class EnterpriseService:
         Raises:
             UserNotFoundError: 如果创建者用户不存在。
         """
-        # 验证用户存在
         user = await self.user_repo.get_by_id(owner_id)
         if not user:
             raise UserNotFoundError()
         
-        # 创建企业
         enterprise = Enterprise(
             name=data.name,
             description=data.description,
@@ -132,10 +135,10 @@ class EnterpriseService:
             website=data.website,
             contact_email=data.contact_email,
             address=data.address,
+            is_verified=False,
         )
         enterprise = await self.enterprise_repo.create(enterprise)
         
-        # 添加创建者为所有者
         member = EnterpriseMember(
             enterprise_id=enterprise.id,
             user_id=owner_id,
@@ -143,13 +146,57 @@ class EnterpriseService:
         )
         await self.member_repo.create(member)
         
-        # 刷新 session，确保能看到新创建的成员
-        await self.db.refresh(enterprise)
+        if auto_submit_approval:
+            await self._submit_enterprise_approval(enterprise.id, owner_id, data.description)
         
-        # 重新获取完整数据（需要新查询以加载 members 关系）
+        await self.db.refresh(enterprise)
         enterprise = await self.enterprise_repo.get_by_id(enterprise.id)
         
         return self._enterprise_to_detail_response(enterprise)
+    
+    async def _submit_enterprise_approval(
+        self,
+        enterprise_id: UUID,
+        applicant_id: UUID,
+        remarks: Optional[str] = None,
+    ) -> Approval:
+        """
+        提交企业创建审批申请。
+        
+        Args:
+            enterprise_id: 企业ID
+            applicant_id: 申请人ID
+            remarks: 申请备注
+            
+        Returns:
+            Approval: 审批记录
+        """
+        approval = Approval(
+            type=ApprovalType.ENTERPRISE_CREATE,
+            target_id=enterprise_id,
+            target_type="enterprise",
+            applicant_id=applicant_id,
+            status=ApprovalStatus.PENDING,
+            current_step=1,
+            total_steps=1,
+            remarks=remarks,
+        )
+        created_approval = await self.approval_repo.create_approval(approval)
+        
+        process = ApprovalProcess(
+            approval_id=created_approval.id,
+            step=1,
+            action=ApprovalAction.SUBMIT,
+            operator_id=applicant_id,
+            operator_role="applicant",
+            comment=remarks or "提交企业创建审批申请",
+        )
+        
+        from app.repositories.approval_repository import ApprovalProcessRepository
+        process_repo = ApprovalProcessRepository(self.db)
+        await process_repo.create_process(process)
+        
+        return created_approval
     
     async def get_enterprise(
         self,

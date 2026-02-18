@@ -15,7 +15,7 @@ class RateLimiter:
     
     def __init__(
         self,
-        requests_per_minute: int = 60,
+        requests_per_minute: int = 120,
         requests_per_hour: int = 1000,
         cleanup_interval: int = 300,  # 每 5 分钟清理一次旧条目
     ):

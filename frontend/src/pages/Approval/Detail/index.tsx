@@ -9,15 +9,13 @@ import {
   Button,
   Tag,
   Timeline,
-  Avatar,
   Divider,
   Input,
-  Upload,
-  Steps,
   Tooltip,
   Empty,
   Spin,
   message,
+  Typography,
 } from 'antd';
 import {
   ArrowLeft,
@@ -28,26 +26,52 @@ import {
   Building2,
   User,
   FileText,
-  Download,
   Paperclip,
   History,
   AlertCircle,
 } from 'lucide-react';
 import { useApprovalDetail, useApprovalAction } from '../../../hooks/useApproval';
-import type { ApprovalPriority, ApprovalProcessRecord } from '../../../types/approval';
 import './ApprovalDetail.less';
 
 const { TextArea } = Input;
-const { Step } = Steps;
+const { Title } = Typography;
+
+import type { LucideIcon } from 'lucide-react';
 
 /**
- * 优先级配置
+ * 类型配置
  */
-const priorityConfig: Record<ApprovalPriority, { color: string; label: string; icon: any }> = {
-  low: { color: '#8c8c8c', label: '低', icon: Clock },
-  medium: { color: '#faad14', label: '中', icon: AlertCircle },
-  high: { color: '#fa8c16', label: '高', icon: AlertCircle },
-  urgent: { color: '#ff4d4f', label: '紧急', icon: AlertCircle },
+const typeConfig: Record<string, { color: string; label: string; icon: LucideIcon; bg: string }> = {
+  enterprise_create: {
+    color: '#1677ff',
+    label: '企业创建',
+    icon: Building2,
+    bg: 'linear-gradient(135deg, #e6f4ff 0%, #d6e4ff 100%)',
+  },
+  enterprise_update: {
+    color: '#722ed1',
+    label: '企业变更',
+    icon: Building2,
+    bg: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
+  },
+  enterprise_delete: {
+    color: '#ff4d4f',
+    label: '企业注销',
+    icon: Building2,
+    bg: 'linear-gradient(135deg, #fff2f0 0%, #ffebe8 100%)',
+  },
+  member_add: {
+    color: '#52c41a',
+    label: '成员加入',
+    icon: User,
+    bg: 'linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%)',
+  },
+  member_remove: {
+    color: '#fa8c16',
+    label: '成员移除',
+    icon: User,
+    bg: 'linear-gradient(135deg, #fff7e6 0%, #ffe7ba 100%)',
+  },
 };
 
 /**
@@ -58,6 +82,32 @@ const quickTemplates = [
   { key: 'reject-incomplete', label: '✗ 拒绝，信息不完整', color: '#ff4d4f' },
   { key: 'return-materials', label: '↩ 退回，需补充材料', color: '#faad14' },
 ];
+
+/**
+ * 获取时间线节点样式
+ */
+function getTimelineDot(action: string) {
+  const icons: Record<string, React.ReactNode> = {
+    submit: <Clock size={14} style={{ color: '#1890ff' }} />,
+    approve: <CheckCircle2 size={14} style={{ color: '#52c41a' }} />,
+    reject: <XCircle size={14} style={{ color: '#ff4d4f' }} />,
+    return: <RotateCcw size={14} style={{ color: '#faad14' }} />,
+  };
+  return icons[action] || <Clock size={14} />;
+}
+
+/**
+ * 获取操作文本
+ */
+function getActionText(action: string): string {
+  const texts: Record<string, string> = {
+    submit: '提交申请',
+    approve: '审批通过',
+    reject: '审批拒绝',
+    return: '申请退回',
+  };
+  return texts[action] || action;
+}
 
 /**
  * 审批详情页面
@@ -99,9 +149,9 @@ export default function ApprovalDetail() {
       if (!approvalId) return;
 
       const actionTexts: Record<string, string> = {
-        approve: '审批通过',
-        reject: '审批拒绝',
-        return: '申请退回',
+        approve: '审批通过，符合平台要求',
+        reject: '审批拒绝，信息不完整',
+        return: '申请退回，需要补充材料',
       };
 
       const finalComment = comment.trim() || actionTexts[action];
@@ -112,7 +162,7 @@ export default function ApprovalDetail() {
         refresh();
         setComment('');
         setSelectedTemplate(null);
-      } catch (error) {
+      } catch {
         message.error('审批操作失败');
       }
     },
@@ -138,8 +188,13 @@ export default function ApprovalDetail() {
     );
   }
 
-  const priorityCfg = priorityConfig[approval.priority];
-  const PriorityIcon = priorityCfg.icon;
+  const typeInfo = typeConfig[approval.type] || {
+    color: '#8c8c8c',
+    label: approval.type,
+    icon: FileText,
+    bg: '#f5f5f5',
+  };
+  const TypeIcon = typeInfo.icon;
 
   return (
     <div className="approval-detail-page">
@@ -154,25 +209,27 @@ export default function ApprovalDetail() {
           返回列表
         </Button>
         <div className="header-title-group">
-          <h1 className="page-title">审批详情</h1>
+          <Title level={4} className="page-title">
+            审批详情
+          </Title>
           <div className="header-tags">
             <Tag
-              className="priority-tag"
+              className="type-tag"
               style={{
-                backgroundColor: `${priorityCfg.color}20`,
-                color: priorityCfg.color,
-                borderColor: `${priorityCfg.color}40`,
+                backgroundColor: `${typeInfo.color}15`,
+                color: typeInfo.color,
+                border: `1px solid ${typeInfo.color}30`,
               }}
             >
-              <PriorityIcon size={12} style={{ marginRight: 4 }} />
-              {priorityCfg.label}优先级
+              <TypeIcon size={12} style={{ marginRight: 4 }} />
+              {typeInfo.label}
             </Tag>
             <Tag className="status-tag pending">待审批</Tag>
           </div>
         </div>
         <div className="header-approval-id">
           <span className="label">审批编号</span>
-          <span className="value">{approval.approvalId}</span>
+          <span className="value">{approval.id?.slice(0, 8) || '-'}</span>
         </div>
       </div>
 
@@ -189,16 +246,12 @@ export default function ApprovalDetail() {
               </h3>
             </div>
             <div className="applicant-profile">
-              <Avatar
-                size={64}
-                src={approval.applicant.avatar}
-                icon={<User size={28} />}
-                className="applicant-avatar"
-              />
+              <div className="applicant-avatar-placeholder">
+                <User size={28} />
+              </div>
               <div className="applicant-details">
-                <h4 className="applicant-name">{approval.applicant.name}</h4>
-                <p className="applicant-email">{approval.applicant.email}</p>
-                <p className="applicant-id">ID: {approval.applicant.userId}</p>
+                <h4 className="applicant-name">申请人 ID</h4>
+                <p className="applicant-id">{approval.applicant_id || '-'}</p>
               </div>
             </div>
           </Card>
@@ -211,41 +264,21 @@ export default function ApprovalDetail() {
                 目标信息
               </h3>
               <Tag
-                className="type-tag"
+                className="target-type-tag"
                 style={{
-                  backgroundColor: `${typeConfig[approval.type].color}20`,
-                  color: typeConfig[approval.type].color,
+                  backgroundColor: `${typeInfo.color}15`,
+                  color: typeInfo.color,
+                  border: `1px solid ${typeInfo.color}30`,
                 }}
               >
-                {typeConfig[approval.type].label}
+                {approval.target_type || '-'}
               </Tag>
             </div>
             <div className="target-content">
               <div className="target-item">
-                <span className="item-label">企业名称</span>
-                <span className="item-value">{approval.targetInfo.enterpriseName}</span>
+                <span className="item-label">目标 ID</span>
+                <span className="item-value code">{approval.target_id || '-'}</span>
               </div>
-              <div className="target-item">
-                <span className="item-label">企业ID</span>
-                <span className="item-value code">{approval.targetInfo.enterpriseId}</span>
-              </div>
-              {approval.targetInfo.changes && (
-                <div className="changes-section">
-                  <h5 className="changes-title">变更内容</h5>
-                  {Object.entries(approval.targetInfo.changes).map(
-                    ([key, change]: [string, any]) => (
-                      <div key={key} className="change-item">
-                        <span className="change-field">{key}</span>
-                        <div className="change-values">
-                          <span className="old-value">{change.old}</span>
-                          <span className="arrow">→</span>
-                          <span className="new-value">{change.new}</span>
-                        </div>
-                      </div>
-                    )
-                  )}
-                </div>
-              )}
             </div>
           </Card>
 
@@ -272,27 +305,20 @@ export default function ApprovalDetail() {
                 </h3>
               </div>
               <div className="attachments-list">
-                {approval.attachments.map((file) => (
-                  <div key={file.fileId} className="attachment-item">
+                {approval.attachments?.map((file, index) => (
+                  <div key={index} className="attachment-item">
                     <div className="attachment-icon">
                       <FileText size={20} />
                     </div>
                     <div className="attachment-info">
-                      <span className="attachment-name">{file.fileName}</span>
-                      {file.fileSize && (
-                        <span className="attachment-size">
-                          {(file.fileSize / 1024 / 1024).toFixed(2)} MB
-                        </span>
-                      )}
+                      <span className="attachment-name">{file.fileName || '附件'}</span>
                     </div>
                     <Tooltip title="下载">
                       <Button
                         type="text"
                         size="small"
-                        icon={<Download size={16} />}
+                        icon={<FileText size={16} />}
                         className="download-btn"
-                        href={file.fileUrl}
-                        target="_blank"
                       />
                     </Tooltip>
                   </div>
@@ -300,6 +326,32 @@ export default function ApprovalDetail() {
               </div>
             </Card>
           )}
+
+          {/* 申请时间信息 */}
+          <Card className="info-card time-card" bordered={false}>
+            <div className="card-header">
+              <h3 className="card-title">
+                <Clock size={18} />
+                申请时间
+              </h3>
+            </div>
+            <div className="time-info">
+              <div className="time-item">
+                <span className="time-label">创建时间</span>
+                <span className="time-value">
+                  {approval.created_at
+                    ? new Date(approval.created_at).toLocaleString('zh-CN')
+                    : '-'}
+                </span>
+              </div>
+              <div className="time-item">
+                <span className="time-label">当前步骤</span>
+                <span className="time-value">
+                  {approval.current_step} / {approval.total_steps}
+                </span>
+              </div>
+            </div>
+          </Card>
         </div>
 
         {/* 右侧：审批操作 */}
@@ -343,22 +395,6 @@ export default function ApprovalDetail() {
                     </button>
                   ))}
                 </div>
-              </div>
-
-              <div className="form-item">
-                <label className="form-label">附件上传（可选）</label>
-                <Upload.Dragger
-                  className="upload-area"
-                  accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                  maxCount={5}
-                  beforeUpload={() => false}
-                >
-                  <p className="upload-icon">
-                    <Paperclip size={32} />
-                  </p>
-                  <p className="upload-text">点击上传或拖拽文件到此处</p>
-                  <p className="upload-hint">支持 PDF、图片、Word 格式，单个文件最大 10MB</p>
-                </Upload.Dragger>
               </div>
 
               <Divider className="action-divider" />
@@ -415,30 +451,27 @@ export default function ApprovalDetail() {
             <div className="history-timeline">
               {approval.processHistory && approval.processHistory.length > 0 ? (
                 <Timeline
-                  items={approval.processHistory.map(
-                    (record: ApprovalProcessRecord, index: number) => ({
-                      key: index,
-                      dot: getTimelineDot(record.action),
-                      children: (
-                        <div className="timeline-item">
-                          <div className="timeline-header">
-                            <span className="timeline-action">{getActionText(record.action)}</span>
-                            <span className="timeline-time">
-                              {new Date(record.time).toLocaleString('zh-CN')}
-                            </span>
-                          </div>
-                          <div className="timeline-operator">
-                            <Avatar size={20} icon={<User size={12} />} />
-                            <span>{record.operator.name}</span>
-                            <Tag size="small">{record.operator.role}</Tag>
-                          </div>
-                          {record.comment && (
-                            <div className="timeline-comment">{record.comment}</div>
-                          )}
+                  items={approval.processHistory.map((record, index) => ({
+                    key: index,
+                    dot: getTimelineDot(record.action),
+                    children: (
+                      <div className="timeline-item">
+                        <div className="timeline-header">
+                          <span className="timeline-action">{getActionText(record.action)}</span>
+                          <span className="timeline-time">
+                            {record.created_at
+                              ? new Date(record.created_at).toLocaleString('zh-CN')
+                              : '-'}
+                          </span>
                         </div>
-                      ),
-                    })
-                  )}
+                        <div className="timeline-operator">
+                          <span>{record.operator_id?.slice(0, 8) || '-'}</span>
+                          <Tag>{record.operator_role || '-'}</Tag>
+                        </div>
+                        {record.comment && <div className="timeline-comment">{record.comment}</div>}
+                      </div>
+                    ),
+                  }))}
                 />
               ) : (
                 <Empty description="暂无审批历史" image={Empty.PRESENTED_IMAGE_SIMPLE} />
@@ -449,30 +482,4 @@ export default function ApprovalDetail() {
       </div>
     </div>
   );
-}
-
-/**
- * 获取时间线节点样式
- */
-function getTimelineDot(action: string) {
-  const icons: Record<string, React.ReactNode> = {
-    submit: <Clock size={14} style={{ color: '#1890ff' }} />,
-    approve: <CheckCircle2 size={14} style={{ color: '#52c41a' }} />,
-    reject: <XCircle size={14} style={{ color: '#ff4d4f' }} />,
-    return: <RotateCcw size={14} style={{ color: '#faad14' }} />,
-  };
-  return icons[action] || <Clock size={14} />;
-}
-
-/**
- * 获取操作文本
- */
-function getActionText(action: string): string {
-  const texts: Record<string, string> = {
-    submit: '提交申请',
-    approve: '审批通过',
-    reject: '审批拒绝',
-    return: '申请退回',
-  };
-  return texts[action] || action;
 }

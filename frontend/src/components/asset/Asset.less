@@ -1,280 +1,621 @@
-.asset-page {
-  padding: 2rem;
-  max-width: 1400px;
-  margin: 0 auto;
+// ========================================
+// 资产管理组件样式 - 深色科技主题
+// 设计风格：深色背景 + 紫色/蓝色渐变点缀 + 卡片式布局
+// ========================================
+
+// CSS 变量定义 - 保持与Enterprise页面一致
+:root {
+  // 主色调 - 深色主题
+  --asset-bg-primary: #0f172a;
+  --asset-bg-secondary: #1e293b;
+  --asset-bg-tertiary: #334155;
+
+  // 文字颜色
+  --asset-text-primary: #f8fafc;
+  --asset-text-secondary: #cbd5e1;
+  --asset-text-muted: #94a3b8;
+
+  // 强调色 - 紫色/蓝色渐变
+  --asset-accent-purple: #8b5cf6;
+  --asset-accent-blue: #3b82f6;
+  --asset-accent-cyan: #06b6d4;
+
+  // 状态颜色
+  --asset-success: #10b981;
+  --asset-warning: #f59e0b;
+  --asset-error: #ef4444;
+
+  // 边框和阴影
+  --asset-border: rgba(148, 163, 184, 0.2);
+  --asset-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --asset-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --asset-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --asset-shadow-glow: 0 0 20px rgba(139, 92, 246, 0.3);
+
+  // 圆角
+  --asset-radius-sm: 6px;
+  --asset-radius-md: 8px;
+  --asset-radius-lg: 12px;
+  --asset-radius-xl: 16px;
 }
 
-.asset-header {
+// ========================================
+// AssetList 组件样式
+// ========================================
+
+.asset-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 24px;
+  padding: 8px;
+}
+
+// 加载状态
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: var(--asset-text-secondary);
+  font-size: 16px;
+
+  &::before {
+    content: '';
+    width: 48px;
+    height: 48px;
+    border: 3px solid var(--asset-bg-tertiary);
+    border-top-color: var(--asset-accent-purple);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// 空状态
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+  padding: 48px;
+  background: linear-gradient(135deg, var(--asset-bg-secondary) 0%, var(--asset-bg-tertiary) 100%);
+  border-radius: var(--asset-radius-xl);
+  border: 1px solid var(--asset-border);
+
+  &::before {
+    content: '📦';
+    font-size: 64px;
+    margin-bottom: 24px;
+    opacity: 0.8;
+  }
+
+  h3 {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--asset-text-primary);
+    margin-bottom: 12px;
+  }
+
+  p {
+    font-size: 16px;
+    color: var(--asset-text-secondary);
+    max-width: 400px;
+  }
+}
+
+// 资产卡片
+.asset-card {
+  background: linear-gradient(135deg, var(--asset-bg-secondary) 0%, rgba(30, 41, 59, 0.8) 100%);
+  border-radius: var(--asset-radius-xl);
+  border: 1px solid var(--asset-border);
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+
+  // 悬停光效
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--asset-accent-purple), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--asset-shadow-lg), var(--asset-shadow-glow);
+    border-color: rgba(139, 92, 246, 0.3);
+
+    &::before {
+      opacity: 1;
+    }
+  }
+
+  // 激活状态
+  &:active {
+    transform: translateY(-2px);
+  }
+}
+
+// 卡片头部
+.asset-card-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  gap: 12px;
 }
 
-.asset-header h1 {
-  font-size: 2rem;
+.asset-card-title {
+  font-size: 18px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--asset-text-primary);
+  margin: 0;
+  line-height: 1.4;
+  flex: 1;
+  word-break: break-word;
 }
 
-.asset-form-container {
-  background: white;
-  border-radius: 8px;
-  padding: 2rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+// 状态徽章
+.asset-card-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  // 状态圆点
+  &::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
 }
+
+// 草稿状态
+.badge-draft {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--asset-warning);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+
+  &::before {
+    background: var(--asset-warning);
+  }
+}
+
+// 已铸造状态
+.badge-minted {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--asset-success);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+
+  &::before {
+    background: var(--asset-success);
+  }
+}
+
+// 卡片描述
+.asset-card-description {
+  font-size: 14px;
+  color: var(--asset-text-secondary);
+  line-height: 1.6;
+  margin: 0 0 16px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// 卡片元信息
+.asset-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--asset-border);
+  font-size: 13px;
+  color: var(--asset-text-muted);
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+}
+
+// ========================================
+// AssetForm 组件样式
+// ========================================
 
 .asset-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 24px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .form-group label {
+  font-size: 14px;
   font-weight: 500;
-  color: #fff;
-  font-size: 0.875rem;
+  color: var(--asset-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.form-group label .required {
-  color: #ef4444;
-  margin-left: 0.25rem;
+.form-group .required {
+  color: var(--asset-error);
+  font-weight: 600;
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 1rem;
-  transition: border-color 0.2s;
-}
+  padding: 12px 16px;
+  background: var(--asset-bg-primary);
+  border: 1px solid var(--asset-border);
+  border-radius: var(--asset-radius-md);
+  color: var(--asset-text-primary);
+  font-size: 14px;
+  transition: all 0.2s ease;
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  &::placeholder {
+    color: var(--asset-text-muted);
+  }
+
+  &:hover {
+    border-color: rgba(139, 92, 246, 0.5);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--asset-accent-purple);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 }
 
 .form-group textarea {
   min-height: 120px;
   resize: vertical;
   font-family: inherit;
+  line-height: 1.6;
 }
 
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
+.form-group select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+.error-text {
+  font-size: 12px;
+  color: var(--asset-error);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  &::before {
+    content: '⚠';
+    font-size: 12px;
+  }
 }
 
 .form-actions {
   display: flex;
-  gap: 1rem;
   justify-content: flex-end;
-  margin-top: 1rem;
+  gap: 12px;
+  padding-top: 24px;
+  border-top: 1px solid var(--asset-border);
+  margin-top: 8px;
 }
 
+// 按钮样式
 .btn {
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-size: 14px;
   font-weight: 500;
-  font-size: 0.875rem;
+  border-radius: var(--asset-radius-md);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   border: none;
+  outline: none;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 }
 
 .btn-primary {
-  background: #3b82f6;
+  background: linear-gradient(135deg, var(--asset-accent-purple) 0%, var(--asset-accent-blue) 100%);
   color: white;
-}
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
 
-.btn-primary:hover:not(:disabled) {
-  background: #2563eb;
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
 }
 
 .btn-secondary {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--asset-bg-tertiary);
+  color: var(--asset-text-primary);
+  border: 1px solid var(--asset-border);
+
+  &:hover:not(:disabled) {
+    background: var(--asset-bg-secondary);
+    border-color: rgba(139, 92, 246, 0.3);
+  }
 }
 
-.btn-secondary:hover:not(:disabled) {
-  background: #e5e7eb;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.error-message {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #dc2626;
-  padding: 1rem;
-  border-radius: 6px;
-  margin-bottom: 1rem;
-}
-
-.success-message {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  color: #16a34a;
-  padding: 1rem;
-  border-radius: 6px;
-  margin-bottom: 1rem;
-}
+// ========================================
+// FileUpload 组件样式
+// ========================================
 
 .file-upload-area {
-  border: 2px dashed #d1d5db;
-  border-radius: 8px;
-  padding: 2rem;
+  border: 2px dashed var(--asset-border);
+  border-radius: var(--asset-radius-lg);
+  padding: 48px 32px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0.8) 100%);
+  position: relative;
+  overflow: hidden;
+
+  // 光晕效果
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at center, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  &:hover {
+    border-color: var(--asset-accent-purple);
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+
+    &::before {
+      opacity: 1;
+    }
+  }
+
+  &.dragging {
+    border-color: var(--asset-accent-cyan);
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(15, 23, 42, 0.9) 100%);
+    box-shadow: 0 0 30px rgba(6, 182, 212, 0.2);
+
+    &::before {
+      opacity: 1;
+      background: radial-gradient(circle at center, rgba(6, 182, 212, 0.15) 0%, transparent 70%);
+    }
+  }
+
+  p {
+    margin: 0;
+    color: var(--asset-text-secondary);
+    font-size: 15px;
+    line-height: 1.6;
+    position: relative;
+    z-index: 1;
+
+    small {
+      color: var(--asset-text-muted);
+      font-size: 13px;
+    }
+  }
 }
 
-.file-upload-area:hover {
-  border-color: #3b82f6;
-  background: #f9fafb;
-}
-
-.file-upload-area.dragging {
-  border-color: #3b82f6;
-  background: #eff6ff;
-}
-
+// 文件列表
 .file-list {
-  margin-top: 1rem;
+  margin-top: 20px;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 10px;
 }
 
 .file-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 0.75rem;
-  background: #f9fafb;
-  border-radius: 6px;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: var(--asset-bg-primary);
+  border: 1px solid var(--asset-border);
+  border-radius: var(--asset-radius-md);
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: rgba(139, 92, 246, 0.3);
+    background: rgba(139, 92, 246, 0.05);
+  }
 }
 
 .file-item-info {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
 }
 
 .file-item-name {
-  font-weight: 500;
-  color: #1f2937;
+  font-size: 14px;
+  color: var(--asset-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .file-item-size {
-  font-size: 0.875rem;
-  color: #6b7280;
+  font-size: 12px;
+  color: var(--asset-text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .file-item-remove {
-  color: #ef4444;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--asset-border);
+  border-radius: var(--asset-radius-sm);
+  color: var(--asset-text-muted);
+  font-size: 14px;
   cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 4px;
-  transition: background 0.2s;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+
+  &:hover {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: var(--asset-error);
+    color: var(--asset-error);
+  }
 }
 
-.file-item-remove:hover {
-  background: #fee2e2;
+// ========================================
+// 响应式设计
+// ========================================
+
+@media (max-width: 1024px) {
+  .asset-list {
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+  }
 }
 
-.asset-list {
-  display: grid;
-  gap: 1rem;
-  margin-top: 2rem;
+@media (max-width: 768px) {
+  .asset-list {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .file-upload-area {
+    padding: 32px 20px;
+  }
+
+  .asset-card {
+    padding: 18px;
+  }
 }
 
+// ========================================
+// 动画效果
+// ========================================
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+// 卡片加载动画
 .asset-card {
-  background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-  transition: all 0.2s;
+  animation: fadeInUp 0.5s ease-out;
+  animation-fill-mode: both;
 }
 
-.asset-card:hover {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
+// 为每个卡片添加递增的动画延迟
+.asset-list .asset-card:nth-child(1) {
+  animation-delay: 0.05s;
+}
+.asset-list .asset-card:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.asset-list .asset-card:nth-child(3) {
+  animation-delay: 0.15s;
+}
+.asset-list .asset-card:nth-child(4) {
+  animation-delay: 0.2s;
+}
+.asset-list .asset-card:nth-child(5) {
+  animation-delay: 0.25s;
+}
+.asset-list .asset-card:nth-child(6) {
+  animation-delay: 0.3s;
 }
 
-.asset-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: start;
-  margin-bottom: 1rem;
-}
-
-.asset-card-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #1f2937;
-}
-
-.asset-card-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-.badge-draft {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.badge-minted {
-  background: #d1fae5;
-  color: #065f46;
-}
-
-.asset-card-description {
-  color: #6b7280;
-  margin-bottom: 1rem;
-  line-height: 1.5;
-}
-
-.asset-card-meta {
-  display: flex;
-  gap: 1.5rem;
-  font-size: 0.875rem;
-  color: #6b7280;
-}
-
-.loading {
-  text-align: center;
-  padding: 2rem;
-  color: #6b7280;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 3rem;
-  color: #6b7280;
-}
-
-.empty-state h3 {
-  font-size: 1.25rem;
-  margin-bottom: 0.5rem;
-  color: #374151;
+// 骨架屏效果
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--asset-bg-tertiary) 25%,
+    rgba(51, 65, 85, 0.5) 50%,
+    var(--asset-bg-tertiary) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--asset-radius-md);
 }

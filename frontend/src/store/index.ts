@@ -203,7 +203,7 @@ export const useEnterpriseStore = create<EnterpriseState>()((set, get) => ({
     }
   },
 
-  updateEnterpriseSettings: async (id: string, settings: EnterpriseSettings) => {
+  updateEnterpriseSettings: async (_id: string, settings: EnterpriseSettings) => {
     set({ isLoading: true, error: null });
     try {
       // 模拟更新设置（后端API可能需要调整）

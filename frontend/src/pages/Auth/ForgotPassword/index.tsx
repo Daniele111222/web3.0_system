@@ -28,7 +28,7 @@ export default function ForgotPasswordPage() {
       await authService.forgotPassword({ email: values.email });
       setEmail(values.email);
       setSubmitted(true);
-    } catch (error) {
+    } catch {
       // 即使出错也显示成功，防止枚举攻击
       setEmail(values.email);
       setSubmitted(true);

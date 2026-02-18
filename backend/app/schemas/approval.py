@@ -41,7 +41,7 @@ class ApprovalProcessRequest(BaseModel):
     """审批处理请求模型。"""
     
     action: str = Field(..., description="操作类型: approve, reject, return")
-    comment: str = Field(..., min_length=10, description="审批意见（至少10个字符）")
+    comment: Optional[str] = Field(None, description="审批意见")
     attachments: Optional[List[AttachmentRequest]] = Field(None, description="附件列表")
 
 

@@ -48,7 +48,7 @@ export default function ResetPasswordPage() {
           setTokenValid(false);
           setErrorMessage(response.message || '重置链接无效或已过期');
         }
-      } catch (error) {
+      } catch {
         setTokenValid(false);
         setErrorMessage('重置链接验证失败，请重新申请');
       } finally {
@@ -77,7 +77,7 @@ export default function ResetPasswordPage() {
       } else {
         setErrorMessage(response.message || '密码重置失败');
       }
-    } catch (error) {
+    } catch {
       setErrorMessage('密码重置失败，请重试');
     } finally {
       setLoading(false);

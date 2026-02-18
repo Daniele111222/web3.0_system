@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     IPFS_API_URL: str = "http://localhost:5001"
     
     # Blockchain
-    WEB3_PROVIDER_URL: str = "https://polygon-mumbai.g.alchemy.com/v2/your-api-key"
+    WEB3_PROVIDER_URL: str = "http://127.0.0.1:8545"
     CONTRACT_ADDRESS: str = ""
     
     # Email Service Configuration

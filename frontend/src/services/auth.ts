@@ -131,6 +131,22 @@ export const authService = {
     const response = await apiClient.post<ApiResponse>('/auth/reset-password', data);
     return response.data;
   },
+
+  /**
+   * 获取邮箱验证状态
+   */
+  getVerificationStatus: async (): Promise<ApiResponse> => {
+    const response = await apiClient.get<ApiResponse>('/auth/verification-status');
+    return response.data;
+  },
+
+  /**
+   * 发送验证邮件
+   */
+  sendVerificationEmail: async (): Promise<ApiResponse> => {
+    const response = await apiClient.post<ApiResponse>('/auth/send-verification-email');
+    return response.data;
+  },
 };
 
 export default authService;

@@ -26,6 +26,7 @@ from app.repositories.approval_repository import (
     ApprovalProcessRepository,
     ApprovalNotificationRepository,
 )
+from app.repositories.enterprise_repository import EnterpriseRepository
 
 
 # ============================================================================
@@ -100,6 +101,7 @@ class ApprovalService:
         self.approval_repo = ApprovalRepository(db)
         self.process_repo = ApprovalProcessRepository(db)
         self.notification_repo = ApprovalNotificationRepository(db)
+        self.enterprise_repo = EnterpriseRepository(db)
     
     # ========================================================================
     # 审批申请相关方法
@@ -273,12 +275,8 @@ class ApprovalService:
         # 3. 验证操作类型
         if action not in [ApprovalAction.APPROVE, ApprovalAction.REJECT, ApprovalAction.RETURN]:
             raise InvalidApprovalActionError("只支持通过、拒绝、退回操作")
-        
-        # 4. 验证审批意见长度（至少10个字符）
-        if not comment or len(comment.strip()) < 10:
-            raise CommentTooShortError(min_length=10)
-        
-        # 5. 更新审批记录
+
+        # 4. 更新审批记录
         if action == ApprovalAction.APPROVE:
             approval.status = ApprovalStatus.APPROVED
         elif action == ApprovalAction.REJECT:
@@ -378,16 +376,43 @@ class ApprovalService:
             approval: 审批记录
         """
         if approval.status == ApprovalStatus.APPROVED:
-            # 审批通过，更新目标状态
-            # 这里需要根据具体的审批类型执行不同的操作
-            # 例如：企业创建审批通过后，将企业状态从 pending 改为 active
-            pass
+            if approval.type == ApprovalType.ENTERPRISE_CREATE:
+                await self._handle_enterprise_create_approval(approval)
+            elif approval.type == ApprovalType.ENTERPRISE_UPDATE:
+                await self._handle_enterprise_update_approval(approval)
         elif approval.status == ApprovalStatus.REJECTED:
-            # 审批拒绝，执行相应逻辑
             pass
         elif approval.status == ApprovalStatus.RETURNED:
-            # 审批退回，申请人需要补充材料
             pass
+    
+    async def _handle_enterprise_create_approval(self, approval: Approval) -> None:
+        """
+        处理企业创建审批通过。
+        
+        Args:
+            approval: 审批记录
+        """
+        if approval.target_type == "enterprise":
+            enterprise = await self.enterprise_repo.get_by_id(approval.target_id)
+            if enterprise:
+                await self.enterprise_repo.update(enterprise.id, is_verified=True)
+    
+    async def _handle_enterprise_update_approval(self, approval: Approval) -> None:
+        """
+        处理企业信息变更审批通过。
+        
+        Args:
+            approval: 审批记录
+        """
+        if approval.target_type == "enterprise" and approval.changes:
+            enterprise = await self.enterprise_repo.get_by_id(approval.target_id)
+            if enterprise:
+                update_data = {}
+                for key, value in approval.changes.get("new_values", {}).items():
+                    if hasattr(enterprise, key):
+                        update_data[key] = value
+                if update_data:
+                    await self.enterprise_repo.update(enterprise.id, **update_data)
     
     # ========================================================================
     # 查询相关方法

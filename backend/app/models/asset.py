@@ -52,13 +52,17 @@ class AssetStatus(str, Enum):
     
     定义资产在系统中的状态：
     - DRAFT: 草稿（未铸造）
+    - PENDING: 待审批
     - MINTED: 已铸造为 NFT
+    - REJECTED: 已拒绝
     - TRANSFERRED: 已转移
     - LICENSED: 已授权
     - STAKED: 已质押
     """
     DRAFT = "DRAFT"
+    PENDING = "PENDING"
     MINTED = "MINTED"
+    REJECTED = "REJECTED"
     TRANSFERRED = "TRANSFERRED"
     LICENSED = "LICENSED"
     STAKED = "STAKED"
