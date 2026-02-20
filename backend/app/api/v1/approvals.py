@@ -187,6 +187,38 @@ async def process_approval(
 
 
 @router.get(
+    "/statistics",
+    response_model=ApiResponse[dict],
+    status_code=status.HTTP_200_OK,
+    summary="获取审批统计",
+    description="获取审批统计数据，包括待处理、已通过、已拒绝等数量。",
+)
+async def get_approval_statistics(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> ApiResponse[dict]:
+    """
+    获取审批统计数据。
+    """
+    try:
+        service = ApprovalService(db)
+        
+        stats = await service.get_statistics()
+        
+        return ApiResponse(
+            code="SUCCESS",
+            message="获取统计成功",
+            data=stats,
+        )
+    except AppException as e:
+        return ApiResponse(
+            code=e.code,
+            message=e.message,
+            data=None,
+        )
+
+
+@router.get(
     "/pending",
     response_model=ApiResponse[PageResult[ApprovalResponse]],
     status_code=status.HTTP_200_OK,

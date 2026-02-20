@@ -13,8 +13,8 @@ from app.core.database import Base, get_db
 # 使用内存SQLite数据库进行测试
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
-# 创建引擎
-engine = create_async_engine(
+# 创建引擎 - 使用scope="function"避免冲突
+test_engine = create_async_engine(
     TEST_DATABASE_URL,
     poolclass=StaticPool,
     echo=False,
@@ -22,7 +22,7 @@ engine = create_async_engine(
 )
 
 TestingSessionLocal = async_sessionmaker(
-    engine,
+    test_engine,
     autoflush=False,
     class_=AsyncSession,
     expire_on_commit=False,
@@ -43,27 +43,18 @@ def anyio_backend():
     return "asyncio"
 
 
-@pytest_asyncio.fixture(scope="session", autouse=True)
-async def setup_database():
-    """设置测试数据库。"""
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    yield
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-    await engine.dispose()
-
-
-@pytest_asyncio.fixture
+# 只在需要时创建数据库表
+@pytest_asyncio.fixture(scope="function")
 async def db_session():
     """创建数据库会话。"""
+    async with test_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    
     async with TestingSessionLocal() as session:
         yield session
-        await session.rollback()
-        # 清理数据但保留表结构
-        for table in reversed(Base.metadata.sorted_tables):
-            await session.execute(table.delete())
-        await session.commit()
+    
+    async with test_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
 
 
 @pytest_asyncio.fixture

@@ -528,6 +528,51 @@ class ApprovalService:
             approval_type=approval_type,
         )
     
+    async def get_statistics(self) -> dict:
+        """
+        获取审批统计数据。
+        
+        Returns:
+            dict: 统计数据，包括待处理、已通过、已拒绝等数量
+        """
+        from sqlalchemy import select, func
+        from app.models.approval import Approval, ApprovalStatus
+        
+        # 统计各状态的审批数量
+        stats = {}
+        
+        # 待处理
+        pending_result = await self.db.execute(
+            select(func.count(Approval.id)).where(Approval.status == ApprovalStatus.PENDING)
+        )
+        stats["pending"] = pending_result.scalar() or 0
+        
+        # 已通过
+        approved_result = await self.db.execute(
+            select(func.count(Approval.id)).where(Approval.status == ApprovalStatus.APPROVED)
+        )
+        stats["approved"] = approved_result.scalar() or 0
+        
+        # 已拒绝
+        rejected_result = await self.db.execute(
+            select(func.count(Approval.id)).where(Approval.status == ApprovalStatus.REJECTED)
+        )
+        stats["rejected"] = rejected_result.scalar() or 0
+        
+        # 已退回
+        returned_result = await self.db.execute(
+            select(func.count(Approval.id)).where(Approval.status == ApprovalStatus.RETURNED)
+        )
+        stats["returned"] = returned_result.scalar() or 0
+        
+        # 总计
+        total_result = await self.db.execute(
+            select(func.count(Approval.id))
+        )
+        stats["total"] = total_result.scalar() or 0
+        
+        return stats
+    
     async def get_approval_history(
         self,
         page: int = 1,

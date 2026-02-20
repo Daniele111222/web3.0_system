@@ -33,9 +33,16 @@ class Settings(BaseSettings):
     # IPFS
     IPFS_API_URL: str = "http://localhost:5001"
     
+    # Pinata Configuration
+    PINATA_API_KEY: str = ""
+    PINATA_API_SECRET: str = ""
+    PINATA_JWT_TOKEN: str = ""
+    
     # Blockchain
     WEB3_PROVIDER_URL: str = "http://127.0.0.1:8545"
     CONTRACT_ADDRESS: str = ""
+    DEPLOYER_PRIVATE_KEY: str = ""
+    DEPLOYER_ADDRESS: str = ""
     
     # Email Service Configuration
     SMTP_HOST: str = "smtp.gmail.com"

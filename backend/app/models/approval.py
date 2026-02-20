@@ -26,7 +26,7 @@ class ApprovalType(str, Enum):
     """
     ENTERPRISE_CREATE = "enterprise_create"
     ENTERPRISE_UPDATE = "enterprise_update"
-    MEMBER_JOIN = "member_join"
+    MEMBER_JOIN = "member_join" 
     ASSET_SUBMIT = "asset_submit"
 
 

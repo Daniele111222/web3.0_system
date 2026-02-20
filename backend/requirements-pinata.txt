@@ -1,0 +1,2 @@
+# Pinata SDK
+requests>=2.31.0

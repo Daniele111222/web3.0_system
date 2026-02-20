@@ -12,6 +12,7 @@ from app.core.database import Base
 if TYPE_CHECKING:
     from app.models.user import User
     from app.models.enterprise import Enterprise
+    from app.models.asset import MintRecord
 
 
 class AssetType(str, Enum):
@@ -53,19 +54,23 @@ class AssetStatus(str, Enum):
     定义资产在系统中的状态：
     - DRAFT: 草稿（未铸造）
     - PENDING: 待审批
+    - MINTING: 铸造中
     - MINTED: 已铸造为 NFT
     - REJECTED: 已拒绝
     - TRANSFERRED: 已转移
     - LICENSED: 已授权
     - STAKED: 已质押
+    - MINT_FAILED: 铸造失败
     """
     DRAFT = "DRAFT"
     PENDING = "PENDING"
+    MINTING = "MINTING"
     MINTED = "MINTED"
     REJECTED = "REJECTED"
     TRANSFERRED = "TRANSFERRED"
     LICENSED = "LICENSED"
     STAKED = "STAKED"
+    MINT_FAILED = "MINT_FAILED"
 
 
 class Asset(Base):
@@ -190,7 +195,117 @@ class Asset(Base):
     mint_tx_hash: Mapped[Optional[str]] = mapped_column(
         String(66),
         nullable=True,
+        index=True,
         comment="铸造交易哈希",
+    )
+    metadata_cid: Mapped[Optional[str]] = mapped_column(
+        String(100),
+        nullable=True,
+        comment="元数据IPFS CID",
+    )
+    
+    # 铸造进度
+    mint_stage: Mapped[Optional[str]] = mapped_column(
+        String(20),
+        nullable=True,
+        comment="当前阶段: PREPARING/SUBMITTING/CONFIRMING/COMPLETED/FAILED",
+    )
+    mint_progress: Mapped[Optional[int]] = mapped_column(
+        nullable=True,
+        comment="铸造进度百分比 0-100",
+    )
+    
+    # 链上信息
+    mint_block_number: Mapped[Optional[int]] = mapped_column(
+        nullable=True,
+        comment="铸造区块号",
+    )
+    mint_gas_used: Mapped[Optional[int]] = mapped_column(
+        nullable=True,
+        comment="Gas消耗",
+    )
+    mint_gas_price: Mapped[Optional[str]] = mapped_column(
+        String(30),
+        nullable=True,
+        comment="Gas价格 (wei)",
+    )
+    mint_total_cost_eth: Mapped[Optional[str]] = mapped_column(
+        String(30),
+        nullable=True,
+        comment="总成本 (ETH)",
+    )
+    
+    # 确认信息
+    mint_confirmations: Mapped[Optional[int]] = mapped_column(
+        nullable=True,
+        default=0,
+        comment="当前确认数",
+    )
+    required_confirmations: Mapped[Optional[int]] = mapped_column(
+        nullable=True,
+        default=6,
+        comment="所需确认数",
+    )
+    
+    # 接收者
+    recipient_address: Mapped[Optional[str]] = mapped_column(
+        String(42),
+        nullable=True,
+        comment="NFT接收地址",
+    )
+    
+    # 时间戳
+    mint_requested_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        comment="铸造请求时间",
+    )
+    mint_submitted_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        comment="交易提交时间",
+    )
+    mint_confirmed_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        comment="交易确认时间",
+    )
+    mint_completed_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        comment="铸造完成时间",
+    )
+    last_mint_attempt_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        comment="上次铸造尝试时间",
+    )
+    
+    # 错误处理
+    mint_attempt_count: Mapped[Optional[int]] = mapped_column(
+        nullable=True,
+        default=0,
+        comment="铸造尝试次数",
+    )
+    max_mint_attempts: Mapped[Optional[int]] = mapped_column(
+        nullable=True,
+        default=3,
+        comment="最大铸造尝试次数",
+    )
+    last_mint_error: Mapped[Optional[str]] = mapped_column(
+        Text,
+        nullable=True,
+        comment="上次铸造错误信息",
+    )
+    last_mint_error_code: Mapped[Optional[str]] = mapped_column(
+        String(50),
+        nullable=True,
+        comment="上次铸造错误码",
+    )
+    can_retry: Mapped[Optional[bool]] = mapped_column(
+        nullable=True,
+        default=True,
+        comment="是否可重试",
     )
     
     # 时间戳
@@ -219,6 +334,12 @@ class Asset(Base):
     )
     attachments: Mapped[List["Attachment"]] = relationship(
         "Attachment",
+        back_populates="asset",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+    mint_records: Mapped[List["MintRecord"]] = relationship(
+        "MintRecord",
         back_populates="asset",
         cascade="all, delete-orphan",
         lazy="selectin",
@@ -321,3 +442,132 @@ class Attachment(Base):
             str: 包含附件 ID、文件名和 IPFS CID 的格式化字符串。
         """
         return f"<Attachment(id={self.id}, file_name={self.file_name}, ipfs_cid={self.ipfs_cid})>"
+
+
+class MintRecord(Base):
+    """铸造操作审计日志"""
+    __tablename__ = "mint_records"
+    
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+        comment="铸造记录唯一标识符",
+    )
+    
+    asset_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("assets.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+        comment="关联资产ID",
+    )
+    
+    operation: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False,
+        comment="操作类型: REQUEST/SUBMIT/CONFIRM/RETRY/FAIL/SUCCESS",
+    )
+    
+    stage: Mapped[Optional[str]] = mapped_column(
+        String(20),
+        nullable=True,
+        comment="当前阶段: PREPARING/SUBMITTING/CONFIRMING/COMPLETED",
+    )
+    
+    operator_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        comment="操作者用户ID",
+    )
+    
+    operator_address: Mapped[Optional[str]] = mapped_column(
+        String(42),
+        nullable=True,
+        comment="操作者钱包地址",
+    )
+    
+    token_id: Mapped[Optional[int]] = mapped_column(
+        nullable=True,
+        comment="NFT Token ID",
+    )
+    
+    tx_hash: Mapped[Optional[str]] = mapped_column(
+        String(66),
+        nullable=True,
+        index=True,
+        comment="交易哈希",
+    )
+    
+    block_number: Mapped[Optional[int]] = mapped_column(
+        nullable=True,
+        comment="区块号",
+    )
+    
+    gas_used: Mapped[Optional[int]] = mapped_column(
+        nullable=True,
+        comment="Gas消耗",
+    )
+    
+    status: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False,
+        default="PENDING",
+        comment="状态: PENDING/SUCCESS/FAILED",
+    )
+    
+    error_code: Mapped[Optional[str]] = mapped_column(
+        String(50),
+        nullable=True,
+        comment="错误码",
+    )
+    
+    error_message: Mapped[Optional[str]] = mapped_column(
+        Text,
+        nullable=True,
+        comment="错误信息",
+    )
+    
+    metadata_uri: Mapped[Optional[str]] = mapped_column(
+        String(500),
+        nullable=True,
+        comment="NFT元数据URI",
+    )
+    
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+        comment="创建时间",
+    )
+    
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
+        comment="更新时间",
+    )
+    
+    completed_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        comment="完成时间",
+    )
+    
+    asset: Mapped["Asset"] = relationship(
+        "Asset",
+        back_populates="mint_records",
+    )
+    
+    operator: Mapped[Optional["User"]] = relationship("User")
+    
+    __table_args__ = (
+        Index("ix_mint_records_asset_created", "asset_id", "created_at"),
+        Index("ix_mint_records_tx_hash", "tx_hash"),
+        Index("ix_mint_records_status", "status"),
+    )
+    
+    def __repr__(self) -> str:
+        return f"<MintRecord(id={self.id}, asset_id={self.asset_id}, operation={self.operation}, status={self.status})>"

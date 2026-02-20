@@ -1,0 +1,333 @@
+version: '3.8'
+
+# IPFS部署方案A：Docker Compose完整配置
+# 使用说明：
+# 1. 确保已安装Docker和Docker Compose
+# 2. 在项目根目录运行：docker-compose up -d
+# 3. 访问服务：
+#    - 前端：http://localhost:5173
+#    - 后端API：http://localhost:8000/docs
+#    - IPFS API：http://localhost:5001
+#    - IPFS Gateway：http://localhost:8080/ipfs/<CID>
+# 4. 查看日志：docker-compose logs -f
+# 5. 停止服务：docker-compose down
+# 6. 完全重置（包括数据）：docker-compose down -v
+
+services:
+  # ============================================
+  # PostgreSQL 数据库
+  # ============================================
+  db:
+    image: postgres:15-alpine
+    container_name: ipnft-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-ipnft_db}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # 初始化脚本（可选）
+      # - ./backend/init-scripts:/docker-entrypoint-initdb.d
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - ipnft-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    command: >
+      postgres
+      -c max_connections=200
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+      -c work_mem=8MB
+      -c min_wal_size=1GB
+      -c max_wal_size=4GB
+
+  # ============================================
+  # IPFS 节点 (Kubo)
+  # ============================================
+  ipfs:
+    image: ipfs/kubo:latest
+    container_name: ipnft-ipfs
+    environment:
+      # IPFS配置环境变量
+      IPFS_PATH: /data/ipfs
+      IPFS_SWARM_KEY: /key/swarm
+      IPFS_PROFILE: server
+      IPFS_API_PORT: 5001
+      IPFS_GATEWAY_PORT: 8080
+      # 可选：配置PeerID（用于组建私有网络）
+      # IPFS_PRIVATE_KEY: <base64-encoded-key>
+    volumes:
+      - ipfs_data:/data/ipfs
+      # 挂载配置目录（可选）
+      # - ./ipfs-config:/container-init.d
+    ports:
+      # API端口（后端连接用）
+      - "${IPFS_API_PORT:-5001}:5001"
+      # Gateway端口（文件访问用）
+      - "${IPFS_GATEWAY_PORT:-8080}:8080"
+      # Swarm端口（P2P网络通信）
+      - "${IPFS_SWARM_PORT:-4001}:4001"
+      # WebSocket Swarm端口（浏览器连接）
+      - "${IPFS_WS_PORT:-4002}:4002/udp"
+      - "${IPFS_WS_PORT:-4002}:4002/tcp"
+    networks:
+      - ipnft-network
+    healthcheck:
+      test: ["CMD", "ipfs", "id"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    # 自定义启动命令（配置优化）
+    command: >
+      sh -c "
+        set -e
+        
+        # 初始化IPFS（如果尚未初始化）
+        if [ ! -f \$$IPFS_PATH/config ]; then
+          echo 'Initializing IPFS...'
+          ipfs init --profile=server
+        fi
+        
+        # 配置API监听地址（允许所有接口访问）
+        ipfs config Addresses.API /ip4/0.0.0.0/tcp/5001
+        
+        # 配置Gateway监听地址
+        ipfs config Addresses.Gateway /ip4/0.0.0.0/tcp/8080
+        
+        # 配置Swarm监听地址
+        ipfs config Addresses.Swarm '[\"/ip4/0.0.0.0/tcp/4001\", \"/ip6/::/tcp/4001\"]'
+        
+        # 配置CORS（允许前端跨域访问）
+        ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '[\"*\"]'
+        ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '[\"PUT\", \"POST\", \"GET\", \"DELETE\", \"OPTIONS\"]'
+        ipfs config --json API.HTTPHeaders.Access-Control-Allow-Headers '[\"X-Requested-With\", \"Authorization\", \"Content-Type\", \"Accept\", \"Origin\"]'
+        
+        # 配置Datastore存储上限
+        ipfs config --json Datastore.StorageMax '\"100GB\"'
+        
+        # 配置连接管理
+        ipfs config --json Swarm.ConnMgr.HighWater 200
+        ipfs config --json Swarm.ConnMgr.LowWater 100
+        ipfs config --json Swarm.ConnMgr.GracePeriod '20s'
+        
+        # 启用实验性功能（可选）
+        ipfs config --json Experimental.AcceleratedDHTClient true
+        
+        # 输出配置完成信息
+        echo 'IPFS Configuration Complete!'
+        echo 'API Port: 5001'
+        echo 'Gateway Port: 8080'
+        echo 'Swarm Port: 4001'
+        
+        # 启动IPFS守护进程
+        exec ipfs daemon --migrate=true --enable-gc
+      "
+
+  # ============================================
+  # 后端API服务 (FastAPI)
+  # ============================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        - PYTHON_VERSION=3.11
+    container_name: ipnft-backend
+    environment:
+      # 应用配置
+      APP_NAME: IP-NFT Management API
+      APP_VERSION: 1.0.0
+      DEBUG: "false"
+      
+      # 数据库配置
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/ipnft_db
+      DATABASE_SYNC_URL: postgresql://postgres:postgres@db:5432/ipnft_db
+      
+      # JWT配置（必须从.env文件或环境变量提供）
+      SECRET_KEY: ${SECRET_KEY}
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 30
+      REFRESH_TOKEN_EXPIRE_DAYS: 7
+      
+      # CORS配置
+      CORS_ORIGINS: '["http://localhost:5173", "http://localhost:3000"]'
+      
+      # IPFS配置（使用Docker网络内部地址）
+      IPFS_API_URL: http://ipfs:5001
+      
+      # 邮件服务配置
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      EMAIL_FROM: ${EMAIL_FROM}
+      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME}
+      FRONTEND_URL: ${FRONTEND_URL}
+      
+      # 区块链配置
+      WEB3_PROVIDER_URL: ${WEB3_PROVIDER_URL}
+      CONTRACT_ADDRESS: ${CONTRACT_ADDRESS}
+    env_file:
+      - ./backend/.env
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      ipfs:
+        condition: service_started
+    networks:
+      - ipnft-network
+    volumes:
+      # 开发模式：挂载代码目录（热重载）
+      - ./backend:/app
+      # 排除__pycache__（避免权限问题）
+      - /app/__pycache__
+      # 可选：挂载日志目录
+      # - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    # 生产环境命令（无热重载）
+    # command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+    # 开发环境命令（热重载）
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir /app
+
+  # ============================================
+  # 前端开发服务器 (React + Vite)
+  # ============================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: ipnft-frontend
+    environment:
+      # API基础URL（指向后端容器）
+      VITE_API_BASE_URL: http://localhost:8000
+      # IPFS Gateway地址
+      VITE_IPFS_GATEWAY: http://localhost:8080/ipfs
+      # 开发环境标志
+      NODE_ENV: development
+      # Vite配置
+      VITE_PORT: 5173
+      VITE_HOST: "0.0.0.0"
+    env_file:
+      - ./frontend/.env
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173"
+    depends_on:
+      - backend
+      - ipfs
+    networks:
+      - ipnft-network
+    volumes:
+      # 挂载源代码（热重载）
+      - ./frontend:/app
+      # 排除node_modules（避免权限和性能问题）
+      - /app/node_modules
+      # 排除dist目录
+      - /app/dist
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:5173"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+    # 开发服务器命令（热重载）
+    command: npm run dev -- --host 0.0.0.0
+
+  # ============================================
+  # 可选：Redis缓存服务
+  # ============================================
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: ipnft-redis
+  #   ports:
+  #     - "6379:6379"
+  #   networks:
+  #     - ipnft-network
+  #   volumes:
+  #     - redis_data:/data
+  #   restart: unless-stopped
+
+  # ============================================
+  # 可选：Nginx反向代理
+  # ============================================
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: ipnft-nginx
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - ./nginx/ssl:/etc/nginx/ssl:ro
+  #   networks:
+  #     - ipnft-network
+  #   depends_on:
+  #     - frontend
+  #     - backend
+  #   restart: unless-stopped
+
+# ============================================
+# 数据卷定义
+# ============================================
+volumes:
+  # PostgreSQL数据持久化
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/data/postgres
+    # 或者直接使用Docker管理的卷（推荐生产环境）：
+    # driver: local
+
+  # IPFS数据持久化
+  ipfs_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/data/ipfs
+    # 或者直接使用Docker管理的卷：
+    # driver: local
+
+  # Redis数据持久化（可选）
+  # redis_data:
+  #   driver: local
+
+# ============================================
+# 网络定义
+# ============================================
+networks:
+  ipnft-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1
+    # 可选：为网络命名，方便识别
+    # name: ipnft-network
