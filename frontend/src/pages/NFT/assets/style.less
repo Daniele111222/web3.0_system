@@ -1,0 +1,117 @@
+/**
+ * NFT 资产管理页面样式
+ */
+
+// 变量定义
+@primary-glow: #00d4ff;
+@success-glow: #00ff88;
+@text-primary: #ffffff;
+@text-secondary: #8892b0;
+@bg-card: rgba(10, 10, 15, 0.95);
+@border-color: rgba(0, 212, 255, 0.1);
+
+.nft-assets-page {
+  // 页面头部
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+
+    .header-content {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+
+      .header-icon {
+        font-size: 32px;
+        color: @primary-glow;
+        filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.5));
+      }
+
+      .header-text {
+        .page-title {
+          font-size: 28px;
+          font-weight: 700;
+          color: @text-primary;
+          margin: 0 0 8px 0;
+          background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+
+        .page-subtitle {
+          font-size: 14px;
+          color: @text-secondary;
+          margin: 0;
+        }
+      }
+    }
+  }
+
+  // 筛选卡片
+  .filter-card {
+    background: @bg-card;
+    border: 1px solid @border-color;
+    border-radius: 12px;
+
+    .filter-row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+  }
+
+  // 资产卡片
+  .assets-card {
+    background: @bg-card;
+    border: 1px solid @border-color;
+    border-radius: 12px;
+
+    .assets-tabs {
+      .ant-tabs-nav {
+        border-bottom: 1px solid @border-color;
+
+        .ant-tabs-tab {
+          color: @text-secondary;
+
+          &:hover {
+            color: @text-primary;
+          }
+
+          &.ant-tabs-tab-active {
+            color: @primary-glow;
+          }
+        }
+      }
+    }
+
+    .empty-state {
+      padding: 60px 0;
+
+      .ant-empty-description {
+        color: @text-secondary;
+      }
+    }
+  }
+}
+
+// 响应式适配
+@media (max-width: 768px) {
+  .nft-assets-page {
+    .page-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .filter-card .filter-row {
+      flex-direction: column;
+
+      > * {
+        width: 100% !important;
+      }
+    }
+  }
+}

@@ -1,0 +1,207 @@
+/**
+ * NFT 布局组件样式
+ * 包含侧边栏导航和主内容区布局
+ */
+
+// 变量定义
+@primary-glow: #00d4ff;
+@success-glow: #00ff88;
+@text-primary: #ffffff;
+@text-secondary: #8892b0;
+@bg-dark: #0a0a0f;
+@bg-card: rgba(10, 10, 15, 0.95);
+@border-color: rgba(0, 212, 255, 0.1);
+
+// ============================================
+// 布局主容器
+// ============================================
+
+.nft-layout {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #050508 0%, #0a0a0f 50%, #0d0d14 100%);
+}
+
+// ============================================
+// 侧边栏
+// ============================================
+
+.nft-sider {
+  background: @bg-card !important;
+  border-right: 1px solid @border-color;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+
+  .sider-header {
+    height: 64px;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    border-bottom: 1px solid @border-color;
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.05) 0%, transparent 100%);
+
+    .header-icon {
+      font-size: 24px;
+      color: @primary-glow;
+      margin-right: 12px;
+      filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.5));
+    }
+
+    .header-text {
+      font-size: 18px;
+      font-weight: 600;
+      color: @text-primary;
+      background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+  }
+
+  // 菜单样式
+  .nft-menu {
+    background: transparent;
+    border-right: none;
+    padding: 12px;
+
+    .ant-menu-item {
+      height: 48px;
+      line-height: 48px;
+      margin: 4px 0;
+      padding: 0 16px !important;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+
+      .anticon {
+        font-size: 18px;
+        margin-right: 12px;
+        color: @text-secondary;
+        transition: all 0.3s ease;
+      }
+
+      a {
+        color: @text-secondary;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+
+        &.active,
+        &:hover {
+          color: @text-primary;
+        }
+      }
+
+      &:hover {
+        background: rgba(0, 212, 255, 0.05);
+
+        .anticon {
+          color: @primary-glow;
+        }
+      }
+
+      &.ant-menu-item-selected {
+        background: linear-gradient(
+          135deg,
+          rgba(0, 212, 255, 0.1) 0%,
+          rgba(0, 212, 255, 0.05) 100%
+        );
+        border: 1px solid rgba(0, 212, 255, 0.2);
+
+        .anticon {
+          color: @primary-glow;
+          filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.5));
+        }
+
+        a {
+          color: @primary-glow;
+          font-weight: 600;
+        }
+
+        &::after {
+          display: none;
+        }
+      }
+    }
+  }
+}
+
+// ============================================
+// 主内容区
+// ============================================
+
+.nft-main-layout {
+  background: transparent;
+
+  // 面包屑导航
+  .breadcrumb-wrapper {
+    padding: 16px 24px;
+    background: rgba(10, 10, 15, 0.5);
+    border-bottom: 1px solid @border-color;
+
+    .nft-breadcrumb {
+      .ant-breadcrumb-link {
+        a {
+          color: @text-secondary;
+          transition: color 0.3s ease;
+
+          &:hover {
+            color: @primary-glow;
+          }
+        }
+
+        span {
+          color: @text-primary;
+          font-weight: 500;
+        }
+      }
+
+      .ant-breadcrumb-separator {
+        color: @text-secondary;
+      }
+    }
+  }
+
+  // 内容区域
+  .nft-content {
+    padding: 24px;
+    min-height: calc(100vh - 64px);
+  }
+}
+
+// ============================================
+// 响应式适配
+// ============================================
+
+@media (max-width: 992px) {
+  .nft-sider {
+    .sider-header {
+      padding: 0 16px;
+
+      .header-text {
+        font-size: 16px;
+      }
+    }
+  }
+
+  .nft-main-layout {
+    .breadcrumb-wrapper {
+      padding: 12px 16px;
+    }
+
+    .nft-content {
+      padding: 16px;
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .nft-sider {
+    .sider-header {
+      .header-icon {
+        font-size: 20px;
+      }
+
+      .header-text {
+        font-size: 14px;
+      }
+    }
+  }
+}

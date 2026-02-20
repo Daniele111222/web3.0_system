@@ -1,0 +1,426 @@
+/**
+ * MintCard 组件样式
+ * 赛博朋克科技风格设计
+ * 包含发光边框、渐变效果、动态动画
+ */
+
+@import '../../../styles/variables.less';
+
+// ============================================
+// 变量定义
+// ============================================
+
+@card-bg: #0a0a0f;
+@card-border: #1a1a2e;
+@primary-glow: #00d4ff;
+@success-glow: #00ff88;
+@error-glow: #ff4444;
+@warning-glow: #ffaa00;
+@text-primary: #ffffff;
+@text-secondary: #8892b0;
+@text-muted: #5a6474;
+
+// ============================================
+// 基础卡片样式
+// ============================================
+
+.mint-card {
+  position: relative;
+  background: linear-gradient(135deg, @card-bg 0%, #12121a 100%);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+
+  // 默认边框发光效果
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 12px;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.3), rgba(138, 43, 226, 0.3));
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+  }
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 32px rgba(0, 212, 255, 0.15);
+
+    &::before {
+      opacity: 1;
+    }
+  }
+
+  // 铸造中状态的脉冲动画
+  &.minting {
+    animation: card-pulse 2s ease-in-out infinite;
+
+    &::before {
+      background: linear-gradient(135deg, rgba(255, 170, 0, 0.5), rgba(255, 68, 0, 0.5));
+      opacity: 0.8;
+    }
+  }
+
+  // 已铸造状态
+  &.minted {
+    &::before {
+      background: linear-gradient(135deg, rgba(0, 255, 136, 0.4), rgba(0, 212, 255, 0.4));
+      opacity: 0.7;
+    }
+  }
+}
+
+// 卡片脉冲动画
+@keyframes card-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 170, 0, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px 5px rgba(255, 170, 0, 0.2);
+  }
+}
+
+// ============================================
+// 卡片头部样式
+// ============================================
+
+.card-header {
+  display: flex;
+  padding: 16px;
+  gap: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+// 资产缩略图
+.asset-thumbnail {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #1a1a2e 0%, #0a0a0f 100%);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .thumbnail-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: @primary-glow;
+    opacity: 0.6;
+  }
+
+  // 状态徽章
+  .status-badge {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+
+    .ant-badge-status-dot {
+      width: 10px;
+      height: 10px;
+      box-shadow: 0 0 5px currentColor;
+    }
+  }
+}
+
+// 资产信息
+.asset-info {
+  flex: 1;
+  min-width: 0;
+
+  .asset-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: @text-primary;
+    margin: 0 0 4px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .asset-type {
+    font-size: 12px;
+    color: @text-secondary;
+    margin: 0 0 8px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .status-tag {
+    .ant-tag {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 500;
+
+      .anticon {
+        font-size: 11px;
+        margin-right: 4px;
+      }
+    }
+  }
+}
+
+// ============================================
+// 铸造进度条样式
+// ============================================
+
+.mint-progress-section {
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.mint-progress-bar {
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+
+    .stage-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: @text-secondary;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .progress-percentage {
+      font-size: 13px;
+      font-weight: 600;
+      color: @primary-glow;
+      font-family: 'Courier New', monospace;
+
+      &.error {
+        color: @error-glow;
+      }
+    }
+  }
+
+  .progress-track {
+    position: relative;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: visible;
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, @primary-glow 0%, @success-glow 100%);
+      border-radius: 3px;
+      transition: width 0.5s ease;
+      box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+
+      &.error {
+        background: linear-gradient(90deg, @error-glow 0%, #ff8800 100%);
+        box-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+      }
+    }
+
+    // 阶段标记点
+    .stage-dot {
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 10px;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      border: 2px solid transparent;
+      transition: all 0.3s ease;
+
+      &.active {
+        background: @success-glow;
+        border-color: @success-glow;
+        box-shadow: 0 0 8px @success-glow;
+      }
+    }
+  }
+
+  .stage-description {
+    font-size: 11px;
+    color: @text-muted;
+    margin: 8px 0 0 0;
+    text-align: center;
+  }
+}
+
+// ============================================
+// 已铸造信息样式
+// ============================================
+
+.minted-info {
+  padding: 12px 16px;
+  background: rgba(0, 255, 136, 0.05);
+  border-top: 1px solid rgba(0, 255, 136, 0.1);
+  border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+
+  .info-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    .label {
+      font-size: 11px;
+      color: @text-secondary;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      min-width: 60px;
+    }
+
+    .value {
+      font-size: 12px;
+      color: @text-primary;
+      font-family: 'Courier New', monospace;
+      font-weight: 500;
+
+      &.hash {
+        color: @primary-glow;
+        cursor: pointer;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+}
+
+// ============================================
+// 操作按钮区样式
+// ============================================
+
+.card-actions {
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.2);
+
+  .ant-space {
+    width: 100%;
+
+    .ant-space-item {
+      flex: 1;
+
+      .ant-btn {
+        width: 100%;
+        height: 36px;
+        font-size: 13px;
+        font-weight: 500;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+
+        // 铸造按钮样式
+        &.mint-btn {
+          background: linear-gradient(135deg, @primary-glow 0%, #0080ff 100%);
+          border: none;
+          box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+
+          &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4);
+          }
+
+          &:active {
+            transform: translateY(0);
+          }
+        }
+
+        // 重试按钮样式
+        &.retry-btn {
+          background: linear-gradient(135deg, @error-glow 0%, #ff6600 100%);
+          border: none;
+          box-shadow: 0 4px 15px rgba(255, 68, 68, 0.3);
+
+          &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 68, 68, 0.4);
+          }
+        }
+
+        // 链接按钮样式
+        &.link-btn {
+          background: rgba(0, 255, 136, 0.1);
+          border: 1px solid rgba(0, 255, 136, 0.3);
+          color: @success-glow;
+
+          &:hover {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: @success-glow;
+          }
+        }
+
+        // 详情按钮样式
+        &.detail-btn {
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          color: @text-secondary;
+
+          &:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: @text-primary;
+          }
+        }
+      }
+    }
+  }
+}
+
+// ============================================
+// 响应式适配
+// ============================================
+
+@media (max-width: 768px) {
+  .mint-card {
+    .card-header {
+      flex-direction: column;
+
+      .asset-thumbnail {
+        width: 100%;
+        height: 160px;
+      }
+
+      .asset-info {
+        text-align: center;
+      }
+    }
+
+    .card-actions {
+      .ant-space {
+        flex-direction: column;
+
+        .ant-space-item {
+          width: 100%;
+        }
+      }
+    }
+  }
+}

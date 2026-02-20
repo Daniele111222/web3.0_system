@@ -1,0 +1,372 @@
+/**
+ * MintHistory 组件样式
+ * 铸造历史记录的时间线和卡片样式
+ * 赛博朋克风格设计
+ */
+
+@import '../../../styles/variables.less';
+
+// ============================================
+// 变量定义
+// ============================================
+
+@primary-glow: #00d4ff;
+@success-glow: #00ff88;
+@error-glow: #ff4444;
+@warning-glow: #ffaa00;
+@text-primary: #ffffff;
+@text-secondary: #8892b0;
+@text-muted: #5a6474;
+@card-bg: #0a0a0f;
+@card-border: #1a1a2e;
+
+// ============================================
+// 主卡片样式
+// ============================================
+
+.mint-history-card {
+  background: linear-gradient(135deg, @card-bg 0%, #12121a 100%);
+  border: 1px solid rgba(0, 212, 255, 0.15);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+
+  .ant-card-head {
+    background: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 16px 20px;
+
+    .ant-card-head-title {
+      padding: 0;
+    }
+
+    .ant-card-extra {
+      padding: 0;
+    }
+  }
+
+  .ant-card-body {
+    padding: 20px;
+    background: transparent;
+  }
+}
+
+// ============================================
+// 头部样式
+// ============================================
+
+.history-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .anticon {
+    font-size: 20px;
+    color: @primary-glow;
+    filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.5));
+  }
+
+  span {
+    font-size: 16px;
+    font-weight: 600;
+    color: @text-primary;
+    letter-spacing: 0.5px;
+  }
+
+  .asset-tag {
+    margin-left: 8px;
+    font-size: 11px;
+    padding: 2px 8px;
+  }
+}
+
+// ============================================
+// 筛选标签页样式
+// ============================================
+
+.filter-tabs {
+  .ant-tabs-nav {
+    margin-bottom: 0;
+
+    &::before {
+      display: none;
+    }
+
+    .ant-tabs-nav-wrap {
+      .ant-tabs-nav-list {
+        .ant-tabs-tab {
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 6px;
+          padding: 4px 12px;
+          margin: 0 4px;
+          font-size: 12px;
+          color: @text-secondary;
+          transition: all 0.2s ease;
+
+          &:hover {
+            color: @text-primary;
+            background: rgba(255, 255, 255, 0.1);
+          }
+
+          &.ant-tabs-tab-active {
+            background: rgba(0, 212, 255, 0.15);
+            border-color: @primary-glow;
+            color: @primary-glow;
+
+            .ant-tabs-tab-btn {
+              color: @primary-glow;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .ant-tabs-ink-bar {
+    display: none;
+  }
+}
+
+// ============================================
+// 时间线样式
+// ============================================
+
+.mint-timeline {
+  .ant-timeline-item {
+    padding-bottom: 20px;
+
+    &:last-child {
+      padding-bottom: 0;
+    }
+
+    // 时间线圆点
+    .ant-timeline-item-tail {
+      border-left: 2px dashed rgba(255, 255, 255, 0.1);
+      left: 15px;
+    }
+
+    .ant-timeline-item-head {
+      width: 32px;
+      height: 32px;
+      border: 2px solid;
+      border-radius: 50%;
+      left: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: @card-bg;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+
+      // 成功状态
+      &.success {
+        border-color: @success-glow;
+        color: @success-glow;
+        box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+      }
+
+      // 失败状态
+      &.error {
+        border-color: @error-glow;
+        color: @error-glow;
+        box-shadow: 0 0 15px rgba(255, 68, 68, 0.3);
+      }
+
+      // 进行中状态
+      &.processing {
+        border-color: @warning-glow;
+        color: @warning-glow;
+        box-shadow: 0 0 15px rgba(255, 170, 0, 0.3);
+      }
+
+      // 默认状态
+      &.default {
+        border-color: @text-muted;
+        color: @text-muted;
+      }
+    }
+
+    // 时间线内容
+    .ant-timeline-item-content {
+      margin-left: 48px;
+
+      .timeline-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        overflow: hidden;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.05);
+          border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        &.has-error {
+          border-left: 3px solid @error-glow;
+        }
+
+        .ant-card-body {
+          padding: 12px;
+        }
+
+        // 时间线头部
+        .timeline-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 8px;
+
+          .ant-space {
+            .ant-tag {
+              margin: 0;
+              font-size: 11px;
+              padding: 2px 8px;
+              border-radius: 4px;
+
+              .anticon {
+                font-size: 10px;
+                margin-right: 4px;
+              }
+            }
+          }
+
+          .timeline-time {
+            font-size: 11px;
+            font-family: 'Courier New', monospace;
+          }
+        }
+
+        // 详情行
+        .timeline-detail {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin-top: 6px;
+
+          .ant-typography {
+            font-size: 12px;
+            margin: 0;
+          }
+
+          .tx-link {
+            padding: 0;
+            height: auto;
+            font-size: 11px;
+            font-family: 'Courier New', monospace;
+
+            .anticon {
+              font-size: 10px;
+            }
+          }
+
+          .ant-tag {
+            margin: 0;
+            font-size: 11px;
+            padding: 1px 6px;
+          }
+        }
+
+        // 错误信息
+        .timeline-error {
+          display: flex;
+          align-items: flex-start;
+          gap: 8px;
+          margin-top: 8px;
+          padding: 8px;
+          background: rgba(255, 68, 68, 0.1);
+          border-radius: 6px;
+          border-left: 2px solid @error-glow;
+
+          .anticon {
+            color: @error-glow;
+            font-size: 14px;
+            margin-top: 2px;
+          }
+
+          .ant-typography {
+            font-size: 12px;
+            line-height: 1.5;
+            margin: 0;
+          }
+        }
+
+        // 持续时间
+        .timeline-duration {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin-top: 8px;
+          padding-top: 8px;
+          border-top: 1px solid rgba(255, 255, 255, 0.05);
+
+          .anticon {
+            font-size: 12px;
+            color: @text-muted;
+          }
+
+          .ant-typography {
+            font-size: 11px;
+            margin: 0;
+          }
+        }
+
+        // 操作按钮
+        .timeline-actions {
+          margin-top: 10px;
+          display: flex;
+          justify-content: flex-end;
+
+          .ant-btn {
+            height: 28px;
+            padding: 0 12px;
+            font-size: 12px;
+            border-radius: 4px;
+
+            .anticon {
+              font-size: 11px;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// ============================================
+// 空状态样式
+// ============================================
+
+.ant-empty {
+  padding: 40px 0;
+
+  .ant-empty-image {
+    height: 80px;
+
+    svg {
+      fill: @text-muted;
+    }
+  }
+
+  .ant-empty-description {
+    color: @text-secondary;
+    font-size: 14px;
+    margin-top: 16px;
+  }
+}
+
+// ============================================
+// 加载状态样式
+// ============================================
+
+.ant-spin {
+  .ant-spin-dot {
+    .ant-spin-dot-item {
+      background: @primary-glow;
+    }
+  }
+
+  .ant-spin-text {
+    color: @text-secondary;
+    margin-top: 12px;
+  }
+}
