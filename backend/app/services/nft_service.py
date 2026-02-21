@@ -208,6 +208,9 @@ class NFTService:
         asset.mint_confirmed_at = datetime.now(timezone.utc)
         asset.mint_completed_at = datetime.now(timezone.utc)
         asset.can_retry = False
+        # 铸造完成后初始化权属信息
+        asset.owner_address = minter_address
+        asset.ownership_status = "ACTIVE"
         
         mint_record.token_id = token_id
         mint_record.stage = "COMPLETED"

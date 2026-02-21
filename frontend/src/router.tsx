@@ -14,6 +14,8 @@ import PendingList from './pages/Approval/PendingList';
 import History from './pages/Approval/History';
 import ApprovalDetail from './pages/Approval/Detail';
 import BlockchainExplorer from './pages/BlockchainExplorer';
+import OwnershipDashboard from './pages/NFT/ownership';
+import NFTHistoryPage from './pages/NFT/ownership/History';
 
 /**
  * 应用路由配置
@@ -68,6 +70,14 @@ export const router = createBrowserRouter([
       {
         path: 'nft',
         element: <NFT />,
+      },
+      {
+        path: 'nft/ownership',
+        element: <OwnershipDashboard />,
+      },
+      {
+        path: 'nft/ownership/history/:tokenId',
+        element: <NFTHistoryPage />,
       },
       {
         path: 'approvals',

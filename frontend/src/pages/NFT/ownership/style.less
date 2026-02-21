@@ -1,0 +1,289 @@
+// 权属看板页面样式
+// 遵循极光科技暗色主题设计规范
+
+.ownership-dashboard-page {
+  min-height: 100vh;
+  padding: 24px;
+  background: var(--bg-primary);
+
+  // 页面头部
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    padding: 24px;
+    background: linear-gradient(135deg, rgba(26, 26, 37, 0.6), rgba(18, 18, 26, 0.9));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+
+    .header-content {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+
+      .header-icon {
+        font-size: 32px;
+        color: var(--color-primary);
+        filter: drop-shadow(0 0 8px rgba(0, 212, 170, 0.4));
+      }
+
+      .header-text {
+        .page-title {
+          margin: 0;
+          font-size: 28px;
+          font-weight: 600;
+          color: var(--text-primary);
+          letter-spacing: 0.5px;
+        }
+
+        .page-subtitle {
+          margin: 4px 0 0 0;
+          font-size: 14px;
+          color: var(--text-tertiary);
+        }
+      }
+    }
+  }
+
+  // 统计卡片区
+  .stats-section {
+    margin-bottom: 24px;
+
+    .ant-card {
+      background: linear-gradient(135deg, rgba(26, 26, 37, 0.8), rgba(18, 18, 26, 0.95));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-lg);
+      transition: all 0.3s var(--ease-out);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+
+      &:hover {
+        transform: translateY(-4px);
+        border-color: rgba(0, 212, 170, 0.3);
+        box-shadow:
+          0 8px 24px rgba(0, 0, 0, 0.3),
+          0 0 20px rgba(0, 212, 170, 0.1);
+      }
+
+      .ant-statistic {
+        .ant-statistic-title {
+          font-size: 14px;
+          color: var(--text-tertiary);
+          margin-bottom: 8px;
+        }
+
+        .ant-statistic-content {
+          font-size: 28px;
+          font-weight: 600;
+          color: var(--text-primary);
+          font-family: var(--font-mono);
+
+          .ant-statistic-prefix {
+            margin-right: 8px;
+            color: var(--color-primary);
+          }
+        }
+      }
+    }
+  }
+
+  // 筛选卡片
+  .filter-card {
+    margin-bottom: 16px;
+    background: rgba(26, 26, 37, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+
+    .ant-select-selector,
+    .ant-input-affix-wrapper {
+      background: var(--bg-tertiary) !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+      color: var(--text-primary) !important;
+
+      &:hover {
+        border-color: rgba(255, 255, 255, 0.2) !important;
+      }
+
+      &:focus,
+      &.ant-select-focused {
+        border-color: var(--color-primary) !important;
+        box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.1) !important;
+      }
+    }
+
+    .ant-select-selection-placeholder,
+    .ant-input::placeholder {
+      color: var(--text-muted);
+    }
+  }
+
+  // 资产表格卡片
+  .assets-table-card {
+    background: rgba(26, 26, 37, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+
+    .ant-table {
+      background: transparent;
+      color: var(--text-primary);
+
+      .ant-table-thead > tr > th {
+        background: rgba(255, 255, 255, 0.03);
+        border-bottom-color: rgba(255, 255, 255, 0.1);
+        color: var(--text-secondary);
+        font-weight: 500;
+      }
+
+      .ant-table-tbody > tr {
+        &:hover > td {
+          background: rgba(0, 212, 170, 0.05);
+        }
+
+        > td {
+          border-bottom-color: rgba(255, 255, 255, 0.05);
+          color: var(--text-primary);
+        }
+      }
+
+      .ant-table-tbody > tr.ant-table-row-selected > td {
+        background: rgba(0, 212, 170, 0.08);
+      }
+    }
+
+    .ant-pagination {
+      .ant-pagination-item {
+        background: var(--bg-tertiary);
+        border-color: rgba(255, 255, 255, 0.1);
+
+        a {
+          color: var(--text-primary);
+        }
+
+        &.ant-pagination-item-active {
+          background: var(--color-primary);
+          border-color: var(--color-primary);
+
+          a {
+            color: #fff;
+          }
+        }
+      }
+    }
+  }
+}
+
+// NFT 历史溯源页面样式
+.nft-history-page {
+  min-height: 100vh;
+  padding: 24px;
+  background: var(--bg-primary);
+
+  .page-header {
+    margin-bottom: 24px;
+    padding: 20px 24px;
+    background: linear-gradient(135deg, rgba(26, 26, 37, 0.6), rgba(18, 18, 26, 0.9));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg);
+
+    .header-icon {
+      font-size: 28px;
+      color: var(--color-primary);
+    }
+
+    .page-title {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .page-subtitle {
+      margin: 4px 0 0 0;
+      font-size: 14px;
+      color: var(--text-tertiary);
+    }
+  }
+
+  // 信息卡片
+  .ant-card {
+    background: linear-gradient(135deg, rgba(26, 26, 37, 0.8), rgba(18, 18, 26, 0.95));
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-lg);
+
+    .ant-card-head {
+      border-bottom-color: rgba(255, 255, 255, 0.08);
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+  }
+
+  // 描述列表
+  .ant-descriptions {
+    .ant-descriptions-item-label {
+      color: var(--text-tertiary);
+    }
+
+    .ant-descriptions-item-content {
+      color: var(--text-primary);
+    }
+  }
+
+  // 时间轴
+  .ant-timeline {
+    .ant-timeline-item-content {
+      color: var(--text-primary);
+    }
+
+    .ant-timeline-item-head {
+      border-color: var(--color-primary);
+    }
+
+    .ant-timeline-item-head-green {
+      border-color: var(--color-success);
+    }
+
+    .ant-timeline-item-head-blue {
+      border-color: var(--color-info);
+    }
+
+    .ant-timeline-item-head-orange {
+      border-color: var(--color-warning);
+    }
+
+    .ant-timeline-item-head-red {
+      border-color: var(--color-error);
+    }
+  }
+
+  // 时间轴卡片
+  .ant-timeline-item-content .ant-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+
+    &:hover {
+      border-color: rgba(0, 212, 170, 0.3);
+      background: rgba(0, 212, 170, 0.03);
+    }
+  }
+}
+
+// 响应式适配
+@media (max-width: 768px) {
+  .ownership-dashboard-page {
+    padding: 16px;
+
+    .page-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .stats-section {
+      .ant-col {
+        width: 100%;
+      }
+    }
+  }
+}

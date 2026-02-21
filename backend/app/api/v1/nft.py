@@ -5,14 +5,15 @@
 from typing import Optional, List
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status, Body
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, status, Query
+from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.api.deps import get_current_user_id
-from app.core.exceptions import NotFoundException, ForbiddenException, BadRequestException
+from app.core.exceptions import NotFoundException, ForbiddenException, BadRequestException, BlockchainException
 from app.services.nft_service import NFTService
+from app.services.ownership_service import OwnershipService
 
 router = APIRouter(prefix="/nft", tags=["NFT"])
 
@@ -202,23 +203,43 @@ async def retry_mint_nft(
     response_model=dict,
     status_code=status.HTTP_200_OK,
     summary="转移NFT",
-    description="将NFT从一个地址转移到另一个地址",
+    description="将NFT从当前持有者转移到另一个地址",
 )
 async def transfer_nft(
-    token_id: int,
-    to_address: str,
+    token_id: int = Query(..., description="NFT Token ID"),
+    to_address: str = Query(..., description="接收方钱包地址"),
+    to_enterprise_id: Optional[UUID] = Query(None, description="接收方企业 ID（可选）"),
+    remarks: Optional[str] = Query(None, description="转移备注"),
     db: AsyncSession = Depends(get_db),
     current_user_id: UUID = Depends(get_current_user_id),
 ) -> dict:
-    """转移NFT。
+    """转移NFT所有权。
 
-    将NFT从一个地址转移到另一个地址。
-    **注意**: 此功能尚未实现。
+    调用链上 transferNFT 合约函数，并同步更新数据库权属记录。
     """
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="NFT transfer functionality is not yet implemented.",
-    )
+    service = OwnershipService(db)
+    try:
+        result = await service.transfer_nft(
+            token_id=token_id,
+            to_address=to_address,
+            to_enterprise_id=to_enterprise_id,
+            operator_id=UUID(str(current_user_id)),
+            remarks=remarks,
+        )
+        return result
+    except NotFoundException as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except ForbiddenException as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+    except BadRequestException as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except BlockchainException as e:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(e))
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"转移失败: {str(e)}",
+        )
 
 
 @router.get(
@@ -226,19 +247,34 @@ async def transfer_nft(
     response_model=dict,
     status_code=status.HTTP_200_OK,
     summary="获取NFT历史",
-    description="获取NFT的完整历史记录",
+    description="获取NFT的完整权属变更历史记录",
 )
 async def get_nft_history(
     token_id: str,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
     current_user_id: UUID = Depends(get_current_user_id),
 ) -> dict:
-    """获取NFT历史记录。
-
-    获取指定NFT的完整历史记录，包括铸造、转移等操作。
-    **注意**: 此功能尚未实现。
-    """
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="NFT history functionality is not yet implemented.",
-    )
+    """获取NFT权属变更历史。"""
+    service = OwnershipService(db)
+    try:
+        records, total = await service.get_transfer_history(
+            token_id=int(token_id),
+            page=page,
+            page_size=page_size,
+        )
+        return {
+            "items": records,
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": (total + page_size - 1) // page_size,
+        }
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="token_id 必须为整数")
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"查询失败: {str(e)}",
+        )

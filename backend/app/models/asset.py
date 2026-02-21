@@ -2,7 +2,7 @@
 from datetime import datetime, date, timezone
 from enum import Enum
 from typing import Optional, List, TYPE_CHECKING
-from sqlalchemy import String, DateTime, ForeignKey, Enum as SQLEnum, Index, Text, Date, BigInteger, JSON
+from sqlalchemy import String, DateTime, ForeignKey, Enum as SQLEnum, Index, Text, Date, BigInteger, JSON, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
@@ -252,6 +252,27 @@ class Asset(Base):
         String(42),
         nullable=True,
         comment="NFT接收地址",
+    )
+
+    # 权属状态（独立于资产流程状态，专门记录链上所有权）
+    ownership_status: Mapped[Optional[str]] = mapped_column(
+        String(20),
+        nullable=True,
+        index=True,
+        comment="权属状态: ACTIVE/LICENSED/STAKED/TRANSFERRED",
+    )
+    owner_address: Mapped[Optional[str]] = mapped_column(
+        String(42),
+        nullable=True,
+        index=True,
+        comment="当前持有者钱包地址（铸造后更新，转移后变更）",
+    )
+    current_owner_enterprise_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("enterprises.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+        comment="当前归属企业 ID（可能与创建时的 enterprise_id 不同）",
     )
     
     # 时间戳

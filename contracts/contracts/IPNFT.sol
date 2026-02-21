@@ -31,6 +31,13 @@ contract IPNFT is
     event NFTMinted(uint256 indexed tokenId, address indexed creator, address indexed owner, string metadataURI);
     event NFTBurned(uint256 indexed tokenId, address indexed owner);
     event NFTTransferred(uint256 indexed tokenId, address indexed from, address indexed to);
+    event NFTTransferredWithReason(
+        uint256 indexed tokenId,
+        address indexed from,
+        address indexed to,
+        address operator,
+        string reason
+    );
     event RoyaltySet(uint256 indexed tokenId, address receiver, uint96 feeNumerator);
     event MetadataUpdated(uint256 indexed tokenId, string newURI);
     event MetadataLocked(uint256 indexed tokenId, address indexed creator);
@@ -203,6 +210,45 @@ contract IPNFT is
             emit NFTMinted(tokenId, msg.sender, to, metadataURIs[i]);
         }
 
+        return tokenIds;
+    }
+
+    /**
+     * @dev Transfer NFT with an optional reason string for audit trail
+     * @param from Current owner address
+     * @param to Recipient address
+     * @param tokenId Token ID to transfer
+     * @param reason Human-readable reason for the transfer (stored in event log)
+     */
+    function transferNFT(
+        address from,
+        address to,
+        uint256 tokenId,
+        string calldata reason
+    ) external nonReentrant whenNotPaused {
+        require(from != address(0), "IPNFT: transfer from zero address");
+        require(to != address(0), "IPNFT: transfer to zero address");
+        require(
+            _isAuthorized(_ownerOf(tokenId), msg.sender, tokenId),
+            "IPNFT: caller is not owner nor approved"
+        );
+
+        _transfer(from, to, tokenId);
+
+        emit NFTTransferredWithReason(tokenId, from, to, msg.sender, reason);
+    }
+
+    /**
+     * @dev Get all token IDs owned by an address (uses ERC721Enumerable)
+     * @param owner Address to query
+     * @return Array of token IDs
+     */
+    function getOwnerTokenIds(address owner) external view returns (uint256[] memory) {
+        uint256 balance = balanceOf(owner);
+        uint256[] memory tokenIds = new uint256[](balance);
+        for (uint256 i = 0; i < balance; i++) {
+            tokenIds[i] = tokenOfOwnerByIndex(owner, i);
+        }
         return tokenIds;
     }
 

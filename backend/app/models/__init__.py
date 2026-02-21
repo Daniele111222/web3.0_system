@@ -13,6 +13,7 @@ from app.models.approval import (
     ApprovalStatus,
     ApprovalAction,
 )
+from app.models.ownership import NFTTransferRecord, OwnershipStatus, TransferType, TransferStatus
 
 __all__ = [
     "User",
@@ -33,4 +34,8 @@ __all__ = [
     "ApprovalType",
     "ApprovalStatus",
     "ApprovalAction",
+    "NFTTransferRecord",
+    "OwnershipStatus",
+    "TransferType",
+    "TransferStatus",
 ]

@@ -322,6 +322,55 @@ class BlockchainClient:
             abi=self._contract_abi
         )
     
+    async def transfer_nft(
+        self,
+        from_address: str,
+        to_address: str,
+        token_id: int,
+        reason: str = "",
+    ) -> str:
+        """调用合约 transferNFT 执行链上转移。
+
+        使用合约自定义的 transferNFT 函数（带 reason 参数），
+        由 deployer 账户作为 operator 发送交易。
+
+        Args:
+            from_address: 当前持有者地址
+            to_address: 接收方地址
+            token_id: NFT Token ID
+            reason: 转移原因（写入链上事件日志）
+
+        Returns:
+            交易哈希字符串
+
+        Raises:
+            BlockchainConnectionError: 合约调用失败
+        """
+        if not self.contract_address:
+            raise BlockchainConnectionError("NFT 合约未部署，请先设置 CONTRACT_ADDRESS")
+
+        try:
+            checksum_from = self.w3.to_checksum_address(from_address)
+            checksum_to = self.w3.to_checksum_address(to_address)
+            contract = self._get_contract()
+
+            tx_hash = contract.functions.transferNFT(
+                checksum_from,
+                checksum_to,
+                token_id,
+                reason,
+            ).transact({'from': self.deployer_address})
+
+            self.w3.eth.wait_for_transaction_receipt(tx_hash)
+            logger.info(
+                f"NFT #{token_id} transferred: {from_address} -> {to_address}, tx={tx_hash.hex()}"
+            )
+            return tx_hash.hex()
+
+        except Exception as e:
+            logger.error(f"NFT 转移失败: {e}")
+            raise BlockchainConnectionError(f"NFT 转移失败: {str(e)}")
+
     def deploy_contract(self) -> Dict[str, Any]:
         """
         部署 NFT 智能合约。
