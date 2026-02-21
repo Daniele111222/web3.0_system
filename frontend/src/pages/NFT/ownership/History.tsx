@@ -30,7 +30,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ownershipService } from '../../../services/ownership';
 import type { OwnershipAsset, TransferRecord } from '../../../types/ownership';
 import { TransferType } from '../../../types/ownership';
-import './style.less';
+import styles from './style.module.less';
 
 const { Text } = Typography;
 
@@ -115,16 +115,16 @@ const NFTHistoryPage: React.FC = () => {
   };
 
   return (
-    <div className="nft-history-page">
-      <div className="page-header">
+    <div className={styles.nftHistoryPage}>
+      <div className={styles.pageHeader}>
         <Space>
-          <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
-            返回
+          <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/dashboard')}>
+            返回权属看板
           </Button>
-          <HistoryOutlined className="header-icon" />
-          <div className="header-text">
-            <h1 className="page-title">历史溯源</h1>
-            <p className="page-subtitle">NFT 完整流转记录</p>
+          <HistoryOutlined className={styles.headerIcon} />
+          <div className={styles.headerText}>
+            <h1 className={styles.pageTitle}>历史溯源</h1>
+            <p className={styles.pageSubtitle}>NFT 完整流转记录</p>
           </div>
         </Space>
       </div>

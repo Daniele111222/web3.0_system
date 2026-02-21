@@ -1,0 +1,512 @@
+/**
+ * NFT History - Aurora Tech Aesthetic
+ * 极光科技风格 - 历史记录页面
+ */
+
+// ============================================
+// 深空背景色阶
+// ============================================
+@deep-void: #020204;
+@deep-space: #050508;
+@deep-night: #0a0a12;
+@deep-matter: #0f0f1a;
+
+// ============================================
+// 极光光效色系
+// ============================================
+@aurora-cyan: #00f5ff;
+@aurora-violet: #8b5cf6;
+@aurora-pink: #ec4899;
+@aurora-amber: #f59e0b;
+@aurora-green: #10b981;
+
+// ============================================
+// 语义化颜色
+// ============================================
+@ds-text-primary: #ffffff;
+@ds-text-secondary: rgba(255, 255, 255, 0.7);
+@ds-text-tertiary: rgba(255, 255, 255, 0.45);
+@ds-glass-bg: rgba(15, 15, 26, 0.6);
+@ds-glass-border: rgba(255, 255, 255, 0.08);
+
+// ============================================
+// 关键帧动画
+// ============================================
+
+// 极光流动 - 渐变背景位置动画
+@keyframes aurora-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+// 呼吸发光 - 光晕大小和透明度变化
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 20px rgba(0, 245, 255, 0.3),
+      0 0 40px rgba(0, 245, 255, 0.2),
+      0 0 60px rgba(0, 245, 255, 0.1);
+  }
+  50% {
+    box-shadow:
+      0 0 30px rgba(0, 245, 255, 0.5),
+      0 0 60px rgba(0, 245, 255, 0.3),
+      0 0 90px rgba(0, 245, 255, 0.2);
+  }
+}
+
+// 闪光扫过 - 用于光泽效果
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+// 边框流光 - 动态渐变边框效果
+@keyframes border-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+// 悬浮动画 - 上下浮动
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+// 数字发光动画
+@keyframes number-glow {
+  0%,
+  100% {
+    text-shadow:
+      0 0 10px rgba(0, 245, 255, 0.5),
+      0 0 20px rgba(0, 245, 255, 0.3);
+  }
+  50% {
+    text-shadow:
+      0 0 20px rgba(0, 245, 255, 0.8),
+      0 0 40px rgba(0, 245, 255, 0.5);
+  }
+}
+
+// ============================================
+// 页面容器
+// ============================================
+.container {
+  min-height: 100vh;
+  padding: 32px;
+  // 多层径向渐变创建深空背景效果
+  background:
+    radial-gradient(ellipse at 20% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(0, 245, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(236, 72, 153, 0.05) 0%, transparent 70%), @deep-night;
+  color: @ds-text-primary;
+}
+
+// ============================================
+// 页面头部
+// ============================================
+.header {
+  margin-bottom: 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  h1 {
+    font-size: 32px;
+    font-weight: 700;
+    background: linear-gradient(135deg, @aurora-cyan 0%, @aurora-violet 50%, @aurora-pink 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: aurora-flow 8s ease-in-out infinite;
+    text-shadow: 0 0 30px rgba(0, 245, 255, 0.3);
+  }
+}
+
+// ============================================
+// 头部图标
+// ============================================
+.headerIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: @ds-glass-bg;
+  backdrop-filter: blur(20px);
+  border: 1px solid @ds-glass-border;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: @aurora-cyan;
+  font-size: 24px;
+  box-shadow:
+    0 0 20px rgba(0, 245, 255, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  animation: pulse-glow 3s ease-in-out infinite;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow:
+      0 0 30px rgba(0, 245, 255, 0.4),
+      0 0 60px rgba(0, 245, 255, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+}
+
+// ============================================
+// 统计卡片区域
+// ============================================
+.statsSection {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+// ============================================
+// 统计卡片
+// ============================================
+.statCard {
+  padding: 24px;
+  background: @ds-glass-bg;
+  backdrop-filter: blur(20px);
+  border: 1px solid @ds-glass-border;
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+  // 顶部流光边框
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, @aurora-cyan, @aurora-violet, @aurora-pink, @aurora-cyan);
+    background-size: 300% 100%;
+    animation: border-flow 4s linear infinite;
+  }
+
+  // 悬浮效果
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow:
+      0 0 30px rgba(0, 245, 255, 0.2),
+      0 10px 40px rgba(0, 0, 0, 0.3);
+
+    &::before {
+      animation-duration: 2s;
+    }
+  }
+
+  .statLabel {
+    font-size: 14px;
+    color: @ds-text-secondary;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .statValue {
+    font-size: 36px;
+    font-weight: 700;
+    background: linear-gradient(135deg, @aurora-cyan 0%, @aurora-violet 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: number-glow 3s ease-in-out infinite;
+    font-family: 'SF Mono', 'Monaco', monospace;
+  }
+
+  .statTrend {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    font-size: 12px;
+    color: @aurora-cyan;
+    padding: 4px 8px;
+    background: rgba(0, 245, 255, 0.1);
+    border-radius: 12px;
+    border: 1px solid rgba(0, 245, 255, 0.2);
+  }
+}
+
+// ============================================
+// 任务列表
+// ============================================
+.taskList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+// ============================================
+// 任务卡片
+// ============================================
+.taskCard {
+  padding: 20px;
+  background: @ds-glass-bg;
+  backdrop-filter: blur(20px);
+  border: 1px solid @ds-glass-border;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: rgba(0, 245, 255, 0.3);
+    box-shadow: 0 0 20px rgba(0, 245, 255, 0.15);
+  }
+
+  .taskHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+
+    .taskTitle {
+      font-size: 16px;
+      font-weight: 600;
+      color: @ds-text-primary;
+    }
+
+    .taskStatus {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+
+      &.pending {
+        background: rgba(139, 92, 246, 0.2);
+        color: @aurora-violet;
+        border: 1px solid rgba(139, 92, 246, 0.3);
+      }
+
+      &.processing {
+        background: rgba(0, 245, 255, 0.2);
+        color: @aurora-cyan;
+        border: 1px solid rgba(0, 245, 255, 0.3);
+        animation: pulse-glow 2s ease-in-out infinite;
+      }
+
+      &.completed {
+        background: rgba(16, 185, 129, 0.2);
+        color: @aurora-green;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
+
+      &.failed {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
+    }
+  }
+
+  .taskInfo {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: @ds-text-secondary;
+
+    span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      &::before {
+        content: '';
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: @aurora-cyan;
+      }
+    }
+  }
+
+  .taskProgress {
+    .progressLabel {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: @ds-text-secondary;
+    }
+
+    .progressBar {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+      position: relative;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        background: linear-gradient(90deg, @aurora-cyan, @aurora-violet, @aurora-pink);
+        background-size: 200% 100%;
+        animation: border-flow 3s linear infinite;
+        width: var(--progress, 0%);
+        border-radius: 3px;
+      }
+    }
+  }
+}
+
+// ============================================
+// 空状态
+// ============================================
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 40px;
+  text-align: center;
+
+  .emptyIcon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: @ds-glass-bg;
+    backdrop-filter: blur(20px);
+    border: 1px solid @ds-glass-border;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 36px;
+    animation: float 4s ease-in-out infinite;
+    box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.3);
+  }
+
+  .emptyTitle {
+    font-size: 18px;
+    font-weight: 600;
+    color: @ds-text-secondary;
+    margin-bottom: 8px;
+  }
+
+  .emptyDescription {
+    font-size: 14px;
+    color: @ds-text-tertiary;
+    max-width: 400px;
+  }
+}
+
+// ============================================
+// 分页样式
+// ============================================
+.paginationContainer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 24px;
+  background: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+
+  :global {
+    .ant-pagination-item {
+      background: transparent;
+      border-color: rgba(255, 255, 255, 0.2);
+
+      a {
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      &:hover {
+        border-color: @aurora-cyan;
+        a {
+          color: @aurora-cyan;
+        }
+      }
+    }
+
+    .ant-pagination-item-active {
+      background: linear-gradient(135deg, @aurora-cyan, @aurora-violet);
+      border-color: transparent;
+
+      a {
+        color: @deep-space;
+      }
+    }
+  }
+}
+
+// ============================================
+// 响应式设计
+// ============================================
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+
+    h1 {
+      font-size: 24px;
+    }
+  }
+
+  .statsSection {
+    grid-template-columns: 1fr;
+  }
+
+  .statCard {
+    padding: 16px;
+
+    .statValue {
+      font-size: 28px;
+    }
+  }
+
+  .taskCard {
+    padding: 16px;
+
+    .taskInfo {
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+  }
+
+  .paginationContainer {
+    justify-content: center;
+    padding: 12px;
+  }
+}

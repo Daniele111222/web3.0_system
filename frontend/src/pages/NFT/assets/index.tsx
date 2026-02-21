@@ -17,7 +17,7 @@ import { MintCard } from '../../../components/nft/MintCard';
 import { BatchMintModal } from '../../../components/nft/BatchMintModal';
 import type { NFTAssetCardData } from '../../../types/nft';
 import { AssetMintStatus, MintStage } from '../../../types/nft';
-import './style.less';
+import styles from './style.module.less';
 
 const { TabPane } = Tabs;
 const { Search } = Input;
@@ -153,7 +153,7 @@ const NFTAssetsPage: React.FC = () => {
         <Empty
           image={Empty.PRESENTED_IMAGE_SIMPLE}
           description="暂无符合条件的资产"
-          className="empty-state"
+          className={styles.emptyState}
         />
       );
     }
@@ -170,14 +170,14 @@ const NFTAssetsPage: React.FC = () => {
   };
 
   return (
-    <div className="nft-assets-page">
+    <div className={styles.nftAssetsPage}>
       {/* 页面标题 */}
-      <div className="page-header">
-        <div className="header-content">
-          <AppstoreOutlined className="header-icon" />
-          <div className="header-text">
-            <h1 className="page-title">资产管理</h1>
-            <p className="page-subtitle">管理和铸造您的知识产权资产</p>
+      <div className={styles.pageHeader}>
+        <div className={styles.headerContent}>
+          <AppstoreOutlined className={styles.headerIcon} />
+          <div className={styles.headerText}>
+            <h1 className={styles.pageTitle}>资产管理</h1>
+            <p className={styles.pageSubtitle}>管理和铸造您的知识产权资产</p>
           </div>
         </div>
         <Button
@@ -198,14 +198,14 @@ const NFTAssetsPage: React.FC = () => {
           type="error"
           closable
           onClose={clearError}
-          className="error-alert"
+          className={styles.errorAlert}
           style={{ marginBottom: 24 }}
         />
       )}
 
       {/* 搜索和筛选 */}
-      <Card className="filter-card" bordered={false} style={{ marginBottom: 24 }}>
-        <div className="filter-row">
+      <Card className={styles.filterCard} bordered={false} style={{ marginBottom: 24 }}>
+        <div className={styles.filterRow}>
           <Search
             placeholder="搜索资产名称、类型或创建者..."
             value={searchText}
@@ -231,8 +231,8 @@ const NFTAssetsPage: React.FC = () => {
       </Card>
 
       {/* 资产列表 */}
-      <Card className="assets-card" bordered={false}>
-        <Tabs activeKey={activeTab} onChange={setActiveTab} className="assets-tabs">
+      <Card className={styles.assetsCard} bordered={false}>
+        <Tabs activeKey={activeTab} onChange={setActiveTab} className={styles.assetsTabs}>
           <TabPane
             tab={
               <span>

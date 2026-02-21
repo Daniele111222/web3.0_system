@@ -34,7 +34,7 @@ import { ownershipService } from '../../../services/ownership';
 import type { OwnershipAsset, OwnershipStats, OwnershipFilters } from '../../../types/ownership';
 import { OwnershipStatus } from '../../../types/ownership';
 import TransferModal from '../../../components/ownership/TransferModal';
-import './style.less';
+import styles from './style.module.less';
 
 const { Search } = Input;
 const { Text } = Typography;
@@ -236,13 +236,13 @@ const OwnershipDashboard: React.FC = () => {
   ];
 
   return (
-    <div className="ownership-dashboard-page">
-      <div className="page-header">
-        <div className="header-content">
-          <DashboardOutlined className="header-icon" />
-          <div className="header-text">
-            <h1 className="page-title">权属看板</h1>
-            <p className="page-subtitle">管理企业名下的 IP-NFT 资产</p>
+    <div className={styles.ownershipDashboardPage}>
+      <div className={styles.pageHeader}>
+        <div className={styles.headerContent}>
+          <DashboardOutlined className={styles.headerIcon} />
+          <div className={styles.headerText}>
+            <h1 className={styles.pageTitle}>权属看板</h1>
+            <p className={styles.pageSubtitle}>管理企业名下的 IP-NFT 资产</p>
           </div>
         </div>
         <Space>
@@ -259,7 +259,7 @@ const OwnershipDashboard: React.FC = () => {
       </div>
 
       {/* 统计卡片区 */}
-      <Row gutter={[16, 16]} className="stats-section">
+      <Row gutter={[16, 16]} className={styles.statsSection}>
         <Col xs={12} sm={6}>
           <Card>
             <Statistic
@@ -302,7 +302,7 @@ const OwnershipDashboard: React.FC = () => {
       </Row>
 
       {/* 筛选区域 */}
-      <Card className="filter-card" bordered={false}>
+      <Card className={styles.filterCard} bordered={false}>
         <Space wrap>
           <Select
             placeholder="资产类型"
@@ -337,7 +337,7 @@ const OwnershipDashboard: React.FC = () => {
       </Card>
 
       {/* 资产表格 */}
-      <Card className="assets-table-card" bordered={false}>
+      <Card className={styles.assetsTableCard} bordered={false}>
         <Spin spinning={loading}>
           <Table
             columns={columns}

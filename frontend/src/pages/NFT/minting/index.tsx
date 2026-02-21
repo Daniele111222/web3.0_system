@@ -15,7 +15,7 @@ import {
 } from '@ant-design/icons';
 import type { NFTAssetCardData } from '../../../types/nft';
 import { AssetMintStatus, MintStage } from '../../../types/nft';
-import './style.less';
+import styles from './style.module.less';
 
 // const { Text, Title } = Typography;
 
@@ -101,26 +101,26 @@ const MintingTaskItem: React.FC<MintingTaskItemProps> = ({ asset, onRetry }) => 
   const stageConfig = STAGE_CONFIG[stage];
 
   return (
-    <Card className="minting-task-card" bordered={false}>
-      <div className="task-header">
-        <div className="task-info">
-          <h4 className="asset-name">{asset.asset_name}</h4>
-          <div className="asset-meta">
+    <Card className={styles.mintingTaskCard} bordered={false}>
+      <div className={styles.taskHeader}>
+        <div className={styles.taskInfo}>
+          <h4 className={styles.assetName}>{asset.asset_name}</h4>
+          <div className={styles.assetMeta}>
             <Tag>{asset.asset_type}</Tag>
-            <span className="creator">创建者: {asset.creator_name}</span>
+            <span className={styles.creator}>创建者: {asset.creator_name}</span>
           </div>
         </div>
-        <div className="task-status">
+        <div className={styles.taskStatus}>
           <Badge status={stage === 'FAILED' ? 'error' : 'processing'} text={stageConfig.label} />
         </div>
       </div>
 
-      <div className="task-progress">
-        <div className="progress-header">
-          <span className="stage-label">
+      <div className={styles.taskProgress}>
+        <div className={styles.progressHeader}>
+          <span className={styles.stageLabel}>
             {stageConfig.icon} {stageConfig.description}
           </span>
-          <span className="progress-text">{progress}%</span>
+          <span className={styles.progressText}>{progress}%</span>
         </div>
         <Progress
           percent={progress}
@@ -130,7 +130,7 @@ const MintingTaskItem: React.FC<MintingTaskItemProps> = ({ asset, onRetry }) => 
         />
       </div>
 
-      <div className="task-actions">
+      <div className={styles.taskActions}>
         <Space>
           <Button type="primary" icon={<LinkOutlined />} size="small" disabled={!asset.tx_hash}>
             查看交易
@@ -174,13 +174,13 @@ const NFTMintingPage: React.FC = () => {
         <Empty
           image={Empty.PRESENTED_IMAGE_SIMPLE}
           description="暂无正在铸造的任务"
-          className="empty-state"
+          className={styles.emptyState}
         />
       );
     }
 
     return (
-      <div className="minting-task-list">
+      <div className={styles.mintingTaskList}>
         {mintingAssets.map((asset) => (
           <MintingTaskItem key={asset.asset_id} asset={asset} onRetry={handleRetry} />
         ))}
@@ -189,14 +189,14 @@ const NFTMintingPage: React.FC = () => {
   };
 
   return (
-    <div className="nft-minting-page">
+    <div className={styles.nftMintingPage}>
       {/* 页面标题 */}
-      <div className="page-header">
-        <div className="header-content">
-          <FireOutlined className="header-icon" />
-          <div className="header-text">
-            <h1 className="page-title">铸造任务</h1>
-            <p className="page-subtitle">监控和管理正在进行的 NFT 铸造任务</p>
+      <div className={styles.pageHeader}>
+        <div className={styles.headerContent}>
+          <FireOutlined className={styles.headerIcon} />
+          <div className={styles.headerText}>
+            <h1 className={styles.pageTitle}>铸造任务</h1>
+            <p className={styles.pageSubtitle}>监控和管理正在进行的 NFT 铸造任务</p>
           </div>
         </div>
         <Button icon={<ReloadOutlined />} onClick={() => setLoading(true)} loading={loading}>
@@ -205,34 +205,34 @@ const NFTMintingPage: React.FC = () => {
       </div>
 
       {/* 任务统计 */}
-      <Card className="stats-card" bordered={false} style={{ marginBottom: 24 }}>
+      <Card className={styles.statsCard} bordered={false} style={{ marginBottom: 24 }}>
         <Row gutter={[24, 24]}>
           <Col xs={12} md={6}>
-            <div className="stat-item">
-              <div className="stat-label">正在铸造</div>
-              <div className="stat-value primary">{mintingAssets.length}</div>
+            <div className={styles.statItem}>
+              <div className={styles.statLabel}>正在铸造</div>
+              <div className={`${styles.statValue} ${styles.primary}`}>{mintingAssets.length}</div>
             </div>
           </Col>
           <Col xs={12} md={6}>
-            <div className="stat-item">
-              <div className="stat-label">等待确认</div>
-              <div className="stat-value warning">
+            <div className={styles.statItem}>
+              <div className={styles.statLabel}>等待确认</div>
+              <div className={`${styles.statValue} ${styles.warning}`}>
                 {mintingAssets.filter((a) => a.mint_stage === 'CONFIRMING').length}
               </div>
             </div>
           </Col>
           <Col xs={12} md={6}>
-            <div className="stat-item">
-              <div className="stat-label">提交中</div>
-              <div className="stat-value info">
+            <div className={styles.statItem}>
+              <div className={styles.statLabel}>提交中</div>
+              <div className={`${styles.statValue} ${styles.info}`}>
                 {mintingAssets.filter((a) => a.mint_stage === 'SUBMITTING').length}
               </div>
             </div>
           </Col>
           <Col xs={12} md={6}>
-            <div className="stat-item">
-              <div className="stat-label">今日完成</div>
-              <div className="stat-value success">0</div>
+            <div className={styles.statItem}>
+              <div className={styles.statLabel}>今日完成</div>
+              <div className={`${styles.statValue} ${styles.success}`}>0</div>
             </div>
           </Col>
         </Row>
@@ -240,12 +240,12 @@ const NFTMintingPage: React.FC = () => {
 
       {/* 任务列表 */}
       <Card
-        className="tasks-card"
+        className={styles.tasksCard}
         title={
-          <div className="card-title">
+          <div className={styles.cardTitle}>
             <ThunderboltOutlined />
             <span>铸造任务列表</span>
-            <Badge count={mintingAssets.length} className="task-badge" />
+            <Badge count={mintingAssets.length} className={styles.taskBadge} />
           </div>
         }
         bordered={false}

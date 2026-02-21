@@ -1,0 +1,453 @@
+/**
+ * NFT Assets - Aurora Tech Aesthetic
+ * 极光科技风格 - 资产管理页面
+ */
+
+// ============================================
+// 深空背景色阶
+// ============================================
+@deep-void: #020204;
+@deep-space: #050508;
+@deep-night: #0a0a12;
+@deep-matter: #0f0f1a;
+
+// ============================================
+// 极光光效色系
+// ============================================
+@aurora-cyan: #00f5ff;
+@aurora-violet: #8b5cf6;
+@aurora-pink: #ec4899;
+@aurora-amber: #f59e0b;
+@aurora-green: #10b981;
+
+// ============================================
+// 语义化颜色
+// ============================================
+@ds-text-primary: #ffffff;
+@ds-text-secondary: rgba(255, 255, 255, 0.7);
+@ds-text-tertiary: rgba(255, 255, 255, 0.45);
+@ds-glass-bg: rgba(15, 15, 26, 0.6);
+@ds-glass-border: rgba(255, 255, 255, 0.08);
+
+// ============================================
+// 关键帧动画
+// ============================================
+
+// 极光流动 - 渐变背景位置动画
+@keyframes aurora-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+// 呼吸发光 - 光晕大小和透明度变化
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 20px rgba(0, 245, 255, 0.3),
+      0 0 40px rgba(0, 245, 255, 0.2),
+      0 0 60px rgba(0, 245, 255, 0.1);
+  }
+  50% {
+    box-shadow:
+      0 0 30px rgba(0, 245, 255, 0.5),
+      0 0 60px rgba(0, 245, 255, 0.3),
+      0 0 90px rgba(0, 245, 255, 0.2);
+  }
+}
+
+// 闪光扫过 - 用于光泽效果
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+// 边框流光 - 动态渐变边框效果
+@keyframes border-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+// 悬浮动画 - 上下浮动
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+// 数字发光动画
+@keyframes number-glow {
+  0%,
+  100% {
+    text-shadow:
+      0 0 10px rgba(0, 245, 255, 0.5),
+      0 0 20px rgba(0, 245, 255, 0.3);
+  }
+  50% {
+    text-shadow:
+      0 0 20px rgba(0, 245, 255, 0.8),
+      0 0 40px rgba(0, 245, 255, 0.5);
+  }
+}
+
+// ============================================
+// 主页面容器
+// ============================================
+.nft-assets-page {
+  min-height: 100%;
+  padding: 32px;
+  // 多层径向渐变创建深空背景效果
+  background:
+    radial-gradient(ellipse at 10% 30%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 90% 70%, rgba(0, 245, 255, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(236, 72, 153, 0.04) 0%, transparent 60%), @deep-night;
+  position: relative;
+  overflow-x: hidden;
+
+  // ============================================
+  // 页面头部
+  // ============================================
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+    padding: 24px 28px;
+    // 玻璃拟态效果：半透明背景 + 模糊
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%),
+      @ds-glass-bg;
+    backdrop-filter: blur(20px);
+    border: 1px solid @ds-glass-border;
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.5),
+      0 0 60px rgba(0, 245, 255, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    animation: float 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+
+    // 顶部流光边框效果
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        @aurora-cyan 20%,
+        @aurora-violet 50%,
+        @aurora-pink 80%,
+        transparent 100%
+      );
+      animation: border-flow 4s linear infinite;
+      background-size: 200% 100%;
+    }
+
+    .header-content {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      position: relative;
+      z-index: 1;
+
+      .header-icon {
+        width: 56px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        color: @aurora-cyan;
+        background: linear-gradient(
+          135deg,
+          rgba(0, 245, 255, 0.2) 0%,
+          rgba(0, 245, 255, 0.05) 100%
+        );
+        border: 1px solid rgba(0, 245, 255, 0.3);
+        border-radius: 16px;
+        box-shadow:
+          0 0 20px rgba(0, 245, 255, 0.2),
+          inset 0 0 20px rgba(0, 245, 255, 0.1);
+        animation: pulse-glow 3s ease-in-out infinite;
+        position: relative;
+        z-index: 2;
+      }
+
+      .header-text {
+        .page-title {
+          font-size: 32px;
+          font-weight: 700;
+          color: @ds-text-primary;
+          margin: 0 0 6px 0;
+          letter-spacing: -0.5px;
+          background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 50%, #c4b5fd 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          background-size: 200% 200%;
+          animation: aurora-flow 5s ease infinite;
+          text-shadow: 0 0 40px rgba(139, 92, 246, 0.3);
+        }
+
+        .page-subtitle {
+          font-size: 14px;
+          color: @ds-text-secondary;
+          margin: 0;
+          font-weight: 400;
+          letter-spacing: 0.3px;
+        }
+      }
+    }
+  }
+
+  // ============================================
+  // 筛选卡片
+  // ============================================
+  .filter-card {
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%),
+      @ds-glass-bg;
+    backdrop-filter: blur(20px);
+    border: 1px solid @ds-glass-border;
+    border-radius: 16px;
+    margin-bottom: 24px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(0, 245, 255, 0.3) 50%,
+        transparent 100%
+      );
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+
+      :global {
+        .ant-input,
+        .ant-select-selector {
+          background: rgba(255, 255, 255, 0.05) !important;
+          border: 1px solid rgba(255, 255, 255, 0.08) !important;
+          border-radius: 10px !important;
+          color: @ds-text-primary !important;
+
+          &::placeholder {
+            color: @ds-text-tertiary;
+          }
+
+          &:hover,
+          &:focus {
+            border-color: rgba(0, 245, 255, 0.3) !important;
+            box-shadow: 0 0 20px rgba(0, 245, 255, 0.1) !important;
+          }
+        }
+      }
+    }
+  }
+
+  // ============================================
+  // 资产卡片
+  // ============================================
+  .assets-card {
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%),
+      @ds-glass-bg;
+    backdrop-filter: blur(20px);
+    border: 1px solid @ds-glass-border;
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.4),
+      0 0 60px rgba(0, 245, 255, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(0, 245, 255, 0.3) 50%,
+        transparent 100%
+      );
+    }
+
+    .assets-tabs {
+      :global {
+        .ant-tabs-nav {
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+          padding: 0 24px;
+          margin: 0;
+
+          .ant-tabs-tab {
+            color: @ds-text-tertiary;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 16px 20px;
+            transition: all 0.3s ease;
+
+            &:hover {
+              color: @ds-text-primary;
+            }
+
+            &.ant-tabs-tab-active {
+              color: @aurora-cyan;
+              font-weight: 600;
+
+              .ant-tabs-tab-btn {
+                text-shadow: 0 0 20px rgba(0, 245, 255, 0.5);
+              }
+            }
+          }
+
+          .ant-tabs-ink-bar {
+            background: linear-gradient(90deg, @aurora-cyan, @aurora-violet);
+            height: 2px;
+            box-shadow: 0 0 10px rgba(0, 245, 255, 0.5);
+          }
+        }
+      }
+    }
+
+    .empty-state {
+      padding: 80px 0;
+
+      :global {
+        .ant-empty-description {
+          color: @ds-text-tertiary;
+          font-size: 14px;
+        }
+
+        .ant-empty-image {
+          opacity: 0.5;
+        }
+      }
+    }
+  }
+
+  // ============================================
+  // 错误提示
+  // ============================================
+  .error-alert {
+    margin-bottom: 24px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 77, 79, 0.3);
+    background: rgba(255, 77, 79, 0.1);
+    backdrop-filter: blur(10px);
+
+    :global {
+      .ant-alert-message {
+        color: #ff4d4f;
+        font-weight: 600;
+      }
+
+      .ant-alert-description {
+        color: rgba(255, 77, 79, 0.8);
+      }
+    }
+  }
+}
+
+// ============================================
+// 响应式适配
+// ============================================
+@media (max-width: 768px) {
+  .nft-assets-page {
+    padding: 20px;
+
+    .page-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 20px;
+
+      .header-content {
+        .header-icon {
+          width: 48px;
+          height: 48px;
+          font-size: 24px;
+        }
+
+        .header-text {
+          .page-title {
+            font-size: 24px;
+          }
+        }
+      }
+    }
+
+    .filter-card {
+      padding: 16px;
+
+      .filter-row {
+        flex-direction: column;
+        align-items: stretch;
+
+        > * {
+          width: 100% !important;
+        }
+      }
+    }
+
+    .assets-card {
+      .assets-tabs {
+        :global {
+          .ant-tabs-nav {
+            padding: 0 16px;
+
+            .ant-tabs-tab {
+              padding: 12px 14px;
+              font-size: 13px;
+            }
+          }
+        }
+      }
+    }
+  }
+}

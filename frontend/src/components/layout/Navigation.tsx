@@ -130,7 +130,7 @@ export function Navigation() {
    * 导航项配置
    */
   const navItems = [
-    { key: '/dashboard', icon: LayoutDashboard, label: '权属看板' },
+    { key: '/dashboard', icon: LayoutDashboard, label: '总览' },
     { key: '/enterprises', icon: Building2, label: '企业管理' },
     { key: '/assets', icon: Files, label: '资产管理' },
     { key: '/nft', icon: Gem, label: 'NFT 铸造' },

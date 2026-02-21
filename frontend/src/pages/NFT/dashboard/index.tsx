@@ -17,7 +17,7 @@ import {
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useMintStatistics } from '../../../hooks/useNFT';
-import './style.less';
+import styles from './style.module.less';
 
 /**
  * 统计卡片组件
@@ -32,19 +32,19 @@ interface StatCardProps {
 
 const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color, onClick }) => (
   <Card
-    className="dashboard-stat-card"
+    className={styles.dashboardStatCard}
     bordered={false}
     hoverable
     onClick={onClick}
     style={{ cursor: onClick ? 'pointer' : 'default' }}
   >
-    <div className="stat-content">
-      <div className="stat-icon" style={{ color, background: `${color}20` }}>
+    <div className={styles.statContent}>
+      <div className={styles.statIcon} style={{ color, background: `${color}20` }}>
         {icon}
       </div>
-      <div className="stat-info">
-        <div className="stat-title">{title}</div>
-        <div className="stat-value" style={{ color }}>
+      <div className={styles.statInfo}>
+        <div className={styles.statTitle}>{title}</div>
+        <div className={styles.statValue} style={{ color }}>
           <Statistic value={value} />
         </div>
       </div>
@@ -125,14 +125,14 @@ const NFTDashboard: React.FC = () => {
   };
 
   return (
-    <div className="nft-dashboard-page">
+    <div className={styles.nftDashboardPage}>
       {/* 页面标题 */}
-      <div className="page-header">
-        <div className="header-content">
-          <DashboardOutlined className="header-icon" />
-          <div className="header-text">
-            <h1 className="page-title">数据概览</h1>
-            <p className="page-subtitle">实时监控 NFT 铸造状态和统计数据</p>
+      <div className={styles.pageHeader}>
+        <div className={styles.headerContent}>
+          <DashboardOutlined className={styles.headerIcon} />
+          <div className={styles.headerText}>
+            <h1 className={styles.pageTitle}>数据概览</h1>
+            <p className={styles.pageSubtitle}>实时监控 NFT 铸造状态和统计数据</p>
           </div>
         </div>
         <Button icon={<ReloadOutlined />} onClick={fetchStatistics} loading={loading}>
@@ -141,47 +141,59 @@ const NFTDashboard: React.FC = () => {
       </div>
 
       {/* 统计卡片 */}
-      <div className="stats-section">
+      <div className={styles.statsSection}>
         <Spin spinning={loading}>{renderStatCards()}</Spin>
       </div>
 
       {/* 快捷操作区 */}
-      <div className="quick-actions-section">
-        <h3 className="section-title">快捷操作</h3>
+      <div className={styles.quickActionsSection}>
+        <h3 className={styles.sectionTitle}>快捷操作</h3>
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={12} md={8}>
-            <Card className="quick-action-card" hoverable onClick={() => navigate('/nft/assets')}>
-              <div className="action-content">
-                <AppstoreOutlined className="action-icon" />
-                <div className="action-text">
+            <Card
+              className={styles.quickActionCard}
+              hoverable
+              onClick={() => navigate('/nft/assets')}
+            >
+              <div className={styles.actionContent}>
+                <AppstoreOutlined className={styles.actionIcon} />
+                <div className={styles.actionText}>
                   <h4>资产管理</h4>
                   <p>查看和管理可铸造资产</p>
                 </div>
-                <ArrowRightOutlined className="action-arrow" />
+                <ArrowRightOutlined className={styles.actionArrow} />
               </div>
             </Card>
           </Col>
           <Col xs={24} sm={12} md={8}>
-            <Card className="quick-action-card" hoverable onClick={() => navigate('/nft/minting')}>
-              <div className="action-content">
-                <FireOutlined className="action-icon" />
-                <div className="action-text">
+            <Card
+              className={styles.quickActionCard}
+              hoverable
+              onClick={() => navigate('/nft/minting')}
+            >
+              <div className={styles.actionContent}>
+                <FireOutlined className={styles.actionIcon} />
+                <div className={styles.actionText}>
                   <h4>铸造任务</h4>
                   <p>监控正在进行的铸造任务</p>
                 </div>
-                <ArrowRightOutlined className="action-arrow" />
+                <ArrowRightOutlined className={styles.actionArrow} />
               </div>
             </Card>
           </Col>
           <Col xs={24} sm={12} md={8}>
-            <Card className="quick-action-card" hoverable onClick={() => navigate('/nft/history')}>
-              <div className="action-content">
-                <HistoryOutlined className="action-icon" />
-                <div className="action-text">
+            <Card
+              className={styles.quickActionCard}
+              hoverable
+              onClick={() => navigate('/nft/history')}
+            >
+              <div className={styles.actionContent}>
+                <HistoryOutlined className={styles.actionIcon} />
+                <div className={styles.actionText}>
                   <h4>铸造历史</h4>
                   <p>查看历史铸造记录</p>
                 </div>
-                <ArrowRightOutlined className="action-arrow" />
+                <ArrowRightOutlined className={styles.actionArrow} />
               </div>
             </Card>
           </Col>

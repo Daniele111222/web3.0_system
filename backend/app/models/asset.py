@@ -347,6 +347,7 @@ class Asset(Base):
     # 关系
     enterprise: Mapped["Enterprise"] = relationship(
         "Enterprise",
+        foreign_keys=[enterprise_id],
         lazy="selectin",
     )
     creator: Mapped[Optional["User"]] = relationship(

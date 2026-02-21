@@ -19,7 +19,7 @@ import {
 import type { ColumnsType } from 'antd/es/table';
 import type { NFTAssetCardData } from '../../../types/nft';
 import { AssetMintStatus, MintStage } from '../../../types/nft';
-import './style.less';
+import styles from './style.module.less';
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
@@ -121,7 +121,7 @@ const NFTHistoryPage: React.FC = () => {
       dataIndex: 'asset_name',
       key: 'asset_name',
       render: (text: string, record: NFTAssetCardData) => (
-        <div className="asset-name-cell">
+        <div className={styles.assetNameCell}>
           <Text strong>{text}</Text>
           <br />
           <Text type="secondary" style={{ fontSize: 12 }}>
@@ -199,14 +199,14 @@ const NFTHistoryPage: React.FC = () => {
   };
 
   return (
-    <div className="nft-history-page">
+    <div className={styles.nftHistoryPage}>
       {/* 页面标题 */}
-      <div className="page-header">
-        <div className="header-content">
-          <HistoryOutlined className="header-icon" />
-          <div className="header-text">
-            <h1 className="page-title">铸造历史</h1>
-            <p className="page-subtitle">查看和管理历史铸造记录</p>
+      <div className={styles.pageHeader}>
+        <div className={styles.headerContent}>
+          <HistoryOutlined className={styles.headerIcon} />
+          <div className={styles.headerText}>
+            <h1 className={styles.pageTitle}>铸造历史</h1>
+            <p className={styles.pageSubtitle}>查看和管理历史铸造记录</p>
           </div>
         </div>
         <Space>
@@ -216,7 +216,7 @@ const NFTHistoryPage: React.FC = () => {
       </div>
 
       {/* 筛选栏 */}
-      <Card className="filter-card" bordered={false} style={{ marginBottom: 24 }}>
+      <Card className={styles.filterCard} bordered={false} style={{ marginBottom: 24 }}>
         <Space wrap>
           <RangePicker placeholder={['开始日期', '结束日期']} />
           <Select placeholder="状态筛选" style={{ width: 120 }} allowClear>
@@ -235,7 +235,7 @@ const NFTHistoryPage: React.FC = () => {
       </Card>
 
       {/* 历史记录表格 */}
-      <Card className="history-table-card" bordered={false}>
+      <Card className={styles.historyTableCard} bordered={false}>
         <Table
           rowSelection={rowSelection}
           columns={columns}

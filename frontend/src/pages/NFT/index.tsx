@@ -48,7 +48,7 @@ import { MintCard } from '../../components/nft/MintCard';
 import { BatchMintModal } from '../../components/nft/BatchMintModal';
 import type { NFTAssetCardData, ContractInfoResponse } from '../../types/nft';
 import { AssetMintStatus, MintStage } from '../../types/nft';
-import './style.less';
+import styles from './style.module.less';
 
 const { Title, Text, Paragraph } = Typography;
 const { TabPane } = Tabs;
@@ -127,16 +127,16 @@ const StatCard: React.FC<{
   color: string;
   suffix?: string;
 }> = ({ title, value, icon, color, suffix }) => (
-  <Card className="stat-card" bordered={false}>
-    <div className="stat-content">
-      <div className="stat-icon" style={{ color, background: `${color}20` }}>
+  <Card className={styles.statCard} bordered={false}>
+    <div className={styles.statContent}>
+      <div className={styles.statIcon} style={{ color, background: `${color}20` }}>
         {icon}
       </div>
-      <div className="stat-info">
-        <Text type="secondary" className="stat-title">
+      <div className={styles.statInfo}>
+        <Text type="secondary" className={styles.statTitle}>
           {title}
         </Text>
-        <div className="stat-value" style={{ color }}>
+        <div className={styles.statValue} style={{ color }}>
           <Statistic value={value} suffix={suffix} />
         </div>
       </div>
@@ -153,7 +153,7 @@ const ContractInfoCard: React.FC<{
 }> = ({ info, loading }) => {
   if (loading) {
     return (
-      <Card className="contract-info-card" bordered={false}>
+      <Card className={styles.contractInfoCard} bordered={false}>
         <Spin spinning={true}>
           <div style={{ height: 100 }} />
         </Spin>
@@ -163,7 +163,7 @@ const ContractInfoCard: React.FC<{
 
   if (!info) {
     return (
-      <Card className="contract-info-card" bordered={false}>
+      <Card className={styles.contractInfoCard} bordered={false}>
         <Empty description="未获取到合约信息" />
       </Card>
     );
@@ -171,10 +171,10 @@ const ContractInfoCard: React.FC<{
 
   return (
     <Card
-      className="contract-info-card"
+      className={styles.contractInfoCard}
       bordered={false}
       title={
-        <div className="contract-header">
+        <div className={styles.contractHeader}>
           <ClusterOutlined />
           <span>合约信息</span>
           <Badge
@@ -184,30 +184,30 @@ const ContractInfoCard: React.FC<{
         </div>
       }
     >
-      <div className="contract-details">
-        <div className="detail-row">
+      <div className={styles.contractDetails}>
+        <div className={styles.detailRow}>
           <Text type="secondary">合约地址</Text>
           <Tooltip title={info.contract_address}>
-            <Text code className="address-text">
+            <Text code className={styles.addressText}>
               {info.contract_address.slice(0, 8)}...
               {info.contract_address.slice(-6)}
             </Text>
           </Tooltip>
         </div>
-        <div className="detail-row">
+        <div className={styles.detailRow}>
           <Text type="secondary">部署者</Text>
           <Tooltip title={info.deployer_address}>
-            <Text code className="address-text">
+            <Text code className={styles.addressText}>
               {info.deployer_address.slice(0, 8)}...
               {info.deployer_address.slice(-6)}
             </Text>
           </Tooltip>
         </div>
-        <div className="detail-row">
+        <div className={styles.detailRow}>
           <Text type="secondary">链 ID</Text>
           <Tag color="blue">{info.chain_id}</Tag>
         </div>
-        <div className="detail-row">
+        <div className={styles.detailRow}>
           <Text type="secondary">ABI 状态</Text>
           <Tag color={info.has_abi ? 'success' : 'error'}>{info.has_abi ? '已加载' : '未加载'}</Tag>
         </div>
@@ -321,7 +321,7 @@ const NFTPage: React.FC = () => {
     if (!statistics) return null;
 
     return (
-      <Row gutter={[16, 16]} className="stat-cards-row">
+      <Row gutter={[16, 16]} className={styles.statCardsRow}>
         <Col xs={12} sm={12} md={6}>
           <StatCard
             title="可铸造"
@@ -365,7 +365,7 @@ const NFTPage: React.FC = () => {
         <Empty
           image={Empty.PRESENTED_IMAGE_SIMPLE}
           description={emptyText}
-          className="empty-state"
+          className={styles.emptyState}
         />
       );
     }
@@ -382,18 +382,18 @@ const NFTPage: React.FC = () => {
   };
 
   return (
-    <div className="nft-page">
+    <div className={styles.nftPage}>
       {/* 页面标题区 */}
-      <div className="page-header">
-        <div className="header-content">
-          <div className="header-icon-wrapper">
-            <ThunderboltOutlined className="header-icon" />
+      <div className={styles.pageHeader}>
+        <div className={styles.headerContent}>
+          <div className={styles.headerIconWrapper}>
+            <ThunderboltOutlined className={styles.headerIcon} />
           </div>
-          <div className="header-text">
-            <Title level={2} className="page-title">
+          <div className={styles.headerText}>
+            <Title level={2} className={styles.pageTitle}>
               NFT 铸造中心
             </Title>
-            <Paragraph className="page-subtitle">
+            <Paragraph className={styles.pageSubtitle}>
               将您的知识产权资产铸造为 NFT，实现数字孪生上链
             </Paragraph>
           </div>
@@ -404,7 +404,7 @@ const NFTPage: React.FC = () => {
           type="primary"
           size="large"
           icon={<AppstoreAddOutlined />}
-          className="batch-mint-btn"
+          className={styles.batchMintBtn}
           onClick={() => setBatchModalVisible(true)}
           disabled={mintableAssets.length === 0}
         >
@@ -423,29 +423,29 @@ const NFTPage: React.FC = () => {
           type="error"
           closable
           onClose={clearError}
-          className="error-alert"
+          className={styles.errorAlert}
         />
       )}
 
       {/* 统计卡片区 */}
-      <div className="stats-section">
+      <div className={styles.statsSection}>
         <Spin spinning={statsLoading}>{renderStatCards()}</Spin>
       </div>
 
       {/* 主内容区 */}
-      <div className="main-content">
+      <div className={styles.mainContent}>
         <Row gutter={[24, 24]}>
           {/* 左侧：资产列表 */}
           <Col xs={24} lg={18}>
-            <Card className="assets-card" bordered={false}>
-              <Tabs activeKey={activeTab} onChange={setActiveTab} className="assets-tabs">
+            <Card className={styles.assetsCard} bordered={false}>
+              <Tabs activeKey={activeTab} onChange={setActiveTab} className={styles.assetsTabs}>
                 <TabPane
                   tab={
                     <span>
                       <FileTextOutlined />
                       可铸造
                       {mintableAssets.length > 0 && (
-                        <Badge count={mintableAssets.length} className="tab-badge" />
+                        <Badge count={mintableAssets.length} className={styles.tabBadge} />
                       )}
                     </span>
                   }
@@ -489,13 +489,13 @@ const NFTPage: React.FC = () => {
 
           {/* 右侧：合约信息和快捷操作 */}
           <Col xs={24} lg={6}>
-            <div className="sidebar">
+            <div className={styles.sidebar}>
               {/* 合约信息 */}
               <ContractInfoCard info={contractInfo} loading={contractLoading} />
 
               {/* 快捷操作 */}
               <Card
-                className="quick-actions-card"
+                className={styles.quickActionsCard}
                 title={
                   <span>
                     <ThunderboltOutlined />
@@ -529,9 +529,9 @@ const NFTPage: React.FC = () => {
               </Card>
 
               {/* 帮助提示 */}
-              <Card className="help-card" bordered={false}>
+              <Card className={styles.helpCard} bordered={false}>
                 <Title level={5}>铸造指南</Title>
-                <ul className="help-list">
+                <ul className={styles.helpList}>
                   <li>确保资产已上传附件</li>
                   <li>资产状态需为"草稿"或"待审批"</li>
                   <li>铸造需要支付 Gas 费用</li>

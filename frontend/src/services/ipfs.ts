@@ -1,11 +1,12 @@
-import { PinataSDK } from "pinata-web3";
+import { PinataSDK } from 'pinata-web3';
 
 // Pinata SDK 实例
 let pinataClient: PinataSDK | null = null;
 
 // 配置
-const PINATA_JWT_TOKEN = import.meta.env.VITE_PINATA_JWT_TOKEN || "";
-const PINATA_GATEWAY_URL = import.meta.env.VITE_PINATA_GATEWAY_URL || "https://gateway.pinata.cloud/ipfs";
+const PINATA_JWT_TOKEN = import.meta.env.VITE_PINATA_JWT_TOKEN || '';
+const PINATA_GATEWAY_URL =
+  import.meta.env.VITE_PINATA_GATEWAY_URL || 'https://gateway.pinata.cloud/ipfs';
 
 /**
  * 获取 Pinata SDK 实例
@@ -14,15 +15,15 @@ const PINATA_GATEWAY_URL = import.meta.env.VITE_PINATA_GATEWAY_URL || "https://g
 export function getPinataClient(): PinataSDK {
   if (!pinataClient) {
     if (!PINATA_JWT_TOKEN) {
-      throw new Error("Pinata JWT Token 未配置，请在 .env 文件中设置 VITE_PINATA_JWT_TOKEN");
+      throw new Error('Pinata JWT Token 未配置，请在 .env 文件中设置 VITE_PINATA_JWT_TOKEN');
     }
-    
+
     pinataClient = new PinataSDK({
       pinataJwt: PINATA_JWT_TOKEN,
       pinataGateway: PINATA_GATEWAY_URL,
     });
   }
-  
+
   return pinataClient;
 }
 
@@ -55,24 +56,24 @@ export async function uploadFile(
   metadata?: Record<string, any>
 ): Promise<IPFSUploadResult> {
   const client = getPinataClient();
-  
-  const uploadName = name || file.name || "unnamed";
-  
+
+  const uploadName = name || file.name || 'unnamed';
+
   // 准备选项
   const options: any = {
     fileName: uploadName,
   };
-  
+
   if (metadata) {
     options.metadata = {
       name: uploadName,
       keyvalues: metadata,
     };
   }
-  
+
   // 上传文件
   const result = await client.upload.file(file, options);
-  
+
   return {
     cid: result.cid,
     size: result.size || 0,
@@ -91,24 +92,24 @@ export async function uploadFile(
  */
 export async function uploadJSON(
   data: any,
-  name: string = "data.json",
+  name: string = 'data.json',
   metadata?: Record<string, any>
 ): Promise<IPFSUploadResult> {
   const client = getPinataClient();
-  
+
   // 准备选项
   const options: any = {};
-  
+
   if (metadata) {
     options.metadata = {
       name: name,
       keyvalues: metadata,
     };
   }
-  
+
   // 上传 JSON
   const result = await client.upload.json(data, options);
-  
+
   return {
     cid: result.cid,
     size: result.size || 0,
@@ -126,11 +127,11 @@ export async function uploadJSON(
  */
 export async function uploadText(
   text: string,
-  name: string = "text.txt"
+  name: string = 'text.txt'
 ): Promise<IPFSUploadResult> {
-  const blob = new Blob([text], { type: "text/plain" });
-  const file = new File([blob], name, { type: "text/plain" });
-  
+  const blob = new Blob([text], { type: 'text/plain' });
+  const file = new File([blob], name, { type: 'text/plain' });
+
   return uploadFile(file, name);
 }
 
@@ -158,14 +159,14 @@ export async function deleteFile(cid: string): Promise<void> {
  */
 export function validateConfig(): boolean {
   if (!PINATA_JWT_TOKEN) {
-    console.error("[IPFS] Pinata JWT Token 未配置");
+    console.error('[IPFS] Pinata JWT Token 未配置');
     return false;
   }
-  
+
   if (!PINATA_GATEWAY_URL) {
-    console.error("[IPFS] Pinata Gateway URL 未配置");
+    console.error('[IPFS] Pinata Gateway URL 未配置');
     return false;
   }
-  
+
   return true;
 }
