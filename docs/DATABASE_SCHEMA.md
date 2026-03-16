@@ -11,6 +11,7 @@
 3. [资产相关表](#3-资产相关表)
 4. [审批相关表](#4-审批相关表)
 5. [认证令牌表](#5-认证令牌表)
+6. [权属管理表](#6-权属管理表)
 
 ---
 
@@ -135,6 +136,9 @@
 | last_mint_error | TEXT | 可空 | 上次铸造错误信息 | 最后一次铸造失败的错误信息 |
 | last_mint_error_code | VARCHAR(50) | 可空 | 上次铸造错误码 | 最后一次铸造失败的错误代码 |
 | can_retry | BOOLEAN | 默认true | 是否可重试 | 是否允许重新尝试铸造 |
+| ownership_status | VARCHAR(20) | 可空 | 权属状态 | 权属状态: ACTIVE/LICENSED/STAKED/TRANSFERRED |
+| owner_address | VARCHAR(42) | 可空 | 当前持有者钱包地址 | 当前持有者钱包地址（铸造后更新，转移后变更） |
+| current_owner_enterprise_id | UUID | 外键, 索引 | 当前归属企业 ID | 当前归属企业 ID（可能与创建时的 enterprise_id 不同） |
 | created_at | DATETIME | 非空 | 创建时间 | 资产创建时间 |
 | updated_at | DATETIME | 非空 | 更新时间 | 资产信息最后更新时间 |
 
@@ -391,6 +395,63 @@
 
 ---
 
+## 6. 权属管理表
+
+### 6.1 nft_transfer_records（NFT权属变更记录表）
+
+记录每一次链上转移操作，包括铸造、转移、许可、质押等。与MintRecord职责分离：MintRecord专注铸造审计，本表专注权属流转。
+
+| 字段名 | 数据类型 | 约束 | 中文注释 | 作用说明 |
+|--------|----------|------|----------|----------|
+| id | UUID | 主键 | 记录唯一标识符 | 权属变更记录的唯一ID |
+| token_id | BIGINT | 非空, 索引 | NFT Token ID | NFT代币ID |
+| contract_address | VARCHAR(42) | 非空 | 合约地址 | NFT合约地址 |
+| transfer_type | TransferType | 非空 | 权属变更类型 | 变更类型：铸造/转移/许可/质押/解押/销毁 |
+| from_address | VARCHAR(42) | 非空 | 转出方钱包地址 | 转出方钱包地址 |
+| from_enterprise_id | UUID | 外键 | 转出方企业 ID | 转出方企业ID |
+| from_enterprise_name | VARCHAR(200) | 可空 | 转出方企业名称 | 转出方企业名称（冗余存储，防止企业被删除后丢失历史） |
+| to_address | VARCHAR(42) | 非空 | 转入方钱包地址 | 转入方钱包地址 |
+| to_enterprise_id | UUID | 外键 | 转入方企业 ID | 转入方企业ID |
+| to_enterprise_name | VARCHAR(200) | 可空 | 转入方企业名称 | 转入方企业名称（冗余存储） |
+| operator_user_id | UUID | 外键 | 操作者用户 ID | 执行操作的用户ID |
+| tx_hash | VARCHAR(66) | 唯一, 索引 | 链上交易哈希 | 区块链交易哈希 |
+| block_number | BIGINT | 可空 | 所在区块号 | 交易所在区块号 |
+| block_timestamp | DATETIME | 可空 | 区块时间戳 | 区块时间戳 |
+| status | TransferStatus | 非空 | 转移记录状态 | 转移记录状态：待处理/已确认/失败/已取消 |
+| remarks | TEXT | 可空 | 备注 | 备注信息 |
+| created_at | DATETIME | 非空 | 记录创建时间 | 记录创建时间 |
+| confirmed_at | DATETIME | 可空 | 链上确认时间 | 链上确认时间 |
+
+**枚举值：**
+
+- TransferType（权属变更类型）
+  - `MINT` - 铸造
+  - `TRANSFER` - 转移
+  - `LICENSE` - 许可
+  - `STAKE` - 质押
+  - `UNSTAKE` - 解押
+  - `BURN` - 销毁
+
+- TransferStatus（转移记录状态）
+  - `PENDING` - 待处理
+  - `CONFIRMED` - 已确认
+  - `FAILED` - 失败
+  - `CANCELLED` - 已取消
+
+- OwnershipStatus（NFT资产权属状态）
+  - `ACTIVE` - 有效持有中
+  - `LICENSED` - 已对外许可使用
+  - `STAKED` - 已质押
+  - `TRANSFERRED` - 已转移给他方
+
+**索引：**
+- `ix_nft_transfers_token_status` (token_id, status)
+- `ix_nft_transfers_from_enterprise` (from_enterprise_id)
+- `ix_nft_transfers_to_enterprise` (to_enterprise_id)
+- `ix_nft_transfers_created` (created_at)
+
+---
+
 ## 表关系图
 
 ```
@@ -400,9 +461,12 @@ users
 ├── email_verification_tokens (1:N)
 ├── enterprise_members (1:N)
 │   └── enterprises
-│       └── assets (1:N)
-│           ├── attachments (1:N)
-│           └── mint_records (1:N)
+│       ├── assets (1:N)
+│       │   ├── attachments (1:N)
+│       │   ├── mint_records (1:N)
+│       │   └── current_owner_enterprise (N:1) -- 权属转移
+│       └── nft_transfer_records (1:N) -- 作为转出方
+│           └── to_enterprise (N:1) -- 作为转入方
 ├── created_assets (1:N)
 ├── submitted_approvals (1:N)
 ├── approval_processes (1:N)
@@ -411,6 +475,11 @@ users
 approvals (1:N)
 ├── approval_processes (1:N)
 └── approval_notifications (1:N)
+
+nft_transfer_records
+├── from_enterprise (N:1)
+├── to_enterprise (N:1)
+└── operator_user (N:1)
 ```
 
 ---
@@ -424,4 +493,4 @@ approvals (1:N)
 
 ---
 
-*最后更新: 2026-02-20*
+*最后更新: 2026-02-21*
