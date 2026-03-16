@@ -29,7 +29,10 @@ apiClient.interceptors.response.use(
     // 401 错误：清除 token 并跳转到登录页，不显示错误提示
     if (error.response?.status === 401) {
       localStorage.removeItem('access_token');
-      window.location.href = '/login';
+      localStorage.removeItem('auth-storage');
+      if (window.location.pathname !== '/auth') {
+        window.location.href = '/auth';
+      }
     } else {
       // 其他错误：显示全局错误提示
       handleApiError(error);

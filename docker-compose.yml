@@ -143,11 +143,8 @@ services:
   # 后端API服务 (FastAPI)
   # ============================================
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-      args:
-        - PYTHON_VERSION=3.11
+    image: python:3.11-slim
+    working_dir: /app
     container_name: ipnft-backend
     environment:
       # 应用配置
@@ -191,7 +188,7 @@ services:
       db:
         condition: service_healthy
       ipfs:
-        condition: service_started
+        condition: service_healthy
     networks:
       - ipnft-network
     volumes:
@@ -202,7 +199,7 @@ services:
       # 可选：挂载日志目录
       # - ./logs:/app/logs
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -211,15 +208,14 @@ services:
     # 生产环境命令（无热重载）
     # command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
     # 开发环境命令（热重载）
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir /app
+    command: sh -c "pip install --no-cache-dir -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir /app"
 
   # ============================================
   # 前端开发服务器 (React + Vite)
   # ============================================
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile.dev
+    image: node:20-alpine
+    working_dir: /app
     container_name: ipnft-frontend
     environment:
       # API基础URL（指向后端容器）
@@ -236,8 +232,10 @@ services:
     ports:
       - "${FRONTEND_PORT:-5173}:5173"
     depends_on:
-      - backend
-      - ipfs
+      backend:
+        condition: service_healthy
+      ipfs:
+        condition: service_healthy
     networks:
       - ipnft-network
     volumes:
@@ -248,14 +246,14 @@ services:
       # 排除dist目录
       - /app/dist
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:5173"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:5173', (res) => process.exit(res.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 60s
     restart: unless-stopped
     # 开发服务器命令（热重载）
-    command: npm run dev -- --host 0.0.0.0
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
 
   # ============================================
   # 可选：Redis缓存服务
@@ -297,22 +295,10 @@ volumes:
   # PostgreSQL数据持久化
   postgres_data:
     driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ${PWD}/data/postgres
-    # 或者直接使用Docker管理的卷（推荐生产环境）：
-    # driver: local
 
   # IPFS数据持久化
   ipfs_data:
     driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ${PWD}/data/ipfs
-    # 或者直接使用Docker管理的卷：
-    # driver: local
 
   # Redis数据持久化（可选）
   # redis_data:

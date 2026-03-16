@@ -144,7 +144,7 @@ export const authService = {
    * 发送验证邮件
    */
   sendVerificationEmail: async (): Promise<ApiResponse> => {
-    const response = await apiClient.post<ApiResponse>('/auth/send-verification-email');
+    const response = await apiClient.post<ApiResponse>('/auth/send-verification');
     return response.data;
   },
 };
