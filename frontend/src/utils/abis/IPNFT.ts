@@ -2,6 +2,9 @@ export const IPNFT_ABI = [
   // ERC721 标准方法
   'function balanceOf(address owner) view returns (uint256)',
   'function ownerOf(uint256 tokenId) view returns (address)',
+  'function name() view returns (string)',
+  'function symbol() view returns (string)',
+  'function totalSupply() view returns (uint256)',
   'function transferFrom(address from, address to, uint256 tokenId)',
   'function safeTransferFrom(address from, address to, uint256 tokenId)',
   'function approve(address to, uint256 tokenId)',
@@ -25,7 +28,7 @@ export const IPNFT_ABI = [
   'event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)',
   'event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId)',
   'event ApprovalForAll(address indexed owner, address indexed operator, bool approved)',
-  'event NFTMinted(uint256 indexed tokenId, address indexed owner, string metadataURI)',
+  'event NFTMinted(uint256 indexed tokenId, address indexed creator, address indexed owner, string metadataURI)',
   'event NFTTransferred(uint256 indexed tokenId, address indexed from, address indexed to)',
   'event RoyaltySet(uint256 indexed tokenId, address receiver, uint96 feeNumerator)',
   'event MetadataUpdated(uint256 indexed tokenId, string newURI)',

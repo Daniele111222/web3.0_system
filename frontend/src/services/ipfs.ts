@@ -1,4 +1,4 @@
-import { PinataSDK } from 'pinata-web3';
+import { PinataSDK } from 'pinata';
 
 // Pinata SDK 实例
 let pinataClient: PinataSDK | null = null;
@@ -58,21 +58,7 @@ export async function uploadFile(
   const client = getPinataClient();
 
   const uploadName = name || file.name || 'unnamed';
-
-  // 准备选项
-  const options: any = {
-    fileName: uploadName,
-  };
-
-  if (metadata) {
-    options.metadata = {
-      name: uploadName,
-      keyvalues: metadata,
-    };
-  }
-
-  // 上传文件
-  const result = await client.upload.file(file, options);
+  const result = await client.upload.public.file(file);
 
   return {
     cid: result.cid,
@@ -96,19 +82,17 @@ export async function uploadJSON(
   metadata?: Record<string, any>
 ): Promise<IPFSUploadResult> {
   const client = getPinataClient();
-
-  // 准备选项
-  const options: any = {};
-
-  if (metadata) {
-    options.metadata = {
-      name: name,
-      keyvalues: metadata,
-    };
-  }
-
-  // 上传 JSON
-  const result = await client.upload.json(data, options);
+  const result = await client.upload.public.json({
+    content: data,
+    metadata: metadata
+      ? {
+          name,
+          keyvalues: metadata,
+        }
+      : {
+          name,
+        },
+  });
 
   return {
     cid: result.cid,
@@ -149,8 +133,17 @@ export function getGatewayUrl(cid: string): string {
  * @param cid IPFS CID
  */
 export async function deleteFile(cid: string): Promise<void> {
-  const client = getPinataClient();
-  await client.unpin(cid);
+  getPinataClient();
+  const response = await fetch(`https://api.pinata.cloud/pinning/unpin/${cid}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${PINATA_JWT_TOKEN}`,
+      Accept: 'application/json',
+    },
+  });
+  if (!response.ok && response.status !== 404) {
+    throw new Error(`删除 Pinata 文件失败: ${response.status}`);
+  }
 }
 
 /**
