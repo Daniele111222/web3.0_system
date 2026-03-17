@@ -17,7 +17,11 @@ interface UseAssetReturn {
   totalPages: number;
   isLoading: boolean;
   error: string | null;
-  createAsset: (enterpriseId: string, data: AssetCreateRequest) => Promise<Asset | null>;
+  createAsset: (
+    enterpriseId: string,
+    data: AssetCreateRequest,
+    files?: File[]
+  ) => Promise<Asset | null>;
   getAssets: (params: AssetFilterParams) => Promise<void>;
   getAsset: (assetId: string) => Promise<Asset | null>;
   updateAsset: (assetId: string, data: AssetUpdateRequest) => Promise<Asset | null>;
@@ -45,6 +49,27 @@ export function useAsset(): UseAssetReturn {
    * 提取错误消息
    */
   const extractErrorMessage = (err: unknown): string => {
+    if (typeof err === 'object' && err !== null && 'response' in err) {
+      const response = (
+        err as {
+          response?: {
+            data?: { detail?: string | { message?: string; code?: string }; message?: string };
+          };
+        }
+      ).response;
+      if (response?.data?.detail) {
+        if (typeof response.data.detail === 'object' && response.data.detail.message) {
+          return response.data.detail.message;
+        }
+        if (typeof response.data.detail === 'string') {
+          return response.data.detail;
+        }
+        return '操作失败，请重试';
+      }
+      if (response?.data?.message) {
+        return response.data.message;
+      }
+    }
     if (err instanceof Error) {
       return err.message;
     }
@@ -58,11 +83,15 @@ export function useAsset(): UseAssetReturn {
    * 创建资产
    */
   const createAsset = useCallback(
-    async (enterpriseId: string, data: AssetCreateRequest): Promise<Asset | null> => {
+    async (
+      enterpriseId: string,
+      data: AssetCreateRequest,
+      files: File[] = []
+    ): Promise<Asset | null> => {
       setIsLoading(true);
       setError(null);
       try {
-        const asset = await assetService.createAsset(enterpriseId, data);
+        const asset = await assetService.createAsset(enterpriseId, data, files);
         return asset;
       } catch (err: unknown) {
         const errorMessage = extractErrorMessage(err);

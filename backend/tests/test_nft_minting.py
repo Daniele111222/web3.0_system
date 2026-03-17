@@ -453,11 +453,13 @@ class TestNFTIntegration:
             mock_client.mint_nft = AsyncMock(return_value=(1, "0xabc123"))
             mock_get_client.return_value = mock_client
             
-            # Mock IPFS客户端
-            with patch('app.services.nft_service.get_ipfs_client') as mock_get_ipfs:
-                mock_ipfs = MagicMock()
-                mock_ipfs.upload_json = AsyncMock(return_value="QmTest123")
-                mock_get_ipfs.return_value = mock_ipfs
+            # Mock Pinata客户端
+            with patch('app.services.nft_service.get_pinata_service') as mock_get_pinata:
+                mock_pinata = MagicMock()
+                mock_pinata.upload_json = MagicMock(
+                    return_value={"cid": "QmTest123", "gateway_url": "https://gateway.pinata.cloud/ipfs/QmTest123"}
+                )
+                mock_get_pinata.return_value = mock_pinata
                 
                 # 执行铸造
                 try:

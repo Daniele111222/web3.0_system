@@ -19,8 +19,8 @@ interface FileUploadProps {
   onFilesSelected: (files: FileInfo[]) => void;
   /** 最大文件数量 */
   maxFiles?: number;
-  /** 接受的文件类型 */
-  acceptedTypes?: string[];
+  /** 接受的文件后缀 */
+  acceptedExtensions?: string[];
 }
 
 /**
@@ -30,27 +30,36 @@ interface FileUploadProps {
  *
  * @param onFilesSelected - 文件选择回调函数
  * @param maxFiles - 最大允许上传文件数（默认10）
- * @param acceptedTypes - 接受的MIME类型数组
+ * @param acceptedExtensions - 接受的文件后缀数组
  */
 export function FileUpload({
   onFilesSelected,
   maxFiles = 10,
-  acceptedTypes = [
-    'application/pdf',
-    'image/jpeg',
-    'image/png',
-    'image/gif',
-    'video/mp4',
-    'application/zip',
-    'application/x-zip-compressed',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  acceptedExtensions = [
+    '.jpg',
+    '.jpeg',
+    '.png',
+    '.gif',
+    '.webp',
+    '.pdf',
+    '.txt',
+    '.json',
+    '.mp4',
+    '.mp3',
+    '.doc',
+    '.docx',
+    '.xls',
+    '.xlsx',
+    '.zip',
+    '.rar',
+    '.7z',
   ],
 }: FileUploadProps) {
   // 已选择的文件列表
   const [files, setFiles] = useState<FileInfo[]>([]);
   // 是否正在拖拽
   const [isDragging, setIsDragging] = useState(false);
+  const [validationMessage, setValidationMessage] = useState<string | null>(null);
   // 文件输入引用
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -87,16 +96,17 @@ export function FileUpload({
    * @returns 是否通过验证
    */
   const validateFile = (file: File): boolean => {
-    // 检查文件类型
-    if (!acceptedTypes.includes(file.type)) {
-      alert(`不支持的文件类型: ${file.type}`);
+    const extension = file.name.includes('.')
+      ? `.${file.name.split('.').pop()?.toLowerCase() ?? ''}`
+      : '';
+    if (!acceptedExtensions.includes(extension)) {
+      setValidationMessage(`不支持的文件类型: ${extension || '未知类型'}`);
       return false;
     }
 
-    // 限制单个文件大小为 100MB
-    const maxSize = 100 * 1024 * 1024;
+    const maxSize = 50 * 1024 * 1024;
     if (file.size > maxSize) {
-      alert(`文件 ${file.name} 超过 100MB 限制`);
+      setValidationMessage(`文件 ${file.name} 超过 50MB 限制`);
       return false;
     }
 
@@ -109,6 +119,7 @@ export function FileUpload({
    */
   const handleFiles = (fileList: FileList | null) => {
     if (!fileList) return;
+    setValidationMessage(null);
 
     const newFiles: FileInfo[] = [];
     const currentFileCount = files.length;
@@ -117,7 +128,7 @@ export function FileUpload({
     for (let i = 0; i < fileList.length; i++) {
       // 检查是否超过最大文件数
       if (currentFileCount + newFiles.length >= maxFiles) {
-        alert(`最多只能上传 ${maxFiles} 个文件`);
+        setValidationMessage(`最多只能上传 ${maxFiles} 个文件`);
         break;
       }
 
@@ -225,7 +236,7 @@ export function FileUpload({
           ref={fileInputRef}
           type="file"
           multiple
-          accept={acceptedTypes.join(',')}
+          accept={acceptedExtensions.join(',')}
           onChange={handleFileInputChange}
           style={{ display: 'none' }}
         />
@@ -238,11 +249,13 @@ export function FileUpload({
             <>
               <strong>拖拽文件到此处，或点击选择文件</strong>
               <br />
-              <small>支持 PDF、图片、视频、压缩包等格式，单个文件最大 100MB</small>
+              <small>支持常见文档/图片/音视频/压缩格式，单个文件最大 50MB，最多 10 个</small>
             </>
           )}
         </p>
       </div>
+
+      {validationMessage && <span className="error-text">{validationMessage}</span>}
 
       {files.length > 0 && (
         <div className="file-list">

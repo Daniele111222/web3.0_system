@@ -9,6 +9,7 @@ import type {
   LegalStatus,
   Attachment,
   PaginatedResponse,
+  ApiResponse,
 } from '../types';
 
 /**
@@ -86,18 +87,53 @@ export interface AssetSubmitResponse {
   approval_id: string;
 }
 
+export interface AssetCreateWithAttachmentsResponse {
+  asset: Asset;
+  attachments: Attachment[];
+  summary: {
+    total_files: number;
+    total_size: number;
+    gateway_base_url: string;
+  };
+}
+
 /**
  * 资产 API 服务类
  */
 class AssetService {
+  async createAssetWithAttachments(
+    enterpriseId: string,
+    data: AssetCreateRequest,
+    files: File[] = []
+  ): Promise<AssetCreateWithAttachmentsResponse> {
+    const formData = new FormData();
+    formData.append('asset_data', JSON.stringify(data));
+
+    for (const file of files) {
+      formData.append('files', file);
+    }
+
+    const response = await api.post<ApiResponse<AssetCreateWithAttachmentsResponse>>(
+      '/assets/with-attachments',
+      formData,
+      {
+        params: { enterprise_id: enterpriseId },
+        headers: { 'Content-Type': 'multipart/form-data' },
+      }
+    );
+    return response.data.data;
+  }
+
   /**
    * 创建资产草稿
    */
-  async createAsset(enterpriseId: string, data: AssetCreateRequest): Promise<Asset> {
-    const response = await api.post<Asset>('/assets', data, {
-      params: { enterprise_id: enterpriseId },
-    });
-    return response.data;
+  async createAsset(
+    enterpriseId: string,
+    data: AssetCreateRequest,
+    files: File[] = []
+  ): Promise<Asset> {
+    const result = await this.createAssetWithAttachments(enterpriseId, data, files);
+    return result.asset;
   }
 
   /**

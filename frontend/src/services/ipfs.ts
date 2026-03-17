@@ -47,14 +47,9 @@ export interface IPFSUploadResult {
  * 上传文件到 IPFS
  * @param file 要上传的文件
  * @param name 可选的自定义文件名
- * @param metadata 可选的元数据
  * @returns 上传结果
  */
-export async function uploadFile(
-  file: File,
-  name?: string,
-  metadata?: Record<string, any>
-): Promise<IPFSUploadResult> {
+export async function uploadFile(file: File, name?: string): Promise<IPFSUploadResult> {
   const client = getPinataClient();
 
   const uploadName = name || file.name || 'unnamed';
@@ -77,9 +72,9 @@ export async function uploadFile(
  * @returns 上传结果
  */
 export async function uploadJSON(
-  data: any,
+  data: unknown,
   name: string = 'data.json',
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 ): Promise<IPFSUploadResult> {
   const client = getPinataClient();
   const result = await client.upload.public.json({

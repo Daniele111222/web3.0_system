@@ -12,8 +12,8 @@ from sqlalchemy import select
 
 from app.models.asset import Asset, AssetStatus, Attachment, MintRecord
 from app.core.blockchain import get_blockchain_client
-from app.core.ipfs import get_ipfs_client
 from app.core.exceptions import NotFoundException, BadRequestException, BlockchainException
+from app.services.pinata_service import get_pinata_service
 
 
 class NFTService:
@@ -125,17 +125,26 @@ class NFTService:
         # 4. 生成NFT元数据
         metadata = self._generate_nft_metadata(asset, attachments)
 
-        # 5. 上传元数据到IPFS
+        # 5. 上传元数据到Pinata
         asset.mint_stage = "SUBMITTING"
         asset.mint_progress = 30
         await self.db.flush()
 
         try:
-            ipfs_client = get_ipfs_client()
+            pinata_service = get_pinata_service()
             loop = asyncio.get_event_loop()
-            metadata_cid = await loop.run_in_executor(
-                None, ipfs_client.upload_json, metadata
+            metadata_result = await loop.run_in_executor(
+                None,
+                pinata_service.upload_json,
+                metadata,
+                f"asset-{asset_id}-metadata.json",
+                {
+                    "asset_id": str(asset_id),
+                    "enterprise_id": str(asset.enterprise_id),
+                    "type": "nft_metadata",
+                },
             )
+            metadata_cid = metadata_result["cid"]
             metadata_uri = f"ipfs://{metadata_cid}"
             asset.metadata_cid = metadata_cid
             asset.metadata_uri = metadata_uri
@@ -144,16 +153,16 @@ class NFTService:
             asset.status = AssetStatus.MINT_FAILED
             asset.mint_stage = "FAILED"
             asset.mint_progress = 0
-            asset.last_mint_error = f"IPFS upload failed: {str(e)}"
-            asset.last_mint_error_code = "IPFS_UPLOAD_FAILED"
+            asset.last_mint_error = f"Pinata upload failed: {str(e)}"
+            asset.last_mint_error_code = "PINATA_UPLOAD_FAILED"
             
             mint_record.status = "FAILED"
-            mint_record.error_code = "IPFS_UPLOAD_FAILED"
+            mint_record.error_code = "PINATA_UPLOAD_FAILED"
             mint_record.error_message = str(e)
             mint_record.completed_at = datetime.now(timezone.utc)
             
             await self.db.flush()
-            raise BadRequestException(f"Failed to upload metadata to IPFS: {str(e)}")
+            raise BadRequestException(f"Failed to upload metadata to Pinata: {str(e)}")
 
         # 6. 调用智能合约铸造NFT
         asset.mint_progress = 50

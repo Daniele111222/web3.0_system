@@ -1,6 +1,7 @@
 """Pinata IPFS 服务封装类。"""
 import json
 import logging
+import os
 import time
 from typing import Optional, Union
 from functools import wraps
@@ -19,7 +20,22 @@ MAX_RETRIES = 3
 RETRY_DELAY = 1  # 秒
 
 PINATA_API_URL = "https://api.pinata.cloud"
-PINATA_IPFS_GATEWAY = "https://gateway.pinata.cloud/ipfs"
+PINATA_IPFS_GATEWAY = settings.PINATA_GATEWAY_URL.rstrip("/")
+ALLOWED_EXTENSIONS = {
+    ".jpg", ".jpeg", ".png", ".gif", ".webp",
+    ".pdf",
+    ".txt",
+    ".json",
+    ".mp4",
+    ".mp3",
+    ".doc", ".docx",
+    ".xls", ".xlsx",
+    ".zip", ".rar", ".7z",
+}
+
+
+def get_file_extension(filename: str) -> str:
+    return os.path.splitext(filename)[1].lower() if filename else ""
 
 
 class PinataError(Exception):
@@ -56,13 +72,30 @@ def retry_on_error(max_retries: int = MAX_RETRIES, delay: float = RETRY_DELAY):
                     if attempt < max_retries - 1:
                         wait_time = delay * (2 ** attempt)
                         logger.warning(
-                            f"{func.__name__} 失败（第 {attempt + 1}/{max_retries} 次尝试），"
-                            f"{wait_time}秒后重试：{e}"
+                            "pinata_retry_scheduled",
+                            extra={
+                                "asset_id": "",
+                                "cid": "",
+                                "file_name": "",
+                                "operation": func.__name__,
+                                "attempt": attempt + 1,
+                                "max_retries": max_retries,
+                                "wait_seconds": wait_time,
+                                "error": str(e),
+                            },
                         )
                         time.sleep(wait_time)
                     else:
                         logger.error(
-                            f"{func.__name__} 在 {max_retries} 次尝试后失败：{e}"
+                            "pinata_retry_exhausted",
+                            extra={
+                                "asset_id": "",
+                                "cid": "",
+                                "file_name": "",
+                                "operation": func.__name__,
+                                "max_retries": max_retries,
+                                "error": str(e),
+                            },
                         )
             raise last_exception
         return wrapper
@@ -174,8 +207,13 @@ class PinataService:
             result = response.json()
             
             logger.info(
-                f"已上传文件 '{file_name}'（{len(file_content)} 字节）到 Pinata，"
-                f"CID：{result.get('IpfsHash')}"
+                "pinata_upload_succeeded",
+                extra={
+                    "asset_id": "",
+                    "cid": result.get("IpfsHash"),
+                    "file_name": file_name,
+                    "size": len(file_content),
+                },
             )
             
             return {
@@ -189,10 +227,16 @@ class PinataService:
         except PinataFileTooLargeError:
             raise
         except requests.RequestException as e:
-            logger.error(f"上传文件到 Pinata 失败：{e}")
+            logger.error(
+                "pinata_upload_failed",
+                extra={"asset_id": "", "cid": "", "file_name": file_name, "error": str(e)},
+            )
             raise PinataUploadError(f"上传失败：{str(e)}") from e
         except Exception as e:
-            logger.error(f"上传文件到 Pinata 时发生错误：{e}")
+            logger.error(
+                "pinata_upload_failed",
+                extra={"asset_id": "", "cid": "", "file_name": file_name, "error": str(e)},
+            )
             raise PinataUploadError(f"上传失败：{str(e)}") from e
     
     @retry_on_error()
@@ -219,7 +263,10 @@ class PinataService:
         except PinataUploadError:
             raise
         except Exception as e:
-            logger.error(f"上传 JSON 到 Pinata 失败：{e}")
+            logger.error(
+                "pinata_json_upload_failed",
+                extra={"asset_id": "", "cid": "", "file_name": name, "error": str(e)},
+            )
             raise PinataUploadError(f"JSON 上传失败：{str(e)}") from e
     
     @retry_on_error()
@@ -234,7 +281,10 @@ class PinataService:
             bool: 是否成功删除
         """
         if not cid:
-            logger.warning("无法删除空的 CID")
+            logger.warning(
+                "pinata_delete_skipped_empty_cid",
+                extra={"asset_id": "", "cid": "", "file_name": ""},
+            )
             return False
         
         try:
@@ -247,14 +297,19 @@ class PinataService:
             )
             
             if response.status_code == 200 or response.status_code == 404:
-                # 404 表示文件已经不存在（或未固定）
-                logger.info(f"已从 Pinata 删除 CID：{cid}")
+                logger.info(
+                    "pinata_delete_succeeded",
+                    extra={"asset_id": "", "cid": cid, "file_name": ""},
+                )
                 return True
             else:
                 response.raise_for_status()
                 
         except requests.RequestException as e:
-            logger.error(f"从 Pinata 删除 CID 失败：{e}")
+            logger.error(
+                "pinata_delete_failed",
+                extra={"asset_id": "", "cid": cid, "file_name": "", "error": str(e)},
+            )
             raise PinataDeleteError(f"删除失败：{str(e)}") from e
         
         return False

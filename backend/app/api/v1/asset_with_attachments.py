@@ -1,7 +1,8 @@
 """支持自动IPFS上传的资产API路由。"""
 from uuid import UUID
 from typing import Optional, List
-from fastapi import APIRouter, HTTPException, status, Query, Depends, UploadFile, File, Form
+import logging
+from fastapi import APIRouter, HTTPException, status, Query, UploadFile, File, Form
 
 from app.api.deps import DBSession, CurrentUserId
 from app.repositories.asset_repository import AssetRepository
@@ -10,11 +11,17 @@ from app.repositories.enterprise_repository import (
     EnterpriseMemberRepository,
 )
 from app.services.asset_service_with_ipfs import AssetServiceWithIPFS
+from app.services.pinata_service import PINATA_IPFS_GATEWAY
 from app.schemas.asset import AssetCreateRequest, AssetResponse, AttachmentResponse
 from app.schemas.response import ApiResponse
 import json
 
 router = APIRouter(prefix="/assets", tags=["Assets"])
+logger = logging.getLogger(__name__)
+
+
+def error_detail(code: str, message: str) -> dict:
+    return {"code": code, "message": message}
 
 
 def parse_current_user_id(current_user_id: str) -> UUID:
@@ -35,7 +42,7 @@ def parse_current_user_id(current_user_id: str) -> UUID:
     except (ValueError, TypeError):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="无效的用户凭证",
+            detail=error_detail("INVALID_USER_CREDENTIAL", "无效的用户凭证"),
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -96,12 +103,12 @@ async def create_asset_with_attachments(
     except json.JSONDecodeError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"资产数据格式错误：{str(e)}"
+            detail=error_detail("ASSET_DATA_JSON_INVALID", f"资产数据格式错误：{str(e)}"),
         )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"资产数据验证失败：{str(e)}"
+            detail=error_detail("ASSET_DATA_VALIDATION_FAILED", f"资产数据验证失败：{str(e)}"),
         )
     
     # 步骤2：验证企业存在且用户是成员
@@ -110,7 +117,7 @@ async def create_asset_with_attachments(
     if not enterprise:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="企业不存在",
+            detail=error_detail("ENTERPRISE_NOT_FOUND", "企业不存在"),
         )
     
     user_id = parse_current_user_id(current_user_id)
@@ -119,14 +126,17 @@ async def create_asset_with_attachments(
     if not member:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="您不是该企业的成员",
+            detail=error_detail("ENTERPRISE_MEMBER_REQUIRED", "您不是该企业的成员"),
         )
     
     # 步骤3：限制文件数量
-    if files and len(files) > 10:
+    if files and len(files) > AssetServiceWithIPFS.MAX_FILES_PER_REQUEST:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="一次最多只能上传10个文件",
+            detail=error_detail(
+                "TOO_MANY_FILES",
+                f"一次最多只能上传{AssetServiceWithIPFS.MAX_FILES_PER_REQUEST}个文件",
+            ),
         )
     
     # 步骤4：调用服务层创建资产并上传附件
@@ -140,12 +150,32 @@ async def create_asset_with_attachments(
             asset_data=asset_request,
             files=files,
         )
-    except HTTPException:
+    except HTTPException as exc:
+        logger.warning(
+            "create_asset_with_attachments_failed",
+            extra={
+                "asset_id": "",
+                "cid": "",
+                "file_name": "",
+                "enterprise_id": str(enterprise_id),
+                "detail": exc.detail,
+            },
+        )
         raise
     except Exception as e:
+        logger.error(
+            "create_asset_with_attachments_failed",
+            extra={
+                "asset_id": "",
+                "cid": "",
+                "file_name": "",
+                "enterprise_id": str(enterprise_id),
+                "error": str(e),
+            },
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"创建资产失败：{str(e)}"
+            detail=error_detail("ASSET_CREATE_WITH_ATTACHMENTS_FAILED", f"创建资产失败：{str(e)}"),
         )
     
     # 步骤5：构建响应
@@ -158,9 +188,19 @@ async def create_asset_with_attachments(
         "summary": {
             "total_files": len(attachments),
             "total_size": sum(att.file_size for att in attachments),
-            "gateway_base_url": "https://gateway.pinata.cloud/ipfs/"
+            "gateway_base_url": f"{PINATA_IPFS_GATEWAY}/"
         }
     }
+    logger.info(
+        "create_asset_with_attachments_succeeded",
+        extra={
+            "asset_id": str(asset.id),
+            "cid": "",
+            "file_name": "",
+            "attachments_count": len(attachments),
+            "enterprise_id": str(enterprise_id),
+        },
+    )
     
     return ApiResponse(
         code="SUCCESS",

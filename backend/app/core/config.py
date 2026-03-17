@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     PINATA_API_KEY: str = ""
     PINATA_API_SECRET: str = ""
     PINATA_JWT_TOKEN: str = ""
+    PINATA_GATEWAY_URL: str = "https://gateway.pinata.cloud/ipfs"
     
     # Blockchain
     WEB3_PROVIDER_URL: str = "http://127.0.0.1:8545"

@@ -5,7 +5,7 @@ import { FileUpload } from './FileUpload';
 import './Asset.less';
 
 interface AssetFormProps {
-  onSubmit: (data: AssetCreateRequest) => Promise<void>;
+  onSubmit: (data: AssetCreateRequest, files: File[]) => Promise<void>;
   onCancel: () => void;
   isLoading?: boolean;
 }
@@ -38,6 +38,7 @@ export function AssetForm({ onSubmit, onCancel, isLoading = false }: AssetFormPr
 
   // 表单错误信息
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   /**
    * 表单验证
@@ -96,9 +97,7 @@ export function AssetForm({ onSubmit, onCancel, isLoading = false }: AssetFormPr
       return;
     }
 
-    // 如果有附件，可以在这里处理上传逻辑
-    // 目前仅提交表单数据
-    await onSubmit(formData);
+    await onSubmit(formData, selectedFiles);
   };
 
   /**
@@ -125,14 +124,7 @@ export function AssetForm({ onSubmit, onCancel, isLoading = false }: AssetFormPr
    */
   const handleFilesSelected = (files: { file: File }[]) => {
     const fileList = files.map((f) => f.file);
-    // 将文件列表附加到表单数据中
-    setFormData((prev) => ({
-      ...prev,
-      asset_metadata: {
-        ...prev.asset_metadata,
-        attachments: fileList.map((f) => f.name),
-      },
-    }));
+    setSelectedFiles(fileList);
   };
 
   return (

@@ -1,32 +1,23 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, status
-from fastapi.responses import JSONResponse
 import logging
 from typing import Optional
 
-from app.services.pinata_service import get_pinata_service, PinataUploadError, PinataFileTooLargeError
+from app.services.pinata_service import (
+    get_pinata_service,
+    PinataUploadError,
+    PinataFileTooLargeError,
+    ALLOWED_EXTENSIONS,
+    MAX_FILE_SIZE,
+    get_file_extension,
+)
 
 router = APIRouter(prefix="/ipfs", tags=["IPFS"])
 
 logger = logging.getLogger(__name__)
 
-# 允许的文件扩展名
-ALLOWED_EXTENSIONS = {
-    ".jpg", ".jpeg", ".png", ".gif", ".webp",
-    ".pdf",
-    ".txt",
-    ".json",
-    ".mp4",
-    ".mp3",
-}
 
-# 最大文件大小 50MB
-MAX_FILE_SIZE = 50 * 1024 * 1024
-
-
-def get_file_extension(filename: str) -> str:
-    """获取文件扩展名。"""
-    return "." + filename.split(".")[-1].lower() if "." in filename else ""
-
+def error_detail(code: str, message: str) -> dict:
+    return {"code": code, "message": message}
 
 @router.post("/upload", response_model=dict)
 async def upload_file(
@@ -51,7 +42,10 @@ async def upload_file(
         if len(content) > MAX_FILE_SIZE:
             raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                detail=f"文件大小超过限制（最大 {MAX_FILE_SIZE // 1024 // 1024}MB）"
+                detail=error_detail(
+                    "FILE_TOO_LARGE",
+                    f"文件大小超过限制（最大 {MAX_FILE_SIZE // 1024 // 1024}MB）",
+                ),
             )
         
         # 检查文件扩展名
@@ -61,7 +55,10 @@ async def upload_file(
         if ext not in ALLOWED_EXTENSIONS:
             raise HTTPException(
                 status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-                detail=f"不支持的文件类型: {ext}。支持的类型: {', '.join(ALLOWED_EXTENSIONS)}"
+                detail=error_detail(
+                    "UNSUPPORTED_FILE_TYPE",
+                    f"不支持的文件类型: {ext}。支持的类型: {', '.join(ALLOWED_EXTENSIONS)}",
+                ),
             )
         
         # 确定文件名
@@ -77,6 +74,14 @@ async def upload_file(
         # 上传到 Pinata
         pinata_service = get_pinata_service()
         result = pinata_service.upload_file(content, file_name, metadata)
+        logger.info(
+            "ipfs_upload_succeeded",
+            extra={
+                "asset_id": "",
+                "cid": result.get("cid"),
+                "file_name": file_name,
+            },
+        )
         
         return {
             "success": True,
@@ -85,24 +90,24 @@ async def upload_file(
         }
         
     except PinataFileTooLargeError as e:
-        logger.error(f"文件过大: {e}")
+        logger.error("ipfs_upload_failed", extra={"asset_id": "", "cid": "", "file_name": file.filename or "", "error": str(e)})
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail=str(e)
+            detail=error_detail("FILE_TOO_LARGE", str(e)),
         )
     except PinataUploadError as e:
-        logger.error(f"上传到 Pinata 失败: {e}")
+        logger.error("ipfs_upload_failed", extra={"asset_id": "", "cid": "", "file_name": file.filename or "", "error": str(e)})
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"上传失败: {str(e)}"
+            detail=error_detail("PINATA_UPLOAD_FAILED", f"上传失败: {str(e)}"),
         )
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"上传文件时发生错误: {e}", exc_info=True)
+        logger.error("ipfs_upload_failed", extra={"asset_id": "", "cid": "", "file_name": file.filename or "", "error": str(e)}, exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"上传失败: {str(e)}"
+            detail=error_detail("IPFS_UPLOAD_FAILED", f"上传失败: {str(e)}"),
         )
 
 
@@ -124,6 +129,10 @@ async def upload_json(
     try:
         pinata_service = get_pinata_service()
         result = pinata_service.upload_json(data, name)
+        logger.info(
+            "ipfs_json_upload_succeeded",
+            extra={"asset_id": "", "cid": result.get("cid"), "file_name": name},
+        )
         
         return {
             "success": True,
@@ -132,16 +141,16 @@ async def upload_json(
         }
         
     except PinataUploadError as e:
-        logger.error(f"上传 JSON 到 Pinata 失败: {e}")
+        logger.error("ipfs_json_upload_failed", extra={"asset_id": "", "cid": "", "file_name": name, "error": str(e)})
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"上传失败: {str(e)}"
+            detail=error_detail("PINATA_JSON_UPLOAD_FAILED", f"上传失败: {str(e)}"),
         )
     except Exception as e:
-        logger.error(f"上传 JSON 时发生错误: {e}", exc_info=True)
+        logger.error("ipfs_json_upload_failed", extra={"asset_id": "", "cid": "", "file_name": name, "error": str(e)}, exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"上传失败: {str(e)}"
+            detail=error_detail("IPFS_JSON_UPLOAD_FAILED", f"上传失败: {str(e)}"),
         )
 
 
@@ -161,6 +170,10 @@ async def delete_file(cid: str):
         success = pinata_service.delete_file(cid)
         
         if success:
+            logger.info(
+                "ipfs_delete_succeeded",
+                extra={"asset_id": "", "cid": cid, "file_name": ""},
+            )
             return {
                 "success": True,
                 "message": f"CID {cid} 已成功删除"
@@ -168,14 +181,14 @@ async def delete_file(cid: str):
         else:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="删除失败"
+                detail=error_detail("IPFS_DELETE_FAILED", "删除失败"),
             )
             
     except Exception as e:
-        logger.error(f"删除 CID {cid} 时发生错误: {e}", exc_info=True)
+        logger.error("ipfs_delete_failed", extra={"asset_id": "", "cid": cid, "file_name": "", "error": str(e)}, exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"删除失败: {str(e)}"
+            detail=error_detail("IPFS_DELETE_FAILED", f"删除失败: {str(e)}"),
         )
 
 
@@ -193,6 +206,10 @@ async def get_gateway_url(cid: str):
     try:
         pinata_service = get_pinata_service()
         url = pinata_service.get_gateway_url(cid)
+        logger.info(
+            "ipfs_gateway_url_resolved",
+            extra={"asset_id": "", "cid": cid, "file_name": ""},
+        )
         
         return {
             "success": True,
@@ -203,8 +220,8 @@ async def get_gateway_url(cid: str):
         }
         
     except Exception as e:
-        logger.error(f"获取网关 URL 时发生错误: {e}", exc_info=True)
+        logger.error("ipfs_gateway_url_failed", extra={"asset_id": "", "cid": cid, "file_name": "", "error": str(e)}, exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"获取失败: {str(e)}"
+            detail=error_detail("IPFS_GATEWAY_URL_FAILED", f"获取失败: {str(e)}"),
         )
