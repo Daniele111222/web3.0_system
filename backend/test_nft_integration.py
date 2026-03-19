@@ -150,9 +150,9 @@ async def main():
         Session = sessionmaker(bind=engine)
         session = Session()
         
-        # 检查是否有DRAFT或PENDING状态的资产
+        # 检查是否有APPROVED状态的资产
         result = session.execute(text(
-            "SELECT id, name, status FROM assets WHERE status IN ('DRAFT', 'PENDING') LIMIT 1"
+            "SELECT id, name, status FROM assets WHERE status = 'APPROVED' LIMIT 1"
         ))
         asset_row = result.fetchone()
         
@@ -182,7 +182,7 @@ async def main():
                 creator_name="测试创建者",
                 creation_date=date.today(),
                 legal_status=LegalStatus.PENDING,
-                status=AssetStatus.PENDING,
+                status=AssetStatus.APPROVED,
             )
             session.add(asset)
             session.commit()
@@ -197,10 +197,10 @@ async def main():
 
     # 步骤6: 铸造NFT(模拟)
     print_step(6, "NFT铸造测试")
-    print("  注意: 完整铸造需要资产有附件且状态为PENDING")
+    print("  注意: 完整铸造需要资产有附件且状态为APPROVED")
     print("  以下是铸造流程说明:")
     print("  1. 资产必须有附件(attachments)")
-    print("  2. 资产状态必须为PENDING或DRAFT")
+    print("  2. 资产状态必须为APPROVED")
     print("  3. 调用 POST /api/v1/nft/mint 接口")
     print("  4. 传入 minter_address 参数")
     print()

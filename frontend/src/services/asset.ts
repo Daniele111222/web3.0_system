@@ -20,9 +20,11 @@ export interface AssetCreateRequest {
   type: AssetType;
   description: string;
   creator_name: string;
+  inventors: string[];
   creation_date: string; // YYYY-MM-DD
   legal_status: LegalStatus;
   application_number?: string;
+  rights_declaration?: string;
   asset_metadata?: Record<string, unknown>;
 }
 
@@ -33,9 +35,11 @@ export interface AssetUpdateRequest {
   name?: string;
   description?: string;
   creator_name?: string;
+  inventors?: string[];
   creation_date?: string;
   legal_status?: LegalStatus;
   application_number?: string;
+  rights_declaration?: string;
   asset_metadata?: Record<string, unknown>;
 }
 
@@ -62,6 +66,7 @@ export interface AttachmentUploadRequest {
   file_type: string;
   file_size: number;
   ipfs_cid: string;
+  is_primary?: boolean;
 }
 
 /**

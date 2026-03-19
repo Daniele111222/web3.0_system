@@ -207,10 +207,6 @@ class Approval(Base):
     
     # 索引
     __table_args__ = (
-        Index("ix_approvals_applicant_id", "applicant_id"),
-        Index("ix_approvals_target_id", "target_id"),
-        Index("ix_approvals_status", "status"),
-        Index("ix_approvals_type", "type"),
         Index("ix_approvals_created_at", "created_at"),
         Index("ix_approvals_status_type", "status", "type"),
     )
@@ -317,8 +313,6 @@ class ApprovalProcess(Base):
     
     # 索引
     __table_args__ = (
-        Index("ix_approval_processes_approval_id", "approval_id"),
-        Index("ix_approval_processes_operator_id", "operator_id"),
         Index("ix_approval_processes_created_at", "created_at"),
         Index("ix_approval_processes_step", "approval_id", "step"),
     )
@@ -421,8 +415,6 @@ class ApprovalNotification(Base):
     
     # 索引
     __table_args__ = (
-        Index("ix_approval_notifications_recipient_id", "recipient_id"),
-        Index("ix_approval_notifications_approval_id", "approval_id"),
         Index("ix_approval_notifications_is_read", "is_read"),
         Index("ix_approval_notifications_created_at", "created_at"),
         Index("ix_approval_notifications_recipient_read", "recipient_id", "is_read"),

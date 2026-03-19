@@ -2,12 +2,15 @@
 from typing import Optional, List, Tuple
 from uuid import UUID
 from datetime import datetime
+import hashlib
+import requests
 from fastapi import HTTPException, status
 
 from app.models.asset import Asset, Attachment, AssetStatus
 from app.models.approval import Approval, ApprovalType, ApprovalStatus
 from app.repositories.asset_repository import AssetRepository
 from app.repositories.approval_repository import ApprovalRepository
+from app.services.pinata_service import get_pinata_service
 from app.schemas.asset import (
     AssetCreateRequest,
     AssetUpdateRequest,
@@ -52,9 +55,11 @@ class AssetService:
             type=data.type,
             description=data.description,
             creator_name=data.creator_name,
+            inventors=data.inventors,
             creation_date=data.creation_date,
             legal_status=data.legal_status,
             application_number=data.application_number,
+            rights_declaration=data.rights_declaration,
             asset_metadata=data.asset_metadata,
             status=AssetStatus.DRAFT,
             created_at=datetime.utcnow(),
@@ -158,12 +163,16 @@ class AssetService:
             asset.description = data.description
         if data.creator_name is not None:
             asset.creator_name = data.creator_name
+        if data.inventors is not None:
+            asset.inventors = data.inventors
         if data.creation_date is not None:
             asset.creation_date = data.creation_date
         if data.legal_status is not None:
             asset.legal_status = data.legal_status
         if data.application_number is not None:
             asset.application_number = data.application_number
+        if data.rights_declaration is not None:
+            asset.rights_declaration = data.rights_declaration
         if data.asset_metadata is not None:
             asset.asset_metadata = data.asset_metadata
         
@@ -247,6 +256,12 @@ class AssetService:
                 status_code=status.HTTP_409_CONFLICT,
                 detail="该文件已存在",
             )
+
+        existing_attachments = await self.asset_repo.get_attachments_by_asset(asset_id)
+        is_primary = data.is_primary or not existing_attachments
+        if is_primary:
+            for existing in existing_attachments:
+                existing.is_primary = False
         
         attachment = Attachment(
             asset_id=asset_id,
@@ -254,6 +269,7 @@ class AssetService:
             file_type=data.file_type,
             file_size=data.file_size,
             ipfs_cid=data.ipfs_cid,
+            is_primary=is_primary,
             uploaded_at=datetime.utcnow(),
         )
         
@@ -270,6 +286,66 @@ class AssetService:
             List[Attachment]: 附件列表
         """
         return await self.asset_repo.get_attachments_by_asset(asset_id)
+
+    async def verify_attachment_hash(
+        self,
+        asset_id: UUID,
+        enterprise_id: UUID,
+        attachment_id: UUID,
+        client_sha256: str,
+    ) -> dict:
+        asset = await self.get_asset(asset_id)
+        if asset.enterprise_id != enterprise_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="无权访问该资产",
+            )
+
+        attachment = await self.asset_repo.get_attachment_by_id(attachment_id)
+        if not attachment or attachment.asset_id != asset_id:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="附件不存在",
+            )
+
+        gateway_url = get_pinata_service().get_gateway_url(attachment.ipfs_cid)
+        try:
+            response = requests.get(gateway_url, timeout=30)
+            response.raise_for_status()
+        except requests.RequestException:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="无法从 IPFS 网关获取附件内容",
+            )
+
+        server_sha256 = hashlib.sha256(response.content).hexdigest()
+        matched = server_sha256.lower() == client_sha256.lower()
+        verified_at = datetime.utcnow()
+
+        metadata = dict(asset.asset_metadata) if isinstance(asset.asset_metadata, dict) else {}
+        hash_verification = dict(metadata.get("hash_verification", {}))
+        hash_verification[str(attachment.id)] = {
+            "attachment_id": str(attachment.id),
+            "ipfs_cid": attachment.ipfs_cid,
+            "client_sha256": client_sha256.lower(),
+            "server_sha256": server_sha256,
+            "matched": matched,
+            "verified_at": verified_at.isoformat(),
+        }
+        metadata["hash_verification"] = hash_verification
+        asset.asset_metadata = metadata
+        asset.updated_at = verified_at
+        await self.asset_repo.update_asset(asset)
+
+        return {
+            "attachment_id": attachment.id,
+            "asset_id": asset.id,
+            "ipfs_cid": attachment.ipfs_cid,
+            "client_sha256": client_sha256.lower(),
+            "server_sha256": server_sha256,
+            "matched": matched,
+            "verified_at": verified_at,
+        }
     
     async def submit_for_approval(
         self,

@@ -179,9 +179,11 @@ class AssetServiceWithIPFS:
             type=asset_data.type,
             description=asset_data.description,
             creator_name=asset_data.creator_name,
+            inventors=asset_data.inventors,
             creation_date=asset_data.creation_date,
             legal_status=asset_data.legal_status,
             application_number=asset_data.application_number,
+            rights_declaration=asset_data.rights_declaration,
             asset_metadata=asset_data.asset_metadata,
             status=AssetStatus.DRAFT,
             created_at=datetime.utcnow(),
@@ -204,7 +206,7 @@ class AssetServiceWithIPFS:
             )
 
         if files:
-            for file in files:
+            for index, file in enumerate(files):
                 if not file or not file.filename:
                     continue
                 
@@ -226,6 +228,7 @@ class AssetServiceWithIPFS:
                         file_type=file.content_type or "application/octet-stream",
                         file_size=upload_result.get("size", 0),
                         ipfs_cid=upload_result["cid"],
+                        is_primary=index == 0,
                         uploaded_at=datetime.utcnow(),
                     )
                     

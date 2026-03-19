@@ -423,7 +423,7 @@ class ApprovalService:
     
     async def _handle_asset_submit_approval(self, approval: Approval) -> None:
         """
-        处理资产提交审批通过，铸造 NFT。
+        处理资产提交审批通过，更新为可铸造状态。
         
         Args:
             approval: 审批记录
@@ -431,22 +431,11 @@ class ApprovalService:
         if not approval.asset_id:
             return
         
-        from app.services.nft_service import NFTService
-        
-        nft_service = NFTService(self.db)
-        
-        enterprise = await self.enterprise_repo.get_by_id(approval.target_id)
-        
-        if not enterprise or not enterprise.wallet_address:
-            return
-        
-        try:
-            await nft_service.mint_asset_nft(
-                asset_id=approval.asset_id,
-                minter_address=enterprise.wallet_address,
-            )
-        except Exception:
-            pass
+        asset_repo = AssetRepository(self.db)
+        asset = await asset_repo.get_asset_by_id(approval.asset_id)
+        if asset:
+            asset.status = AssetStatus.APPROVED
+            await asset_repo.update_asset(asset)
     
     async def _handle_asset_submit_rejected(self, approval: Approval) -> None:
         """

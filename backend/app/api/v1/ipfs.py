@@ -111,6 +111,14 @@ async def upload_file(
         )
 
 
+@router.post("/files/upload", response_model=dict, deprecated=True)
+async def upload_file_alias(
+    file: UploadFile = File(...),
+    name: Optional[str] = None,
+):
+    return await upload_file(file=file, name=name)
+
+
 @router.post("/upload/json", response_model=dict)
 async def upload_json(
     data: dict,
@@ -154,6 +162,14 @@ async def upload_json(
         )
 
 
+@router.post("/json/upload", response_model=dict, deprecated=True)
+async def upload_json_alias(
+    data: dict,
+    name: str = "data.json"
+):
+    return await upload_json(data=data, name=name)
+
+
 @router.delete("/delete/{cid}", response_model=dict)
 async def delete_file(cid: str):
     """
@@ -192,6 +208,11 @@ async def delete_file(cid: str):
         )
 
 
+@router.delete("/files/{cid}", response_model=dict, deprecated=True)
+async def delete_file_alias(cid: str):
+    return await delete_file(cid=cid)
+
+
 @router.get("/gateway/{cid}")
 async def get_gateway_url(cid: str):
     """
@@ -225,3 +246,8 @@ async def get_gateway_url(cid: str):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=error_detail("IPFS_GATEWAY_URL_FAILED", f"获取失败: {str(e)}"),
         )
+
+
+@router.get("/files/{cid}/gateway", deprecated=True)
+async def get_gateway_url_alias(cid: str):
+    return await get_gateway_url(cid=cid)

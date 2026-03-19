@@ -28,7 +28,13 @@ contract IPNFT is
     uint256 private _nextTokenId;
 
     // Events
-    event NFTMinted(uint256 indexed tokenId, address indexed creator, address indexed owner, string metadataURI);
+    event NFTMinted(
+        uint256 indexed tokenId,
+        address indexed creator,
+        address indexed owner,
+        string metadataURI,
+        uint256 timestamp
+    );
     event NFTBurned(uint256 indexed tokenId, address indexed owner);
     event NFTTransferred(uint256 indexed tokenId, address indexed from, address indexed to);
     event NFTTransferredWithReason(
@@ -36,7 +42,8 @@ contract IPNFT is
         address indexed from,
         address indexed to,
         address operator,
-        string reason
+        string reason,
+        uint256 timestamp
     );
     event RoyaltySet(uint256 indexed tokenId, address receiver, uint96 feeNumerator);
     event MetadataUpdated(uint256 indexed tokenId, string newURI);
@@ -115,6 +122,7 @@ contract IPNFT is
      */
     function mint(address to, string memory metadataURI) 
         external 
+        onlyOwner
         whenNotPaused
         nonReentrant 
         returns (uint256) 
@@ -131,7 +139,7 @@ contract IPNFT is
         // Record the caller (creator), not the receiver
         originalCreators[tokenId] = msg.sender;
 
-        emit NFTMinted(tokenId, msg.sender, to, metadataURI);
+        emit NFTMinted(tokenId, msg.sender, to, metadataURI, block.timestamp);
         
         return tokenId;
     }
@@ -151,6 +159,7 @@ contract IPNFT is
         uint96 royaltyFeeNumerator
     ) 
         external 
+        onlyOwner
         whenNotPaused
         nonReentrant 
         returns (uint256) 
@@ -171,7 +180,7 @@ contract IPNFT is
         // Record the caller (creator), not the receiver
         originalCreators[tokenId] = msg.sender;
 
-        emit NFTMinted(tokenId, msg.sender, to, metadataURI);
+        emit NFTMinted(tokenId, msg.sender, to, metadataURI, block.timestamp);
         emit RoyaltySet(tokenId, royaltyReceiver, royaltyFeeNumerator);
         
         return tokenId;
@@ -185,6 +194,7 @@ contract IPNFT is
      */
     function batchMint(address to, string[] memory metadataURIs) 
         external 
+        onlyOwner
         whenNotPaused
         nonReentrant 
         returns (uint256[] memory tokenIds) 
@@ -207,7 +217,7 @@ contract IPNFT is
             mintTimestamps[tokenId] = block.timestamp;
             originalCreators[tokenId] = msg.sender;
 
-            emit NFTMinted(tokenId, msg.sender, to, metadataURIs[i]);
+            emit NFTMinted(tokenId, msg.sender, to, metadataURIs[i], block.timestamp);
         }
 
         return tokenIds;
@@ -235,7 +245,7 @@ contract IPNFT is
 
         _transfer(from, to, tokenId);
 
-        emit NFTTransferredWithReason(tokenId, from, to, msg.sender, reason);
+        emit NFTTransferredWithReason(tokenId, from, to, msg.sender, reason, block.timestamp);
     }
 
     /**

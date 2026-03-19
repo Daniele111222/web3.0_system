@@ -12,6 +12,7 @@
 export const AssetMintStatus = {
   DRAFT: 'DRAFT', // 草稿状态
   PENDING: 'PENDING', // 待审批
+  APPROVED: 'APPROVED', // 审批通过
   MINTING: 'MINTING', // 铸造中
   MINTED: 'MINTED', // 铸造完成
   MINT_FAILED: 'MINT_FAILED', // 铸造失败
@@ -69,6 +70,12 @@ export interface ContractInfoResponse {
   has_abi: boolean;
 }
 
+export interface ContractInfoApiResponse {
+  success: boolean;
+  message: string;
+  data: ContractInfoResponse;
+}
+
 /** 合约状态检查响应 */
 export interface ContractStatusResponse {
   ready: boolean;
@@ -88,13 +95,17 @@ export interface ContractAddressUpdateRequest {
 
 /** 铸造 NFT 请求 */
 export interface MintNFTRequest {
-  minter_address: string;
+  minter_address?: string;
+  royalty_receiver?: string;
+  royalty_fee_bps?: number;
+  signed_message?: string;
+  wallet_signature?: string;
 }
 
 /** 批量铸造 NFT 请求 */
 export interface BatchMintNFTRequest {
   asset_ids: string[];
-  minter_address: string;
+  minter_address?: string;
 }
 
 /** 铸造 NFT 响应 */
@@ -128,7 +139,74 @@ export interface BatchMintNFTResponse {
 
 /** 重试铸造 NFT 请求 */
 export interface RetryMintNFTRequest {
-  minter_address: string;
+  minter_address?: string;
+  royalty_receiver?: string;
+  royalty_fee_bps?: number;
+  signed_message?: string;
+  wallet_signature?: string;
+}
+
+export interface MintGasEstimateResponse {
+  asset_id: string;
+  estimated: {
+    gas_limit: number;
+    gas_price_wei: number;
+    estimated_fee_wei: number;
+    estimated_fee_eth: string;
+  };
+  royalty_receiver?: string;
+  royalty_fee_bps: number;
+}
+
+export interface NFTHistoryItem {
+  id: string;
+  token_id: number;
+  contract_address: string;
+  transfer_type: string;
+  from_address: string;
+  from_enterprise_id?: string | null;
+  from_enterprise_name?: string | null;
+  to_address: string;
+  to_enterprise_id?: string | null;
+  to_enterprise_name?: string | null;
+  tx_hash?: string | null;
+  block_number?: number | null;
+  timestamp: string;
+  status: string;
+  remarks?: string | null;
+}
+
+export interface NFTHistoryResponse {
+  items: NFTHistoryItem[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
+export interface NFTMintHistoryItem {
+  mint_record_id: string;
+  asset_id: string;
+  asset_name: string;
+  asset_status: AssetMintStatus;
+  operation: MintOperation;
+  stage: string;
+  status: 'PENDING' | 'SUCCESS' | 'FAILED';
+  signature_verified?: boolean | null;
+  token_id?: number | null;
+  tx_hash?: string | null;
+  error_code?: string | null;
+  error_message?: string | null;
+  created_at?: string | null;
+  completed_at?: string | null;
+}
+
+export interface NFTMintHistoryResponse {
+  items: NFTMintHistoryItem[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
 }
 
 // ============================================

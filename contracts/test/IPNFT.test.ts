@@ -1,5 +1,6 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
+import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { IPNFT } from "../typechain-types";
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 
@@ -39,7 +40,7 @@ describe("IPNFT", function () {
     it("Should mint a new NFT", async function () {
       await expect(ipnft.mint(user1.address, SAMPLE_URI))
         .to.emit(ipnft, "NFTMinted")
-        .withArgs(1, user1.address, SAMPLE_URI);
+        .withArgs(1, owner.address, user1.address, SAMPLE_URI, anyValue);
 
       expect(await ipnft.ownerOf(1)).to.equal(user1.address);
       expect(await ipnft.tokenURI(1)).to.equal(SAMPLE_URI);
@@ -55,7 +56,7 @@ describe("IPNFT", function () {
 
     it("Should record original creator", async function () {
       await ipnft.mint(user1.address, SAMPLE_URI);
-      expect(await ipnft.getOriginalCreator(1)).to.equal(user1.address);
+      expect(await ipnft.getOriginalCreator(1)).to.equal(owner.address);
     });
 
     it("Should record mint timestamp", async function () {
@@ -74,6 +75,12 @@ describe("IPNFT", function () {
       await expect(
         ipnft.mint(user1.address, "")
       ).to.be.revertedWith("IPNFT: empty metadata URI");
+    });
+
+    it("Should revert when non-owner tries to mint", async function () {
+      await expect(
+        ipnft.connect(user1).mint(user1.address, SAMPLE_URI)
+      ).to.be.reverted;
     });
   });
 
@@ -114,7 +121,7 @@ describe("IPNFT", function () {
 
     it("Should preserve original creator after transfer", async function () {
       await ipnft.connect(user1).transferFrom(user1.address, user2.address, 1);
-      expect(await ipnft.getOriginalCreator(1)).to.equal(user1.address);
+      expect(await ipnft.getOriginalCreator(1)).to.equal(owner.address);
     });
 
     it("Should revert when non-owner tries to transfer", async function () {

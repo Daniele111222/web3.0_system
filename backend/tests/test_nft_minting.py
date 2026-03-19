@@ -122,7 +122,7 @@ async def test_asset_draft(db_session: AsyncSession, test_enterprise: Enterprise
 
 @pytest_asyncio.fixture
 async def test_asset_pending(db_session: AsyncSession, test_enterprise: Enterprise, test_user: User) -> Asset:
-    """创建测试资产(PENDING状态)"""
+    """创建测试资产(APPROVED状态)"""
     asset = Asset(
         id=uuid4(),
         enterprise_id=test_enterprise.id,
@@ -134,7 +134,7 @@ async def test_asset_pending(db_session: AsyncSession, test_enterprise: Enterpri
         creation_date=date(2024, 1, 1),
         legal_status=LegalStatus.PENDING,
         application_number="CN2024000002",
-        status=AssetStatus.PENDING,
+        status=AssetStatus.APPROVED,
     )
     db_session.add(asset)
     await db_session.commit()
@@ -153,10 +153,11 @@ async def test_asset_with_attachment(db_session: AsyncSession, test_enterprise: 
         type=AssetType.COPYRIGHT,
         description="Test Copyright Description",
         creator_name="Test Creator",
+        inventors=["Test Creator"],
         creation_date=date(2024, 1, 1),
         legal_status=LegalStatus.GRANTED,
         application_number="CN2024000003",
-        status=AssetStatus.PENDING,
+        status=AssetStatus.APPROVED,
     )
     db_session.add(asset)
     await db_session.flush()
@@ -168,6 +169,7 @@ async def test_asset_with_attachment(db_session: AsyncSession, test_enterprise: 
         file_type="application/pdf",
         file_size=1024,
         ipfs_cid="QmTest123",
+        is_primary=True,
     )
     db_session.add(attachment)
     await db_session.commit()
@@ -284,7 +286,7 @@ class TestNFTService:
         status = await nft_service.get_mint_status(asset_id=test_asset_with_attachment.id)
         
         assert status["asset_id"] == str(test_asset_with_attachment.id)
-        assert status["current_status"] == AssetStatus.PENDING.value
+        assert status["current_status"] == AssetStatus.APPROVED.value
         assert "mint_stage" in status
         assert "mint_progress" in status
     
@@ -305,7 +307,7 @@ class TestNFTService:
         """测试重试非失败状态的资产"""
         nft_service = NFTService(db_session)
         
-        # 资产状态是PENDING，不是MINT_FAILED
+        # 资产状态是APPROVED，不是MINT_FAILED
         with pytest.raises(Exception) as exc_info:
             await nft_service.retry_mint(
                 asset_id=test_asset_with_attachment.id,
@@ -351,6 +353,7 @@ class TestAssetModel:
         """测试资产状态枚举"""
         assert AssetStatus.DRAFT.value == "DRAFT"
         assert AssetStatus.PENDING.value == "PENDING"
+        assert AssetStatus.APPROVED.value == "APPROVED"
         assert AssetStatus.MINTING.value == "MINTING"
         assert AssetStatus.MINTED.value == "MINTED"
         assert AssetStatus.MINT_FAILED.value == "MINT_FAILED"

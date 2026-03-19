@@ -28,7 +28,7 @@ export const IPNFT_ABI = [
   'event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)',
   'event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId)',
   'event ApprovalForAll(address indexed owner, address indexed operator, bool approved)',
-  'event NFTMinted(uint256 indexed tokenId, address indexed creator, address indexed owner, string metadataURI)',
+  'event NFTMinted(uint256 indexed tokenId, address indexed creator, address indexed owner, string metadataURI, uint256 timestamp)',
   'event NFTTransferred(uint256 indexed tokenId, address indexed from, address indexed to)',
   'event RoyaltySet(uint256 indexed tokenId, address receiver, uint96 feeNumerator)',
   'event MetadataUpdated(uint256 indexed tokenId, string newURI)',

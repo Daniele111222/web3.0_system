@@ -13,6 +13,7 @@ import api from './api';
 import type {
   ContractDeployResponse,
   ContractInfoResponse,
+  ContractInfoApiResponse,
   ContractStatusResponse,
   ContractAddressUpdateRequest,
   MintNFTRequest,
@@ -21,7 +22,42 @@ import type {
   BatchMintNFTResponse,
   RetryMintNFTRequest,
   MintStatusResponse,
+  NFTHistoryResponse,
+  NFTMintHistoryResponse,
+  MintGasEstimateResponse,
 } from '../types/nft';
+
+const NFT_ERROR_CODE_MAP: Record<string, string> = {
+  MINTER_ADDRESS_NOT_CONFIGURED:
+    '未配置可用接收地址，请先配置企业钱包地址或联系管理员设置系统默认地址',
+  INSUFFICIENT_ATTACHMENTS: '资产缺少附件，请先上传至少一个附件后再铸造',
+  CONTRACT_CALL_FAILED: '链上铸造调用失败，请稍后重试',
+  PINATA_UPLOAD_FAILED: '元数据上传失败，请检查 IPFS 服务后重试',
+  SIGNATURE_VERIFICATION_FAILED: '签名校验失败，当前流程已关闭钱包签名，请联系管理员',
+};
+
+const extractErrorDetail = (error: unknown): string => {
+  if (!error || typeof error !== 'object') {
+    return '';
+  }
+  const err = error as {
+    response?: { data?: { detail?: string; message?: string } };
+    message?: string;
+  };
+  return String(err.response?.data?.detail || err.response?.data?.message || err.message || '');
+};
+
+export const mapNftErrorMessage = (error: unknown, fallback = '操作失败'): string => {
+  const detail = extractErrorDetail(error);
+  if (!detail) {
+    return fallback;
+  }
+  const matchedCode = Object.keys(NFT_ERROR_CODE_MAP).find((code) => detail.includes(code));
+  if (!matchedCode) {
+    return detail;
+  }
+  return NFT_ERROR_CODE_MAP[matchedCode];
+};
 
 // ============================================
 // 合约管理 API
@@ -33,7 +69,7 @@ import type {
  * @returns 合约部署结果，包含合约地址和交易哈希
  */
 export const deployContract = async (): Promise<ContractDeployResponse> => {
-  const response = await api.post('/api/v1/contracts/deploy');
+  const response = await api.post('/contracts/deploy');
   return response.data;
 };
 
@@ -42,8 +78,8 @@ export const deployContract = async (): Promise<ContractDeployResponse> => {
  * @returns 合约地址、部署者、链ID等信息
  */
 export const getContractInfo = async (): Promise<ContractInfoResponse> => {
-  const response = await api.get('/api/v1/contracts/info');
-  return response.data;
+  const response = await api.get<ContractInfoApiResponse>('/contracts/info');
+  return response.data.data;
 };
 
 /**
@@ -52,7 +88,7 @@ export const getContractInfo = async (): Promise<ContractInfoResponse> => {
  * @param data 包含新合约地址的请求体
  */
 export const updateContractAddress = async (data: ContractAddressUpdateRequest): Promise<void> => {
-  await api.post('/api/v1/contracts/update-address', data);
+  await api.post('/contracts/update-address', data);
 };
 
 /**
@@ -61,7 +97,7 @@ export const updateContractAddress = async (data: ContractAddressUpdateRequest):
  * @returns 状态检查结果，包括是否可以铸造
  */
 export const checkContractStatus = async (): Promise<ContractStatusResponse> => {
-  const response = await api.get('/api/v1/contracts/status');
+  const response = await api.get('/contracts/status');
   return response.data;
 };
 
@@ -77,7 +113,7 @@ export const checkContractStatus = async (): Promise<ContractStatusResponse> => 
  * @returns 铸造结果，包含 Token ID 和交易哈希
  */
 export const mintNFT = async (assetId: string, data: MintNFTRequest): Promise<MintNFTResponse> => {
-  const response = await api.post(`/api/v1/nft/mint?asset_id=${assetId}`, data);
+  const response = await api.post(`/nft/mint?asset_id=${assetId}`, data);
   return response.data;
 };
 
@@ -88,7 +124,7 @@ export const mintNFT = async (assetId: string, data: MintNFTRequest): Promise<Mi
  * @returns 批量铸造结果，包含每个资产的铸造状态
  */
 export const batchMintNFT = async (data: BatchMintNFTRequest): Promise<BatchMintNFTResponse> => {
-  const response = await api.post('/api/v1/nft/batch-mint', data);
+  const response = await api.post('/nft/batch-mint', data);
   return response.data;
 };
 
@@ -99,7 +135,7 @@ export const batchMintNFT = async (data: BatchMintNFTRequest): Promise<BatchMint
  * @returns 详细的铸造状态信息
  */
 export const getMintStatus = async (assetId: string): Promise<MintStatusResponse> => {
-  const response = await api.get(`/api/v1/nft/${assetId}/mint/status`);
+  const response = await api.get(`/nft/${assetId}/mint/status`);
   return response.data;
 };
 
@@ -114,7 +150,43 @@ export const retryMint = async (
   assetId: string,
   data: RetryMintNFTRequest
 ): Promise<MintNFTResponse> => {
-  const response = await api.post(`/api/v1/nft/${assetId}/mint/retry`, data);
+  const response = await api.post(`/nft/${assetId}/mint/retry`, data);
+  return response.data;
+};
+
+export const estimateMintGas = async (
+  assetId: string,
+  data: MintNFTRequest
+): Promise<MintGasEstimateResponse> => {
+  const response = await api.post(`/nft/mint/estimate?asset_id=${assetId}`, data);
+  return response.data;
+};
+
+export const getNFTHistory = async (
+  tokenId: number,
+  page = 1,
+  pageSize = 20
+): Promise<NFTHistoryResponse> => {
+  const response = await api.get(`/nft/${tokenId}/history`, {
+    params: { page, page_size: pageSize },
+  });
+  return response.data;
+};
+
+export const getMintHistory = async (
+  enterpriseId: string,
+  page = 1,
+  pageSize = 20,
+  recordStatus?: 'PENDING' | 'SUCCESS' | 'FAILED'
+): Promise<NFTMintHistoryResponse> => {
+  const response = await api.get('/nft/mint/history', {
+    params: {
+      enterprise_id: enterpriseId,
+      page,
+      page_size: pageSize,
+      record_status: recordStatus,
+    },
+  });
   return response.data;
 };
 
@@ -134,6 +206,10 @@ export const nftService = {
   batchMintNFT,
   getMintStatus,
   retryMint,
+  estimateMintGas,
+  getNFTHistory,
+  getMintHistory,
+  mapNftErrorMessage,
 };
 
 export default nftService;

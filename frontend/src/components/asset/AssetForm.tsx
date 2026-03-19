@@ -30,9 +30,11 @@ export function AssetForm({ onSubmit, onCancel, isLoading = false }: AssetFormPr
     type: 'PATENT',
     description: '',
     creator_name: '',
+    inventors: [],
     creation_date: new Date().toISOString().split('T')[0],
     legal_status: 'PENDING',
     application_number: '',
+    rights_declaration: '',
     asset_metadata: {},
   });
 
@@ -70,6 +72,12 @@ export function AssetForm({ onSubmit, onCancel, isLoading = false }: AssetFormPr
       newErrors.creator_name = '创作人姓名不能超过50个字符';
     }
 
+    if (formData.inventors.length === 0) {
+      newErrors.inventors = '至少填写 1 位发明人';
+    } else if (formData.inventors.length > 20) {
+      newErrors.inventors = '发明人数量不能超过 20 人';
+    }
+
     // 验证创作日期
     if (!formData.creation_date) {
       newErrors.creation_date = '创作日期不能为空';
@@ -81,6 +89,10 @@ export function AssetForm({ onSubmit, onCancel, isLoading = false }: AssetFormPr
       if (selectedDate > today) {
         newErrors.creation_date = '创作日期不能是未来日期';
       }
+    }
+
+    if ((formData.rights_declaration || '').length > 2000) {
+      newErrors.rights_declaration = '权利声明不能超过2000个字符';
     }
 
     setErrors(newErrors);
@@ -105,7 +117,7 @@ export function AssetForm({ onSubmit, onCancel, isLoading = false }: AssetFormPr
    */
   const handleChange = (
     field: keyof AssetCreateRequest,
-    value: string | AssetType | LegalStatus
+    value: string | AssetType | LegalStatus | string[]
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
 
@@ -117,6 +129,14 @@ export function AssetForm({ onSubmit, onCancel, isLoading = false }: AssetFormPr
         return newErrors;
       });
     }
+  };
+
+  const handleInventorsChange = (value: string) => {
+    const inventors = value
+      .split(/[,，\n]/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+    handleChange('inventors', inventors);
   };
 
   /**
@@ -202,6 +222,21 @@ export function AssetForm({ onSubmit, onCancel, isLoading = false }: AssetFormPr
         </div>
 
         <div className="form-group">
+          <label htmlFor="inventors">
+            发明人<span className="required">*</span>
+          </label>
+          <textarea
+            id="inventors"
+            value={formData.inventors.join('，')}
+            onChange={(e) => handleInventorsChange(e.target.value)}
+            placeholder="请输入发明人，使用逗号分隔"
+            disabled={isLoading}
+            rows={2}
+          />
+          {errors.inventors && <span className="error-text">{errors.inventors}</span>}
+        </div>
+
+        <div className="form-group">
           <label htmlFor="creation_date">
             创作日期<span className="required">*</span>
           </label>
@@ -246,6 +281,22 @@ export function AssetForm({ onSubmit, onCancel, isLoading = false }: AssetFormPr
             disabled={isLoading}
           />
         </div>
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="rights_declaration">权利声明</label>
+        <textarea
+          id="rights_declaration"
+          value={formData.rights_declaration || ''}
+          onChange={(e) => handleChange('rights_declaration', e.target.value)}
+          placeholder="请输入权利声明（可选）"
+          disabled={isLoading}
+          rows={4}
+          maxLength={2000}
+        />
+        {errors.rights_declaration && (
+          <span className="error-text">{errors.rights_declaration}</span>
+        )}
       </div>
 
       {/* 附件上传 */}

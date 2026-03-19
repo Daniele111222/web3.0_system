@@ -51,6 +51,12 @@ const STATUS_CONFIG: Record<
     icon: <ClockCircleOutlined />,
     description: '等待铸造开始',
   },
+  APPROVED: {
+    label: '审批通过',
+    color: 'processing',
+    icon: <CheckCircleOutlined />,
+    description: '资产已审批通过，可发起铸造',
+  },
   MINTING: {
     label: '铸造中',
     color: 'warning',
@@ -187,7 +193,7 @@ export const MintCard: React.FC<MintCardProps> = ({
   const statusConfig = STATUS_CONFIG[asset.status] || STATUS_CONFIG.DRAFT;
 
   // 判断是否可以铸造
-  const canMint = asset.status === 'DRAFT' || asset.status === 'PENDING';
+  const canMint = asset.status === 'APPROVED';
 
   // 判断是否可以重试
   const canRetry = asset.status === 'MINT_FAILED' && asset.mint_progress !== undefined;

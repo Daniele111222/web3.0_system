@@ -4,7 +4,11 @@ export type LegalStatus = 'PENDING' | 'GRANTED' | 'EXPIRED';
 export type AssetStatus =
   | 'DRAFT'
   | 'PENDING'
+  | 'APPROVED'
+  | 'MINTING'
+  | 'MINT_FAILED'
   | 'MINTED'
+  | 'REVOKED'
   | 'REJECTED'
   | 'TRANSFERRED'
   | 'LICENSED'
@@ -16,6 +20,7 @@ export interface Attachment {
   file_type: string;
   ipfs_cid: string;
   file_size: number;
+  is_primary: boolean;
   uploaded_at: string;
 }
 
@@ -25,12 +30,14 @@ export interface Asset {
   name: string;
   type: AssetType;
   description: string;
-  creator: string;
+  creator_name: string;
+  inventors: string[];
   creation_date: string;
   legal_status: LegalStatus;
   application_number?: string;
+  rights_declaration?: string;
   attachments: Attachment[];
-  metadata: Record<string, unknown>;
+  asset_metadata: Record<string, unknown>;
   nft_token_id?: string;
   nft_contract_address?: string;
   mint_tx_hash?: string;

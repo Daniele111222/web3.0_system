@@ -9,7 +9,7 @@
  * - 钱包地址输入验证
  */
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Modal,
   Button,
@@ -35,6 +35,7 @@ import './style.less';
 
 const { Text, Title } = Typography;
 const { Search } = Input;
+const MAX_BATCH_COUNT = 50;
 
 // ============================================
 // 类型定义
@@ -44,7 +45,7 @@ interface BatchMintModalProps {
   visible: boolean;
   assets: NFTAssetCardData[];
   onCancel: () => void;
-  onConfirm: (selectedIds: string[], minterAddress: string) => void;
+  onConfirm: (selectedIds: string[], minterAddress?: string) => void;
   loading?: boolean;
   results?: {
     total: number;
@@ -76,6 +77,7 @@ const getStatusColor = (status: AssetMintStatus): string => {
   const colorMap: Record<AssetMintStatus, string> = {
     DRAFT: 'default',
     PENDING: 'processing',
+    APPROVED: 'success',
     MINTING: 'warning',
     MINTED: 'success',
     MINT_FAILED: 'error',
@@ -93,6 +95,7 @@ const getStatusLabel = (status: AssetMintStatus): string => {
   const labelMap: Record<AssetMintStatus, string> = {
     DRAFT: '草稿',
     PENDING: '待铸造',
+    APPROVED: '审批通过',
     MINTING: '铸造中',
     MINTED: '已铸造',
     MINT_FAILED: '失败',
@@ -117,12 +120,13 @@ export const BatchMintModal: React.FC<BatchMintModalProps> = ({
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [minterAddress, setMinterAddress] = useState('');
   const [addressError, setAddressError] = useState('');
+  const [selectionError, setSelectionError] = useState('');
   const [searchText, setSearchText] = useState('');
-  const [currentStep, setCurrentStep] = useState<'select' | 'confirm' | 'result'>('select');
+  const [currentStep, setCurrentStep] = useState<'select' | 'confirm'>('select');
 
   // 可铸造资产列表（状态为 DRAFT 或 PENDING）
   const mintableAssets = useMemo(() => {
-    return assets.filter((asset) => asset.status === 'DRAFT' || asset.status === 'PENDING');
+    return assets.filter((asset) => asset.status === 'APPROVED');
   }, [assets]);
 
   // 根据搜索文本过滤资产
@@ -136,23 +140,14 @@ export const BatchMintModal: React.FC<BatchMintModalProps> = ({
     );
   }, [mintableAssets, searchText]);
 
-  // 当模态框关闭时重置状态
-  useEffect(() => {
-    if (!visible) {
-      setSelectedIds([]);
-      setMinterAddress('');
-      setAddressError('');
-      setSearchText('');
-      setCurrentStep('select');
-    }
-  }, [visible]);
-
-  // 当有结果时切换到结果步骤
-  useEffect(() => {
-    if (results) {
-      setCurrentStep('result');
-    }
-  }, [results]);
+  const handleReset = () => {
+    setSelectedIds([]);
+    setMinterAddress('');
+    setAddressError('');
+    setSelectionError('');
+    setSearchText('');
+    setCurrentStep('select');
+  };
 
   /**
    * 处理资产选择
@@ -161,9 +156,15 @@ export const BatchMintModal: React.FC<BatchMintModalProps> = ({
    */
   const handleSelect = (assetId: string, checked: boolean) => {
     if (checked) {
+      if (selectedIds.length >= MAX_BATCH_COUNT) {
+        setSelectionError(`单次最多选择 ${MAX_BATCH_COUNT} 个资产`);
+        return;
+      }
       setSelectedIds((prev) => [...prev, assetId]);
+      setSelectionError('');
     } else {
       setSelectedIds((prev) => prev.filter((id) => id !== assetId));
+      setSelectionError('');
     }
   };
 
@@ -173,9 +174,16 @@ export const BatchMintModal: React.FC<BatchMintModalProps> = ({
    */
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedIds(filteredAssets.map((asset) => asset.asset_id));
+      const nextSelected = filteredAssets.slice(0, MAX_BATCH_COUNT).map((asset) => asset.asset_id);
+      setSelectedIds(nextSelected);
+      if (filteredAssets.length > MAX_BATCH_COUNT) {
+        setSelectionError(`单次最多选择 ${MAX_BATCH_COUNT} 个资产，已自动截断`);
+      } else {
+        setSelectionError('');
+      }
     } else {
       setSelectedIds([]);
+      setSelectionError('');
     }
   };
 
@@ -185,7 +193,7 @@ export const BatchMintModal: React.FC<BatchMintModalProps> = ({
    */
   const handleAddressChange = (value: string) => {
     setMinterAddress(value);
-    if (value && !isValidAddress(value)) {
+    if (value.trim() && !isValidAddress(value.trim())) {
       setAddressError('请输入有效的以太坊地址 (0x...)');
     } else {
       setAddressError('');
@@ -196,7 +204,7 @@ export const BatchMintModal: React.FC<BatchMintModalProps> = ({
    * 进入确认步骤
    */
   const handleProceedToConfirm = () => {
-    if (selectedIds.length === 0) return;
+    if (selectedIds.length === 0 || selectedIds.length > MAX_BATCH_COUNT) return;
     setCurrentStep('confirm');
   };
 
@@ -211,8 +219,9 @@ export const BatchMintModal: React.FC<BatchMintModalProps> = ({
    * 确认批量铸造
    */
   const handleConfirm = () => {
-    if (selectedIds.length === 0 || !minterAddress || addressError) return;
-    onConfirm(selectedIds, minterAddress);
+    if (selectedIds.length === 0 || selectedIds.length > MAX_BATCH_COUNT || addressError) return;
+    const normalizedAddress = minterAddress.trim() || undefined;
+    onConfirm(selectedIds, normalizedAddress);
   };
 
   /**
@@ -246,6 +255,9 @@ export const BatchMintModal: React.FC<BatchMintModalProps> = ({
           </Text>
         </Checkbox>
       </div>
+      {selectionError && (
+        <Alert message={selectionError} type="warning" showIcon style={{ marginBottom: 12 }} />
+      )}
 
       {/* 资产列表 */}
       <div className="batch-mint-asset-list">
@@ -329,10 +341,10 @@ export const BatchMintModal: React.FC<BatchMintModalProps> = ({
       </div>
 
       <div className="confirm-section">
-        <Title level={5}>接收钱包地址</Title>
+        <Title level={5}>接收地址（可选）</Title>
         <Input
           size="large"
-          placeholder="请输入以太坊钱包地址 (0x...)"
+          placeholder="可选填写接收地址，不填则由后端自动回填"
           value={minterAddress}
           onChange={(e) => handleAddressChange(e.target.value)}
           status={addressError ? 'error' : ''}
@@ -348,7 +360,7 @@ export const BatchMintModal: React.FC<BatchMintModalProps> = ({
       <div className="confirm-section">
         <Alert
           message="铸造提醒"
-          description="铸造过程需要支付 Gas 费用，请确保钱包中有足够的 ETH。铸造成功后，NFT 将归属于填写的接收地址。"
+          description="铸造过程需要支付 Gas 费用。若未填写接收地址，服务端将按企业地址或系统默认地址自动回填。"
           type="info"
           showIcon
         />
@@ -363,7 +375,7 @@ export const BatchMintModal: React.FC<BatchMintModalProps> = ({
           size="large"
           icon={<ThunderboltOutlined />}
           loading={loading}
-          disabled={!minterAddress || !!addressError}
+          disabled={!!addressError || selectedIds.length > MAX_BATCH_COUNT}
           onClick={handleConfirm}
         >
           确认铸造
@@ -464,7 +476,10 @@ export const BatchMintModal: React.FC<BatchMintModalProps> = ({
   return (
     <Modal
       open={visible}
-      onCancel={onCancel}
+      onCancel={() => {
+        handleReset();
+        onCancel();
+      }}
       footer={null}
       width={800}
       destroyOnClose
@@ -477,9 +492,9 @@ export const BatchMintModal: React.FC<BatchMintModalProps> = ({
       }
     >
       <div className="batch-mint-content">
-        {currentStep === 'select' && renderSelectStep()}
-        {currentStep === 'confirm' && renderConfirmStep()}
-        {currentStep === 'result' && renderResultStep()}
+        {results ? renderResultStep() : null}
+        {!results && currentStep === 'select' && renderSelectStep()}
+        {!results && currentStep === 'confirm' && renderConfirmStep()}
       </div>
     </Modal>
   );

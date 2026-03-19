@@ -20,6 +20,8 @@ from app.schemas.asset import (
     AssetFilterParams,
     AttachmentResponse,
     AttachmentUploadRequest,
+    AttachmentHashVerifyRequest,
+    AttachmentHashVerifyResponse,
     AssetSubmitRequest,
     AssetSubmitResponse,
 )
@@ -463,3 +465,38 @@ async def submit_asset_for_approval(
             approval_id=approval.id,
         )
     )
+
+
+@router.post(
+    "/{asset_id}/attachments/{attachment_id}/hash/verify",
+    response_model=AttachmentHashVerifyResponse,
+    summary="校验附件SHA-256",
+    description="对指定附件执行服务端SHA-256计算并与客户端值比对",
+)
+async def verify_attachment_hash(
+    asset_id: UUID,
+    attachment_id: UUID,
+    data: AttachmentHashVerifyRequest,
+    db: DBSession,
+    current_user_id: CurrentUserId,
+) -> AttachmentHashVerifyResponse:
+    asset_repo = AssetRepository(db)
+    asset_service = AssetService(asset_repo)
+    asset = await asset_service.get_asset(asset_id)
+
+    member_repo = EnterpriseMemberRepository(db)
+    user_id = parse_current_user_id(current_user_id)
+    member = await member_repo.get_member(asset.enterprise_id, user_id)
+    if not member:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="您无权访问该资产",
+        )
+
+    result = await asset_service.verify_attachment_hash(
+        asset_id=asset_id,
+        enterprise_id=asset.enterprise_id,
+        attachment_id=attachment_id,
+        client_sha256=data.client_sha256,
+    )
+    return AttachmentHashVerifyResponse.model_validate(result)

@@ -8,9 +8,12 @@ from datetime import datetime, timezone, timedelta
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
+from eth_account.messages import encode_defunct
+from web3 import Web3
 
 from app.models.asset import Asset, AssetStatus, Attachment, MintRecord
+from app.models.enterprise import Enterprise
 from app.core.blockchain import get_blockchain_client
 from app.core.exceptions import NotFoundException, BadRequestException, BlockchainException
 from app.services.pinata_service import get_pinata_service
@@ -40,7 +43,11 @@ class NFTService:
     async def mint_asset_nft(
         self,
         asset_id: UUID,
-        minter_address: str,
+        minter_address: Optional[str] = None,
+        royalty_receiver: Optional[str] = None,
+        royalty_fee_bps: Optional[int] = None,
+        wallet_signature: Optional[str] = None,
+        signed_message: Optional[str] = None,
         operator_id: Optional[UUID] = None,
         operator_address: Optional[str] = None,
     ) -> Dict[str, Any]:
@@ -73,20 +80,37 @@ class NFTService:
         if not asset:
             raise NotFoundException(f"Asset with ID {asset_id} not found")
 
-        # 2. 验证资产状态 - 必须是DRAFT或PENDING状态才能铸造
-        if asset.status not in [AssetStatus.DRAFT, AssetStatus.PENDING]:
+        if asset.status != AssetStatus.APPROVED:
             raise BadRequestException(
                 f"Cannot mint NFT for asset with status '{asset.status.value}'. "
-                f"Asset must be in DRAFT or PENDING status."
+                f"Asset must be in APPROVED status."
             )
+        resolved_minter_address = await self._resolve_minter_address(asset, minter_address)
 
-        # 检查是否可以重试
-        if asset.status == AssetStatus.MINT_FAILED:
-            if not asset.can_retry:
-                raise BadRequestException(
-                    f"Asset has reached maximum retry attempts ({asset.max_mint_attempts}). "
-                    f"Please contact administrator."
-                )
+        mint_record = MintRecord(
+            asset_id=asset_id,
+            operation="REQUEST",
+            stage="PREPARING",
+            operator_id=operator_id,
+            operator_address=operator_address,
+            metadata_uri="",
+            status="PENDING",
+        )
+        self.db.add(mint_record)
+
+        signature_verified = self._verify_wallet_signature(
+            wallet_address=resolved_minter_address,
+            signature=wallet_signature,
+            message=signed_message,
+        )
+        mint_record.signature_verified = signature_verified
+        if (wallet_signature or signed_message) and not signature_verified:
+            mint_record.status = "FAILED"
+            mint_record.error_code = "SIGNATURE_VERIFICATION_FAILED"
+            mint_record.error_message = "Wallet signature verification failed."
+            mint_record.completed_at = datetime.now(timezone.utc)
+            await self.db.flush()
+            raise BadRequestException("SIGNATURE_VERIFICATION_FAILED: Wallet signature verification failed.")
 
         # 3. 获取资产附件
         stmt = select(Attachment).where(Attachment.asset_id == asset_id)
@@ -94,6 +118,11 @@ class NFTService:
         attachments = list(result.scalars().all())
 
         if not attachments:
+            mint_record.status = "FAILED"
+            mint_record.error_code = "INSUFFICIENT_ATTACHMENTS"
+            mint_record.error_message = "Cannot mint NFT for asset without attachments."
+            mint_record.completed_at = datetime.now(timezone.utc)
+            await self.db.flush()
             raise BadRequestException(
                 "Cannot mint NFT for asset without attachments. "
                 "Please upload at least one attachment."
@@ -105,20 +134,13 @@ class NFTService:
         asset.mint_stage = "PREPARING"
         asset.mint_progress = 10
         asset.status = AssetStatus.MINTING
-        asset.recipient_address = minter_address
+        asset.recipient_address = resolved_minter_address
+        if royalty_receiver:
+            asset.royalty_receiver = royalty_receiver
+        if royalty_fee_bps is not None:
+            asset.royalty_percentage = royalty_fee_bps / 100
         asset.mint_requested_at = datetime.now(timezone.utc)
 
-        # 创建铸造记录
-        mint_record = MintRecord(
-            asset_id=asset_id,
-            operation="REQUEST",
-            stage="PREPARING",
-            operator_id=operator_id,
-            operator_address=operator_address,
-            metadata_uri="",
-            status="PENDING",
-        )
-        self.db.add(mint_record)
         self.db.add(asset)
         await self.db.flush()
 
@@ -170,8 +192,10 @@ class NFTService:
 
         try:
             token_id, tx_hash = await self._call_mint_contract(
-                to_address=minter_address,
+                to_address=resolved_minter_address,
                 metadata_uri=metadata_uri,
+                royalty_receiver=royalty_receiver,
+                royalty_fee_bps=royalty_fee_bps,
             )
             
             asset.mint_tx_hash = tx_hash
@@ -218,7 +242,7 @@ class NFTService:
         asset.mint_completed_at = datetime.now(timezone.utc)
         asset.can_retry = False
         # 铸造完成后初始化权属信息
-        asset.owner_address = minter_address
+        asset.owner_address = resolved_minter_address
         asset.ownership_status = "ACTIVE"
         
         mint_record.token_id = token_id
@@ -236,12 +260,53 @@ class NFTService:
             "metadata_uri": metadata_uri,
             "contract_address": asset.nft_contract_address,
             "status": AssetStatus.MINTED.value,
+            "royalty_receiver": royalty_receiver,
+            "royalty_fee_bps": royalty_fee_bps or 0,
+            "signature_verified": signature_verified,
         }
+
+    async def estimate_mint_fee(
+        self,
+        asset_id: UUID,
+        minter_address: Optional[str] = None,
+        royalty_receiver: Optional[str] = None,
+        royalty_fee_bps: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        asset = await self.db.get(Asset, asset_id)
+        if not asset:
+            raise NotFoundException(f"Asset with ID {asset_id} not found")
+        if asset.status != AssetStatus.APPROVED:
+            raise BadRequestException("仅 APPROVED 状态资产可预估 Gas")
+        resolved_minter_address = await self._resolve_minter_address(asset, minter_address)
+
+        stmt = select(Attachment).where(Attachment.asset_id == asset_id)
+        result = await self.db.execute(stmt)
+        attachments = list(result.scalars().all())
+        if not attachments:
+            raise BadRequestException("请先上传附件后再进行 Gas 估算")
+
+        pseudo_metadata_uri = f"ipfs://estimate-{asset_id}"
+        try:
+            estimate = await get_blockchain_client().estimate_mint_gas(
+                to_address=resolved_minter_address,
+                metadata_uri=pseudo_metadata_uri,
+                royalty_receiver=royalty_receiver,
+                royalty_fee_bps=royalty_fee_bps,
+            )
+            return {
+                "asset_id": str(asset_id),
+                "estimated": estimate,
+                "minter_address": resolved_minter_address,
+                "royalty_receiver": royalty_receiver,
+                "royalty_fee_bps": royalty_fee_bps or 0,
+            }
+        except Exception as e:
+            raise BlockchainException(f"Failed to estimate gas: {str(e)}")
 
     async def batch_mint_assets(
         self,
         asset_ids: List[UUID],
-        minter_address: str,
+        minter_address: Optional[str] = None,
         operator_id: Optional[UUID] = None,
         operator_address: Optional[str] = None,
     ) -> Dict[str, Any]:
@@ -348,6 +413,7 @@ class NFTService:
                 "operation": mint_record.operation if mint_record else None,
                 "stage": mint_record.stage if mint_record else None,
                 "status": mint_record.status if mint_record else None,
+                "signature_verified": mint_record.signature_verified if mint_record else None,
                 "error_code": mint_record.error_code if mint_record else None,
                 "error_message": mint_record.error_message if mint_record else None,
             } if mint_record else None,
@@ -356,7 +422,7 @@ class NFTService:
     async def retry_mint(
         self,
         asset_id: UUID,
-        minter_address: str,
+        minter_address: Optional[str] = None,
         operator_id: Optional[UUID] = None,
         operator_address: Optional[str] = None,
     ) -> Dict[str, Any]:
@@ -393,8 +459,7 @@ class NFTService:
                 f"Please contact administrator."
             )
 
-        # 重置状态并重新铸造
-        asset.status = AssetStatus.DRAFT
+        asset.status = AssetStatus.APPROVED
         asset.can_retry = True
         
         await self.db.flush()
@@ -405,6 +470,87 @@ class NFTService:
             operator_id=operator_id,
             operator_address=operator_address,
         )
+
+    async def _resolve_minter_address(self, asset: Asset, requested_address: Optional[str]) -> str:
+        normalized_requested = requested_address.strip() if requested_address else ""
+        if normalized_requested:
+            return normalized_requested
+
+        enterprise_wallet_address = ""
+        enterprise = await self.db.get(Enterprise, asset.enterprise_id)
+        if enterprise and enterprise.wallet_address:
+            enterprise_wallet_address = enterprise.wallet_address.strip()
+        if enterprise_wallet_address:
+            return enterprise_wallet_address
+
+        deployer_address = (getattr(get_blockchain_client(), "deployer_address", "") or "").strip()
+        if deployer_address:
+            return deployer_address
+
+        raise BadRequestException(
+            "MINTER_ADDRESS_NOT_CONFIGURED: minter address is not configured in request, enterprise, or system settings."
+        )
+
+    async def get_mint_history(
+        self,
+        enterprise_id: UUID,
+        page: int = 1,
+        page_size: int = 20,
+        status_filter: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        base_stmt = (
+            select(MintRecord, Asset)
+            .join(Asset, Asset.id == MintRecord.asset_id)
+            .where(Asset.enterprise_id == enterprise_id)
+        )
+
+        count_stmt = (
+            select(func.count(MintRecord.id))
+            .join(Asset, Asset.id == MintRecord.asset_id)
+            .where(Asset.enterprise_id == enterprise_id)
+        )
+        if status_filter:
+            normalized_filter = status_filter.upper()
+            base_stmt = base_stmt.where(MintRecord.status == normalized_filter)
+            count_stmt = count_stmt.where(MintRecord.status == normalized_filter)
+
+        total = (await self.db.execute(count_stmt)).scalar_one()
+
+        stmt = (
+            base_stmt
+            .order_by(MintRecord.created_at.desc())
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+        )
+        rows = (await self.db.execute(stmt)).all()
+
+        items = [
+            {
+                "mint_record_id": str(record.id),
+                "asset_id": str(asset.id),
+                "asset_name": asset.name,
+                "asset_status": asset.status.value,
+                "operation": record.operation,
+                "stage": record.stage,
+                "status": record.status,
+                "signature_verified": record.signature_verified,
+                "token_id": record.token_id,
+                "tx_hash": record.tx_hash,
+                "error_code": record.error_code,
+                "error_message": record.error_message,
+                "created_at": record.created_at.isoformat() if record.created_at else None,
+                "completed_at": record.completed_at.isoformat() if record.completed_at else None,
+            }
+            for record, asset in rows
+        ]
+
+        return {
+            "items": items,
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": (total + page_size - 1) // page_size if total > 0 else 0,
+        }
 
     def _generate_nft_metadata(
         self,
@@ -420,7 +566,14 @@ class NFTService:
         Returns:
             NFT元数据字典
         """
-        image_cid = attachments[0].ipfs_cid if attachments else ""
+        primary_attachment = next((item for item in attachments if item.is_primary), None)
+        if primary_attachment is None and attachments:
+            primary_attachment = attachments[0]
+        image_cid = primary_attachment.ipfs_cid if primary_attachment else ""
+        extra_attachments = [
+            att for att in attachments
+            if primary_attachment is None or att.id != primary_attachment.id
+        ]
 
         metadata = {
             "name": asset.name,
@@ -437,6 +590,10 @@ class NFTService:
                     "value": asset.creator_name,
                 },
                 {
+                    "trait_type": "Inventors",
+                    "value": ", ".join(asset.inventors),
+                },
+                {
                     "trait_type": "Creation Date",
                     "value": asset.creation_date.isoformat(),
                 },
@@ -449,17 +606,18 @@ class NFTService:
                 "asset_id": str(asset.id),
                 "enterprise_id": str(asset.enterprise_id),
                 "application_number": asset.application_number,
+                "rights_declaration": asset.rights_declaration,
             },
         }
 
-        if len(attachments) > 1:
+        if extra_attachments:
             metadata["attachments"] = [
                 {
                     "file_name": att.file_name,
                     "file_type": att.file_type,
                     "ipfs_cid": att.ipfs_cid,
                 }
-                for att in attachments[1:]
+                for att in extra_attachments
             ]
 
         return metadata
@@ -468,6 +626,8 @@ class NFTService:
         self,
         to_address: str,
         metadata_uri: str,
+        royalty_receiver: Optional[str] = None,
+        royalty_fee_bps: Optional[int] = None,
     ) -> tuple[int, str]:
         """调用智能合约铸造NFT。
 
@@ -485,10 +645,29 @@ class NFTService:
             token_id, tx_hash = await get_blockchain_client().mint_nft(
                 to_address=to_address,
                 metadata_uri=metadata_uri,
+                royalty_receiver=royalty_receiver,
+                royalty_fee_bps=royalty_fee_bps,
             )
             return token_id, tx_hash
         except Exception as e:
             raise BlockchainException(f"Failed to call mint contract: {str(e)}")
+
+    def _verify_wallet_signature(
+        self,
+        wallet_address: str,
+        signature: Optional[str],
+        message: Optional[str],
+    ) -> bool:
+        if not signature and not message:
+            return False
+        if not signature or not message:
+            return False
+        try:
+            message_hash = encode_defunct(text=message)
+            recovered_address = Web3().eth.account.recover_message(message_hash, signature=signature)
+            return recovered_address.lower() == wallet_address.lower()
+        except Exception:
+            return False
 
     async def update_asset_status_after_approval(
         self,
@@ -512,7 +691,7 @@ class NFTService:
             raise NotFoundException(f"Asset with ID {asset_id} not found")
 
         if approved:
-            asset.status = AssetStatus.PENDING
+            asset.status = AssetStatus.APPROVED
         else:
             asset.status = AssetStatus.REJECTED
 

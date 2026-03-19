@@ -87,7 +87,7 @@ const NFTDashboard: React.FC = () => {
         <Col xs={12} sm={12} md={6}>
           <StatCard
             title="可铸造"
-            value={statistics.draft_count + statistics.pending_count}
+            value={statistics.pending_count}
             icon={<FileTextOutlined />}
             color="#00d4ff"
             onClick={() => navigate('/nft/assets')}

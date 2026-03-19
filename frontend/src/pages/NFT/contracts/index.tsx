@@ -2,8 +2,22 @@
  * NFT 合约管理页面
  * 管理 NFT 合约信息和配置
  */
-import React, { useEffect } from 'react';
-import { Card, Descriptions, Button, Tag, Badge, Space, Alert, Row, Col, Empty, Spin } from 'antd';
+import React, { useEffect, useState } from 'react';
+import {
+  Card,
+  Descriptions,
+  Button,
+  Tag,
+  Badge,
+  Space,
+  Alert,
+  Row,
+  Col,
+  Empty,
+  Spin,
+  Input,
+  message,
+} from 'antd';
 import {
   FileTextOutlined,
   ReloadOutlined,
@@ -102,16 +116,21 @@ const NFTContractsPage: React.FC = () => {
     loading: contractLoading,
     error: contractError,
     contractInfo,
+    contractStatus,
     fetchContractInfo,
+    fetchContractStatus,
+    updateContractAddress,
   } = useContract();
 
   const { fetchStatistics } = useMintStatistics();
+  const [newAddress, setNewAddress] = useState('');
 
   // 初始加载
   useEffect(() => {
     fetchContractInfo();
+    fetchContractStatus();
     fetchStatistics();
-  }, [fetchContractInfo, fetchStatistics]);
+  }, [fetchContractInfo, fetchContractStatus, fetchStatistics]);
 
   return (
     <div className="nft-contracts-page">
@@ -168,25 +187,25 @@ const NFTContractsPage: React.FC = () => {
               <Col span={12}>
                 <div className="stat-item">
                   <div className="stat-label">已部署合约</div>
-                  <div className="stat-value">1</div>
+                  <div className="stat-value">{contractInfo?.has_contract ? 1 : 0}</div>
                 </div>
               </Col>
               <Col span={12}>
                 <div className="stat-item">
-                  <div className="stat-label">已铸造 NFT</div>
-                  <div className="stat-value">2</div>
+                  <div className="stat-label">可铸造状态</div>
+                  <div className="stat-value">{contractStatus?.can_mint ? '可用' : '不可用'}</div>
                 </div>
               </Col>
               <Col span={12}>
                 <div className="stat-item">
-                  <div className="stat-label">持有地址</div>
-                  <div className="stat-value">2</div>
+                  <div className="stat-label">链路就绪</div>
+                  <div className="stat-value">{contractStatus?.ready ? '是' : '否'}</div>
                 </div>
               </Col>
               <Col span={12}>
                 <div className="stat-item">
-                  <div className="stat-label">交易总数</div>
-                  <div className="stat-value">5</div>
+                  <div className="stat-label">风险提示数</div>
+                  <div className="stat-value">{contractStatus?.issues?.length || 0}</div>
                 </div>
               </Col>
             </Row>
@@ -207,7 +226,26 @@ const NFTContractsPage: React.FC = () => {
         }
       >
         <Space wrap>
-          <Button type="primary" icon={<EditOutlined />}>
+          <Input
+            placeholder="输入新的合约地址"
+            value={newAddress}
+            onChange={(e) => setNewAddress(e.target.value)}
+            style={{ width: 360 }}
+          />
+          <Button
+            type="primary"
+            icon={<EditOutlined />}
+            onClick={async () => {
+              try {
+                await updateContractAddress(newAddress);
+                message.success('合约地址更新成功');
+                setNewAddress('');
+                fetchContractStatus();
+              } catch (error) {
+                message.error('更新失败：' + (error instanceof Error ? error.message : '未知错误'));
+              }
+            }}
+          >
             更新合约地址
           </Button>
           <Button icon={<CodeOutlined />}>查看 ABI</Button>

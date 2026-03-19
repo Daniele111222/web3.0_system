@@ -32,6 +32,11 @@ import {
   Tooltip,
   message,
   Tag,
+  Modal,
+  Input,
+  InputNumber,
+  Descriptions,
+  Divider,
 } from 'antd';
 import {
   ThunderboltOutlined,
@@ -42,76 +47,23 @@ import {
   FileTextOutlined,
   AppstoreAddOutlined,
   ClusterOutlined,
+  SafetyOutlined,
 } from '@ant-design/icons';
-import { useMint, useContract, useMintStatistics } from '../../hooks/useNFT';
+import { useMint, useContract, useMintStatistics, useNFTAssets } from '../../hooks/useNFT';
 import { MintCard } from '../../components/nft/MintCard';
 import { BatchMintModal } from '../../components/nft/BatchMintModal';
-import type { NFTAssetCardData, ContractInfoResponse } from '../../types/nft';
-import { AssetMintStatus, MintStage } from '../../types/nft';
+import type {
+  BatchMintResultItem,
+  ContractInfoResponse,
+  MintGasEstimateResponse,
+  MintNFTRequest,
+  NFTAssetCardData,
+} from '../../types/nft';
+import nftService from '../../services/nft';
 import styles from './style.module.less';
 
 const { Title, Text, Paragraph } = Typography;
 const { TabPane } = Tabs;
-
-// ============================================
-// 模拟数据（实际项目中应从 API 获取）
-// ============================================
-
-const MOCK_ASSETS: NFTAssetCardData[] = [
-  {
-    asset_id: 'uuid-1',
-    asset_name: '发明专利 - 区块链共识算法优化',
-    asset_type: '专利',
-    description: '一种基于权益证明的共识机制优化方案',
-    status: AssetMintStatus.DRAFT,
-    created_at: '2026-02-15T10:30:00Z',
-    creator_name: '张三',
-  },
-  {
-    asset_id: 'uuid-2',
-    asset_name: '软件著作权 - NFT交易平台',
-    asset_type: '软件著作权',
-    description: '基于以太坊的NFT交易与管理平台',
-    status: AssetMintStatus.PENDING,
-    created_at: '2026-02-16T14:20:00Z',
-    creator_name: '李四',
-  },
-  {
-    asset_id: 'uuid-3',
-    asset_name: '商标权 - 元宇宙品牌Logo',
-    asset_type: '商标',
-    description: '虚拟世界品牌标识设计',
-    status: AssetMintStatus.MINTING,
-    mint_stage: MintStage.CONFIRMING,
-    mint_progress: 75,
-    created_at: '2026-02-17T09:15:00Z',
-    creator_name: '王五',
-  },
-  {
-    asset_id: 'uuid-4',
-    asset_name: '版权作品 - 数字艺术创作',
-    asset_type: '版权',
-    description: 'AI辅助生成的数字艺术作品',
-    status: AssetMintStatus.MINTED,
-    token_id: 42,
-    tx_hash: '0xabc123def456789012345678901234567890123456789012345678901234abcd',
-    contract_address: '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0',
-    metadata_uri: 'ipfs://QmTest123...',
-    created_at: '2026-02-18T16:45:00Z',
-    creator_name: '赵六',
-  },
-  {
-    asset_id: 'uuid-5',
-    asset_name: '商业秘密 - 核心算法文档',
-    asset_type: '商业秘密',
-    description: '企业核心技术保护文档',
-    status: AssetMintStatus.MINT_FAILED,
-    mint_stage: MintStage.FAILED,
-    mint_progress: 0,
-    created_at: '2026-02-19T11:30:00Z',
-    creator_name: '钱七',
-  },
-];
 
 // ============================================
 // 辅助组件
@@ -189,8 +141,9 @@ const ContractInfoCard: React.FC<{
           <Text type="secondary">合约地址</Text>
           <Tooltip title={info.contract_address}>
             <Text code className={styles.addressText}>
-              {info.contract_address.slice(0, 8)}...
-              {info.contract_address.slice(-6)}
+              {info.contract_address
+                ? `${info.contract_address.slice(0, 8)}...${info.contract_address.slice(-6)}`
+                : '未设置'}
             </Text>
           </Tooltip>
         </div>
@@ -198,8 +151,9 @@ const ContractInfoCard: React.FC<{
           <Text type="secondary">部署者</Text>
           <Tooltip title={info.deployer_address}>
             <Text code className={styles.addressText}>
-              {info.deployer_address.slice(0, 8)}...
-              {info.deployer_address.slice(-6)}
+              {info.deployer_address
+                ? `${info.deployer_address.slice(0, 8)}...${info.deployer_address.slice(-6)}`
+                : '未设置'}
             </Text>
           </Tooltip>
         </div>
@@ -221,8 +175,16 @@ const ContractInfoCard: React.FC<{
 // ============================================
 
 const NFTPage: React.FC = () => {
-  // 使用自定义 Hooks
-  const { loading: mintLoading, error: mintError, mint, batchMint, clearError } = useMint();
+  const {
+    loading: mintLoading,
+    error: mintError,
+    mint,
+    batchMint,
+    retryMint,
+    estimateMintGas,
+    clearError,
+  } = useMint();
+  const { assets, fetchAssets } = useNFTAssets();
 
   const {
     loading: contractLoading,
@@ -236,11 +198,19 @@ const NFTPage: React.FC = () => {
   // 本地状态
   const [activeTab, setActiveTab] = useState('assets');
   const [batchModalVisible, setBatchModalVisible] = useState(false);
+  const [mintModalVisible, setMintModalVisible] = useState(false);
+  const [mintingAsset, setMintingAsset] = useState<NFTAssetCardData | null>(null);
+  const [mintAddress, setMintAddress] = useState('');
+  const [royaltyEnabled, setRoyaltyEnabled] = useState(false);
+  const [royaltyReceiver, setRoyaltyReceiver] = useState('');
+  const [royaltyFeeBps, setRoyaltyFeeBps] = useState(500);
+  const [gasEstimate, setGasEstimate] = useState<MintGasEstimateResponse | null>(null);
+  const [estimating, setEstimating] = useState(false);
   const [batchResults, setBatchResults] = useState<{
     total: number;
     successful: number;
     failed: number;
-    items: any[];
+    items: BatchMintResultItem[];
   } | null>(null);
 
   // 统计数据转换
@@ -259,40 +229,92 @@ const NFTPage: React.FC = () => {
 
   // 可铸造资产
   const mintableAssets = useMemo(() => {
-    return MOCK_ASSETS.filter((asset) => asset.status === 'DRAFT' || asset.status === 'PENDING');
-  }, []);
+    return assets.filter((asset) => asset.status === 'APPROVED');
+  }, [assets]);
 
   // 铸造中资产
   const mintingAssets = useMemo(() => {
-    return MOCK_ASSETS.filter((asset) => asset.status === 'MINTING');
-  }, []);
+    return assets.filter((asset) => asset.status === 'MINTING' || asset.status === 'MINT_FAILED');
+  }, [assets]);
 
   // 已铸造资产
   const mintedAssets = useMemo(() => {
-    return MOCK_ASSETS.filter((asset) => asset.status === 'MINTED');
-  }, []);
+    return assets.filter((asset) => asset.status === 'MINTED');
+  }, [assets]);
 
   // 初始加载数据
   useEffect(() => {
     fetchContractInfo();
     fetchStatistics();
-  }, [fetchContractInfo, fetchStatistics]);
+    fetchAssets();
+  }, [fetchContractInfo, fetchStatistics, fetchAssets]);
 
   // 处理单条铸造
   const handleMint = async (assetId: string) => {
+    const targetAsset = assets.find((item) => item.asset_id === assetId);
+    if (!targetAsset) {
+      return;
+    }
+    setMintingAsset(targetAsset);
+    setGasEstimate(null);
+    setMintAddress(localStorage.getItem('wallet_address') || '');
+    setRoyaltyEnabled(false);
+    setRoyaltyReceiver(localStorage.getItem('wallet_address') || '');
+    setRoyaltyFeeBps(500);
+    setMintModalVisible(true);
+  };
+
+  const handleEstimate = async () => {
+    if (!mintingAsset) return;
+    setEstimating(true);
     try {
-      // 这里应该从用户钱包获取地址，暂时使用示例地址
-      const mockAddress = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
-      await mint(assetId, { minter_address: mockAddress });
-      message.success('铸造请求已提交');
-      fetchStatistics();
+      const estimate = await estimateMintGas(mintingAsset.asset_id, {
+        minter_address: mintAddress || undefined,
+        royalty_receiver: royaltyEnabled ? royaltyReceiver : undefined,
+        royalty_fee_bps: royaltyEnabled ? royaltyFeeBps : undefined,
+      });
+      setGasEstimate(estimate);
     } catch (error) {
-      message.error('铸造失败：' + (error instanceof Error ? error.message : '未知错误'));
+      message.error(`Gas 估算失败：${nftService.mapNftErrorMessage(error, '未知错误')}`);
+    } finally {
+      setEstimating(false);
+    }
+  };
+
+  const handleMintConfirm = async () => {
+    if (!mintingAsset) {
+      return;
+    }
+    try {
+      const payload: MintNFTRequest = {
+        minter_address: mintAddress || undefined,
+        royalty_receiver: royaltyEnabled ? royaltyReceiver : undefined,
+        royalty_fee_bps: royaltyEnabled ? royaltyFeeBps : undefined,
+      };
+      await mint(mintingAsset.asset_id, payload);
+      message.success('铸造请求已提交');
+      setMintModalVisible(false);
+      fetchStatistics();
+      fetchAssets();
+    } catch (error) {
+      message.error(`铸造失败：${nftService.mapNftErrorMessage(error, '未知错误')}`);
+    }
+  };
+
+  const handleRetry = async (assetId: string) => {
+    try {
+      const minterAddress = localStorage.getItem('wallet_address') || undefined;
+      await retryMint(assetId, minterAddress);
+      message.success('重试任务已提交');
+      fetchStatistics();
+      fetchAssets();
+    } catch (error) {
+      message.error(`重试失败：${nftService.mapNftErrorMessage(error, '未知错误')}`);
     }
   };
 
   // 处理批量铸造
-  const handleBatchMint = async (selectedIds: string[], minterAddress: string) => {
+  const handleBatchMint = async (selectedIds: string[], minterAddress?: string) => {
     try {
       const result = await batchMint(selectedIds, minterAddress);
 
@@ -301,18 +323,13 @@ const NFTPage: React.FC = () => {
         total: result.total,
         successful: result.successful,
         failed: result.failed,
-        items: result.results.map((item) => ({
-          asset_id: item.asset_id,
-          status: item.status,
-          token_id: item.token_id,
-          tx_hash: item.tx_hash,
-          error: item.error,
-        })),
+        items: result.results,
       });
 
       fetchStatistics();
+      fetchAssets();
     } catch (error) {
-      message.error('批量铸造失败：' + (error instanceof Error ? error.message : '未知错误'));
+      message.error(`批量铸造失败：${nftService.mapNftErrorMessage(error, '未知错误')}`);
     }
   };
 
@@ -325,7 +342,7 @@ const NFTPage: React.FC = () => {
         <Col xs={12} sm={12} md={6}>
           <StatCard
             title="可铸造"
-            value={statistics.draft_count + statistics.pending_count}
+            value={statistics.pending_count}
             icon={<FileTextOutlined />}
             color="#00d4ff"
           />
@@ -374,7 +391,33 @@ const NFTPage: React.FC = () => {
       <Row gutter={[16, 16]}>
         {assets.map((asset) => (
           <Col xs={24} sm={12} lg={8} xl={6} key={asset.asset_id}>
-            <MintCard asset={asset} onMint={handleMint} loading={mintLoading} />
+            <MintCard
+              asset={asset}
+              onMint={handleMint}
+              onRetry={handleRetry}
+              onViewDetail={(assetId) => {
+                const target = assets.find((item) => item.asset_id === assetId);
+                if (!target?.tx_hash) {
+                  return;
+                }
+                const explorerMap: Record<number, string> = {
+                  11155111: 'https://sepolia.etherscan.io',
+                  80002: 'https://amoy.polygonscan.com',
+                  97: 'https://testnet.bscscan.com',
+                };
+                const chainId = Number(contractInfo?.chain_id || 0);
+                const explorerBase =
+                  import.meta.env.VITE_BLOCK_EXPLORER_URL || explorerMap[chainId] || '';
+                if (explorerBase) {
+                  window.open(
+                    `${explorerBase}/tx/${target.tx_hash}`,
+                    '_blank',
+                    'noopener,noreferrer'
+                  );
+                }
+              }}
+              loading={mintLoading}
+            />
           </Col>
         ))}
       </Row>
@@ -458,7 +501,7 @@ const NFTPage: React.FC = () => {
                   tab={
                     <span>
                       <FireOutlined />
-                      铸造中
+                      铸造中/失败
                       {mintingAssets.length > 0 && (
                         <Badge count={mintingAssets.length} className="tab-badge warning" />
                       )}
@@ -466,7 +509,7 @@ const NFTPage: React.FC = () => {
                   }
                   key="minting"
                 >
-                  {renderAssetList(mintingAssets, '暂无铸造中的资产')}
+                  {renderAssetList(mintingAssets, '暂无铸造中或失败的资产')}
                 </TabPane>
 
                 <TabPane
@@ -533,7 +576,7 @@ const NFTPage: React.FC = () => {
                 <Title level={5}>铸造指南</Title>
                 <ul className={styles.helpList}>
                   <li>确保资产已上传附件</li>
-                  <li>资产状态需为"草稿"或"待审批"</li>
+                  <li>资产状态需为"审批通过"</li>
                   <li>铸造需要支付 Gas 费用</li>
                   <li>铸造完成后可在区块链浏览器查看</li>
                 </ul>
@@ -555,6 +598,65 @@ const NFTPage: React.FC = () => {
         loading={mintLoading}
         results={batchResults}
       />
+      <Modal
+        open={mintModalVisible}
+        title="确认铸造参数"
+        onCancel={() => setMintModalVisible(false)}
+        onOk={handleMintConfirm}
+        okText="确认铸造"
+        cancelText="取消"
+        okButtonProps={{ loading: mintLoading }}
+      >
+        <Space direction="vertical" style={{ width: '100%' }} size="middle">
+          <Descriptions column={1} size="small">
+            <Descriptions.Item label="资产名称">{mintingAsset?.asset_name}</Descriptions.Item>
+            <Descriptions.Item label="资产类型">{mintingAsset?.asset_type}</Descriptions.Item>
+          </Descriptions>
+          <Input
+            placeholder="接收地址（可选，不填则由后端自动回填）"
+            value={mintAddress}
+            onChange={(e) => setMintAddress(e.target.value)}
+          />
+          <Divider style={{ margin: '8px 0' }} />
+          <Space direction="vertical" style={{ width: '100%' }}>
+            <Button
+              icon={<SafetyOutlined />}
+              onClick={() => setRoyaltyEnabled((prev) => !prev)}
+              type={royaltyEnabled ? 'primary' : 'default'}
+            >
+              {royaltyEnabled ? '已启用版税设置' : '启用版税设置'}
+            </Button>
+            {royaltyEnabled && (
+              <>
+                <Input
+                  placeholder="版税接收地址"
+                  value={royaltyReceiver}
+                  onChange={(e) => setRoyaltyReceiver(e.target.value)}
+                />
+                <InputNumber
+                  style={{ width: '100%' }}
+                  min={0}
+                  max={1000}
+                  value={royaltyFeeBps}
+                  onChange={(value) => setRoyaltyFeeBps(Number(value || 0))}
+                  addonAfter="BPS (0-1000)"
+                />
+              </>
+            )}
+          </Space>
+          <Button onClick={handleEstimate} loading={estimating}>
+            预估 Gas
+          </Button>
+          {gasEstimate && (
+            <Alert
+              type="info"
+              message={`预计 Gas: ${gasEstimate.estimated.gas_limit}`}
+              description={`预计费用: ${gasEstimate.estimated.estimated_fee_eth} ETH`}
+              showIcon
+            />
+          )}
+        </Space>
+      </Modal>
     </div>
   );
 };

@@ -206,9 +206,9 @@ export function AssetList({ assets, isLoading, onAssetClick, onRefresh }: AssetL
               <span>{getAssetTypeIcon(asset.type)}</span>
               {getAssetTypeName(asset.type)}
             </span>
-            <span title={`创作人：${asset.creator}`}>
+            <span title={`创作人：${asset.creator_name}`}>
               <span>👤</span>
-              {asset.creator}
+              {asset.creator_name}
             </span>
             <span title={`创建时间：${formatDate(asset.created_at)}`}>
               <span>📅</span>

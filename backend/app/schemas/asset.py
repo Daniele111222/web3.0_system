@@ -19,6 +19,7 @@ class AttachmentResponse(BaseModel):
     file_type: str = Field(..., description="文件类型（MIME type）")
     file_size: int = Field(..., description="文件大小（字节）")
     ipfs_cid: str = Field(..., description="IPFS CID")
+    is_primary: bool = Field(..., description="是否主附件")
     uploaded_at: datetime = Field(..., description="上传时间")
     
     model_config = ConfigDict(from_attributes=True)
@@ -31,6 +32,7 @@ class AttachmentUploadRequest(BaseModel):
     file_type: str = Field(..., min_length=1, max_length=100, description="文件类型（MIME type）")
     file_size: int = Field(..., gt=0, description="文件大小（字节）")
     ipfs_cid: str = Field(..., min_length=1, max_length=100, description="IPFS CID")
+    is_primary: bool = Field(False, description="是否主附件")
     
     @field_validator('file_type')
     @classmethod
@@ -114,6 +116,28 @@ class AttachmentUploadRequest(BaseModel):
         return v
 
 
+class AttachmentHashVerifyRequest(BaseModel):
+    client_sha256: str = Field(..., min_length=64, max_length=64, description="客户端计算的 SHA-256")
+
+    @field_validator('client_sha256')
+    @classmethod
+    def validate_client_sha256(cls, v: str) -> str:
+        normalized = v.strip().lower()
+        if not re.fullmatch(r"[0-9a-f]{64}", normalized):
+            raise ValueError("client_sha256 必须是 64 位十六进制字符串")
+        return normalized
+
+
+class AttachmentHashVerifyResponse(BaseModel):
+    attachment_id: UUID
+    asset_id: UUID
+    ipfs_cid: str
+    client_sha256: str
+    server_sha256: str
+    matched: bool
+    verified_at: datetime
+
+
 # ============ 资产相关模式 ============
 
 class AssetCreateRequest(BaseModel):
@@ -123,9 +147,11 @@ class AssetCreateRequest(BaseModel):
     type: AssetType = Field(..., description="资产类型")
     description: str = Field(..., min_length=1, description="资产描述")
     creator_name: str = Field(..., min_length=1, max_length=100, description="创作人姓名")
+    inventors: List[str] = Field(default_factory=list, description="发明人列表")
     creation_date: date = Field(..., description="创作日期")
     legal_status: LegalStatus = Field(..., description="法律状态")
     application_number: Optional[str] = Field(None, max_length=100, description="申请号/注册号")
+    rights_declaration: Optional[str] = Field(None, max_length=2000, description="权利声明")
     asset_metadata: dict = Field(default_factory=dict, description="资产元数据")
     
     @field_validator('name')
@@ -164,6 +190,28 @@ class AssetCreateRequest(BaseModel):
         if v > date.today():
             raise ValueError("创作日期不能是未来日期")
         return v
+
+    @field_validator('inventors')
+    @classmethod
+    def validate_inventors(cls, v: List[str]) -> List[str]:
+        normalized = [name.strip() for name in v if name and name.strip()]
+        if len(normalized) != len(v):
+            raise ValueError("发明人姓名不能为空")
+        if not normalized:
+            raise ValueError("至少需要提供 1 位发明人")
+        if len(normalized) > 20:
+            raise ValueError("发明人数量不能超过 20 人")
+        if any(len(name) > 100 for name in normalized):
+            raise ValueError("单个发明人姓名长度不能超过 100 字符")
+        return normalized
+
+    @field_validator('rights_declaration')
+    @classmethod
+    def validate_rights_declaration(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return None
+        normalized = v.strip()
+        return normalized or None
     
     @field_validator('application_number')
     @classmethod
@@ -185,9 +233,11 @@ class AssetUpdateRequest(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=200, description="资产名称")
     description: Optional[str] = Field(None, min_length=1, description="资产描述")
     creator_name: Optional[str] = Field(None, min_length=1, max_length=100, description="创作人姓名")
+    inventors: Optional[List[str]] = Field(None, description="发明人列表")
     creation_date: Optional[date] = Field(None, description="创作日期")
     legal_status: Optional[LegalStatus] = Field(None, description="法律状态")
     application_number: Optional[str] = Field(None, max_length=100, description="申请号/注册号")
+    rights_declaration: Optional[str] = Field(None, max_length=2000, description="权利声明")
     asset_metadata: Optional[dict] = Field(None, description="资产元数据")
     
     @field_validator('name')
@@ -220,6 +270,30 @@ class AssetUpdateRequest(BaseModel):
             raise ValueError("创作日期不能是未来日期")
         return v
 
+    @field_validator('inventors')
+    @classmethod
+    def validate_update_inventors(cls, v: Optional[List[str]]) -> Optional[List[str]]:
+        if v is None:
+            return None
+        normalized = [name.strip() for name in v if name and name.strip()]
+        if len(normalized) != len(v):
+            raise ValueError("发明人姓名不能为空")
+        if not normalized:
+            raise ValueError("至少需要提供 1 位发明人")
+        if len(normalized) > 20:
+            raise ValueError("发明人数量不能超过 20 人")
+        if any(len(name) > 100 for name in normalized):
+            raise ValueError("单个发明人姓名长度不能超过 100 字符")
+        return normalized
+
+    @field_validator('rights_declaration')
+    @classmethod
+    def validate_update_rights_declaration(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return None
+        normalized = v.strip()
+        return normalized or None
+
 
 class AssetResponse(BaseModel):
     """资产响应模式。"""
@@ -231,9 +305,11 @@ class AssetResponse(BaseModel):
     type: AssetType
     description: str
     creator_name: str
+    inventors: List[str]
     creation_date: date
     legal_status: LegalStatus
     application_number: Optional[str]
+    rights_declaration: Optional[str]
     asset_metadata: dict
     status: AssetStatus
     nft_token_id: Optional[str]

@@ -8,7 +8,12 @@ import Dashboard from './pages/Dashboard';
 import Enterprise from './pages/Enterprise';
 import EnterpriseDetailPage from './pages/Enterprise/Detail';
 import Assets from './pages/Assets';
-import NFT from './pages/NFT';
+import { NFTLayout } from './pages/NFT/components/NFTLayout';
+import NFTDashboard from './pages/NFT/dashboard';
+import NFTAssetsPage from './pages/NFT/assets';
+import NFTMintingPage from './pages/NFT/minting';
+import NFTHistoryListPage from './pages/NFT/history';
+import NFTContractsPage from './pages/NFT/contracts';
 import ApprovalLayout from './pages/Approval';
 import PendingList from './pages/Approval/PendingList';
 import History from './pages/Approval/History';
@@ -72,7 +77,33 @@ export const router = createBrowserRouter([
       },
       {
         path: 'nft',
-        element: <NFT />,
+        element: <NFTLayout />,
+        children: [
+          {
+            index: true,
+            element: <Navigate to="dashboard" replace />,
+          },
+          {
+            path: 'dashboard',
+            element: <NFTDashboard />,
+          },
+          {
+            path: 'assets',
+            element: <NFTAssetsPage />,
+          },
+          {
+            path: 'minting',
+            element: <NFTMintingPage />,
+          },
+          {
+            path: 'history',
+            element: <NFTHistoryListPage />,
+          },
+          {
+            path: 'contracts',
+            element: <NFTContractsPage />,
+          },
+        ],
       },
 
       {

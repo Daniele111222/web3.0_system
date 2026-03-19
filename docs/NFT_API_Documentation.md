@@ -31,6 +31,28 @@
 | POST | `/api/v1/nft/batch-mint` | 批量铸造NFT | 企业成员 |
 | GET | `/api/v1/nft/{asset_id}/mint/status` | 获取铸造状态 | 企业成员 |
 | POST | `/api/v1/nft/{asset_id}/mint/retry` | 重试铸造 | 企业成员 |
+| GET | `/api/v1/nft/mint/history` | 获取企业铸造历史 | 企业成员 |
+
+### 2.3 资产哈希校验
+
+| 方法 | 路径 | 功能 | 权限 |
+|------|------|------|------|
+| POST | `/api/v1/assets/{asset_id}/attachments/{attachment_id}/hash/verify` | 校验附件SHA-256 | 企业成员 |
+
+### 2.4 兼容别名路径（Deprecated）
+
+| 方法 | 路径 |
+|------|------|
+| POST | `/api/v1/nft/{asset_id}/mint` |
+| GET | `/api/v1/nft/mint/{asset_id}/status` |
+| POST | `/api/v1/nft/mint/{asset_id}/retry` |
+| GET | `/api/v1/nft/history/{token_id}` |
+| POST | `/api/v1/ipfs/files/upload` |
+| POST | `/api/v1/ipfs/json/upload` |
+| DELETE | `/api/v1/ipfs/files/{cid}` |
+| GET | `/api/v1/ipfs/files/{cid}/gateway` |
+
+> 下线计划：上述兼容别名路径计划在 **v1.3** 移除，本版本仅保留兼容，不建议新增调用。
 
 ---
 
@@ -103,7 +125,9 @@
 
 **请求参数**:
 - `asset_id` (query): 资产ID (UUID)
-- `minter_address` (body): 接收NFT的钱包地址
+- `minter_address` (body, optional): 接收地址；不传时服务端按 `request > enterprise.wallet_address > system.DEPLOYER_ADDRESS` 自动回填
+- `signed_message` (body, optional): 钱包签名原文
+- `wallet_signature` (body, optional): 钱包签名值
 
 **请求体**:
 ```json
@@ -121,14 +145,15 @@
   "tx_hash": "0xabc123...",
   "metadata_uri": "ipfs://QmTest123...",
   "contract_address": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
-  "status": "MINTED"
+  "status": "MINTED",
+  "signature_verified": true
 }
 ```
 
 **响应错误 (400)**:
 ```json
 {
-  "detail": "Cannot mint NFT for asset with status 'MINTED'. Asset must be in DRAFT or PENDING status."
+  "detail": "Cannot mint NFT for asset with status 'MINTED'. Asset must be in APPROVED status."
 }
 ```
 
@@ -137,6 +162,9 @@
 #### POST /api/v1/nft/batch-mint
 
 批量铸造多个NFT。
+
+**请求说明**:
+- `minter_address` 为可选，未提供时由服务端自动回填。
 
 **请求体**:
 ```json
@@ -223,6 +251,9 @@
 
 重试铸造失败的NFT。
 
+**请求说明**:
+- `minter_address` 为可选，未提供时由服务端自动回填。
+
 **请求体**:
 ```json
 {
@@ -245,6 +276,71 @@
 
 ---
 
+#### GET /api/v1/nft/mint/history
+
+获取企业维度的铸造历史，支持分页与状态筛选。
+
+**请求参数**:
+- `enterprise_id` (query): 企业ID (UUID)
+- `record_status` (query, optional): 记录状态筛选（PENDING/SUCCESS/FAILED）
+- `page` (query, optional): 页码，默认1
+- `page_size` (query, optional): 每页数量，默认20
+
+**响应成功 (200)**:
+```json
+{
+  "items": [
+    {
+      "mint_record_id": "uuid-record",
+      "asset_id": "70e99b29-27ef-4937-9134-38affc0d51be",
+      "asset_name": "测试专利",
+      "asset_status": "MINTED",
+      "operation": "REQUEST",
+      "stage": "COMPLETED",
+      "status": "SUCCESS",
+      "token_id": 1,
+      "tx_hash": "0xabc123...",
+      "error_code": null,
+      "error_message": null,
+      "created_at": "2026-03-19T10:00:00+00:00",
+      "completed_at": "2026-03-19T10:01:00+00:00"
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "page_size": 20,
+  "total_pages": 1
+}
+```
+
+---
+
+#### POST /api/v1/assets/{asset_id}/attachments/{attachment_id}/hash/verify
+
+对附件执行服务端 SHA-256 计算并与客户端哈希比对，结果回写到资产元数据。
+
+**请求体**:
+```json
+{
+  "client_sha256": "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+}
+```
+
+**响应成功 (200)**:
+```json
+{
+  "attachment_id": "uuid-attachment",
+  "asset_id": "uuid-asset",
+  "ipfs_cid": "QmTest123...",
+  "client_sha256": "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
+  "server_sha256": "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
+  "matched": true,
+  "verified_at": "2026-03-19T10:00:00Z"
+}
+```
+
+---
+
 ## 4. 数据模型
 
 ### 4.1 Asset (资产)
@@ -253,7 +349,7 @@ NFT铸造相关字段：
 
 | 字段 | 类型 | 描述 |
 |------|------|------|
-| `status` | Enum | 资产状态 (DRAFT, PENDING, MINTING, MINTED, MINT_FAILED, REJECTED等) |
+| `status` | Enum | 资产状态 (DRAFT, PENDING, APPROVED, MINTING, MINTED, MINT_FAILED, REJECTED等) |
 | `nft_token_id` | String | NFT Token ID |
 | `nft_contract_address` | String | NFT合约地址 |
 | `nft_chain` | String | 区块链网络 |
@@ -283,6 +379,7 @@ NFT铸造相关字段：
 | `stage` | String | 当前阶段 |
 | `operator_id` | UUID | 操作者ID |
 | `operator_address` | String | 操作者地址 |
+| `signature_verified` | Boolean | 钱包签名是否通过验证 |
 | `token_id` | BigInteger | NFT Token ID |
 | `tx_hash` | String | 交易哈希 |
 | `status` | String | 状态 (PENDING, SUCCESS, FAILED) |
@@ -299,11 +396,8 @@ NFT铸造相关字段：
 ### 5.1 状态流转
 
 ```
-DRAFT → MINTING → MINTED (成功)
-                → MINT_FAILED (失败，可重试)
-
-PENDING → MINTING → MINTED (成功)
-                 → MINT_FAILED (失败，可重试)
+APPROVED → MINTING → MINTED (成功)
+                   → MINT_FAILED (失败，可重试)
 ```
 
 ### 5.2 铸造阶段 (mint_stage)
@@ -317,7 +411,7 @@ PENDING → MINTING → MINTED (成功)
 ### 5.3 前置条件
 
 铸造NFT前，资产必须满足：
-1. 状态为 `DRAFT` 或 `PENDING`
+1. 状态为 `APPROVED`
 2. 至少有一个附件 (Attachment)
 3. 未达到最大重试次数
 
@@ -381,9 +475,9 @@ Content-Type: multipart/form-data
 file: [文件]
 ```
 
-### 步骤3: 更改资产状态为PENDING
+### 步骤3: 审批通过进入APPROVED状态
 
-资产审批通过后状态自动变为PENDING。
+资产审批通过后状态更新为APPROVED，可发起铸造请求。
 
 ### 步骤4: 铸造NFT
 
@@ -409,7 +503,7 @@ Authorization: Bearer {token}
 ## 9. 注意事项
 
 1. **铸造前确保资产有附件** - 没有附件的资产无法铸造
-2. **状态验证** - 只有DRAFT或PENDING状态的资产可以铸造
+2. **状态验证** - 只有APPROVED状态的资产可以铸造
 3. **重试机制** - 铸造失败后最多可重试3次
 4. **Gas费用** - 铸造需要ETH支付Gas费用（本地测试网络免费）
 5. **IPFS依赖** - 铸造需要IPFS节点正常运行

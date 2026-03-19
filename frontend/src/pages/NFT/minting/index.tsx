@@ -2,8 +2,8 @@
  * NFT 铸造任务页面
  * 展示和管理正在进行的铸造任务
  */
-import React, { useState, useMemo } from 'react';
-import { Card, Progress, Tag, Button, Empty, Spin, Badge, Space, Col, Row } from 'antd';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Card, Progress, Tag, Button, Empty, Spin, Badge, Space, Col, Row, message } from 'antd';
 import {
   FireOutlined,
   ReloadOutlined,
@@ -15,35 +15,11 @@ import {
 } from '@ant-design/icons';
 import type { NFTAssetCardData } from '../../../types/nft';
 import { AssetMintStatus, MintStage } from '../../../types/nft';
+import { useMint, useNFTAssets } from '../../../hooks/useNFT';
+import nftService from '../../../services/nft';
 import styles from './style.module.less';
 
 // const { Text, Title } = Typography;
-
-// 模拟正在铸造的资产
-const MOCK_MINTING_ASSETS: NFTAssetCardData[] = [
-  {
-    asset_id: 'uuid-3',
-    asset_name: '商标权 - 元宇宙品牌Logo',
-    asset_type: '商标',
-    description: '虚拟世界品牌标识设计',
-    status: AssetMintStatus.MINTING,
-    mint_stage: MintStage.CONFIRMING,
-    mint_progress: 75,
-    created_at: '2026-02-17T09:15:00Z',
-    creator_name: '王五',
-  },
-  {
-    asset_id: 'uuid-6',
-    asset_name: '发明专利 - 智能合约安全机制',
-    asset_type: '专利',
-    description: '一种智能合约安全防护方法',
-    status: AssetMintStatus.MINTING,
-    mint_stage: MintStage.SUBMITTING,
-    mint_progress: 35,
-    created_at: '2026-02-19T14:30:00Z',
-    creator_name: '孙八',
-  },
-];
 
 // 铸造阶段配置
 const STAGE_CONFIG: Record<
@@ -155,16 +131,38 @@ const MintingTaskItem: React.FC<MintingTaskItemProps> = ({ asset, onRetry }) => 
  * 铸造任务页面
  */
 const NFTMintingPage: React.FC = () => {
-  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const { retryMint } = useMint();
+  const { loading, assets, fetchAssets } = useNFTAssets();
+
+  useEffect(() => {
+    fetchAssets();
+  }, [fetchAssets]);
 
   // 过滤正在铸造的资产
   const mintingAssets = useMemo(() => {
-    return MOCK_MINTING_ASSETS.filter((asset) => asset.status === 'MINTING');
-  }, []);
+    return assets.filter(
+      (asset) =>
+        asset.status === AssetMintStatus.MINTING || asset.status === AssetMintStatus.MINT_FAILED
+    );
+  }, [assets]);
 
   // 处理重试
-  const handleRetry = (assetId: string) => {
-    console.log('Retry minting:', assetId);
+  const handleRetry = async (assetId: string) => {
+    try {
+      const minterAddress = localStorage.getItem('wallet_address') || undefined;
+      await retryMint(assetId, minterAddress);
+      message.success('重试任务已提交');
+      fetchAssets();
+    } catch (error) {
+      message.error(`重试失败：${nftService.mapNftErrorMessage(error, '未知错误')}`);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchAssets();
+    setRefreshing(false);
   };
 
   // 渲染任务列表
@@ -199,7 +197,7 @@ const NFTMintingPage: React.FC = () => {
             <p className={styles.pageSubtitle}>监控和管理正在进行的 NFT 铸造任务</p>
           </div>
         </div>
-        <Button icon={<ReloadOutlined />} onClick={() => setLoading(true)} loading={loading}>
+        <Button icon={<ReloadOutlined />} onClick={handleRefresh} loading={refreshing}>
           刷新
         </Button>
       </div>
@@ -250,7 +248,7 @@ const NFTMintingPage: React.FC = () => {
         }
         bordered={false}
       >
-        <Spin spinning={loading}>{renderTaskList()}</Spin>
+        <Spin spinning={loading || refreshing}>{renderTaskList()}</Spin>
       </Card>
     </div>
   );

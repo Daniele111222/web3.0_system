@@ -38,10 +38,12 @@ class LegalStatus(str, Enum):
     法律状态枚举。
     
     定义资产的法律状态：
-    - PENDING: 待审批
+    - APPLIED: 已申请
+    - PENDING: 申请中
     - GRANTED: 已授权
     - EXPIRED: 已过期
     """
+    APPLIED = "APPLIED"
     PENDING = "PENDING"
     GRANTED = "GRANTED"
     EXPIRED = "EXPIRED"
@@ -64,6 +66,7 @@ class AssetStatus(str, Enum):
     """
     DRAFT = "DRAFT"
     PENDING = "PENDING"
+    APPROVED = "APPROVED"
     MINTING = "MINTING"
     MINTED = "MINTED"
     REJECTED = "REJECTED"
@@ -132,6 +135,12 @@ class Asset(Base):
         nullable=False,
         comment="创作人姓名",
     )
+    inventors: Mapped[List[str]] = mapped_column(
+        JSON,
+        nullable=False,
+        default=list,
+        comment="发明人列表",
+    )
     creation_date: Mapped[date] = mapped_column(
         Date,
         nullable=False,
@@ -150,6 +159,11 @@ class Asset(Base):
         nullable=True,
         index=True,
         comment="申请号/注册号",
+    )
+    rights_declaration: Mapped[Optional[str]] = mapped_column(
+        Text,
+        nullable=True,
+        comment="权利声明",
     )
     
     # 元数据（JSON 格式，支持灵活扩展）
@@ -436,6 +450,12 @@ class Attachment(Base):
         index=True,
         comment="IPFS 内容标识符（CID）",
     )
+    is_primary: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+        comment="是否主附件",
+    )
     
     # 时间戳
     uploaded_at: Mapped[datetime] = mapped_column(
@@ -508,6 +528,11 @@ class MintRecord(Base):
         String(42),
         nullable=True,
         comment="操作者钱包地址",
+    )
+    signature_verified: Mapped[Optional[bool]] = mapped_column(
+        Boolean,
+        nullable=True,
+        comment="钱包签名是否通过验证",
     )
     
     token_id: Mapped[Optional[int]] = mapped_column(
@@ -587,8 +612,6 @@ class MintRecord(Base):
     
     __table_args__ = (
         Index("ix_mint_records_asset_created", "asset_id", "created_at"),
-        Index("ix_mint_records_tx_hash", "tx_hash"),
-        Index("ix_mint_records_status", "status"),
     )
     
     def __repr__(self) -> str:

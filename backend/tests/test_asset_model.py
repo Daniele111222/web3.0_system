@@ -51,6 +51,8 @@ class TestAssetModel:
         assert asset.legal_status == LegalStatus.PENDING
         assert asset.asset_metadata == {"key": "value"}
         assert asset.status == AssetStatus.DRAFT
+        assert asset.inventors == []
+        assert asset.rights_declaration is None
         assert asset.created_at is not None
         assert asset.updated_at is not None
 
@@ -195,6 +197,7 @@ class TestAssetModel:
             file_type="application/pdf",
             file_size=1024,
             ipfs_cid="QmHash1",
+            is_primary=True,
         )
         attachment2 = Attachment(
             asset_id=asset.id,
@@ -202,6 +205,7 @@ class TestAssetModel:
             file_type="image/png",
             file_size=2048,
             ipfs_cid="QmHash2",
+            is_primary=False,
         )
         db_session.add_all([attachment1, attachment2])
         await db_session.commit()
@@ -211,6 +215,8 @@ class TestAssetModel:
         file_names = [a.file_name for a in asset.attachments]
         assert "document.pdf" in file_names
         assert "image.png" in file_names
+        primary_files = [a.file_name for a in asset.attachments if a.is_primary]
+        assert primary_files == ["document.pdf"]
 
     async def test_asset_type_enum_values(self):
         """测试资产类型枚举值。"""
@@ -229,6 +235,7 @@ class TestAssetModel:
     async def test_asset_status_enum_values(self):
         """测试资产状态枚举值。"""
         assert AssetStatus.DRAFT == "DRAFT"
+        assert AssetStatus.APPROVED == "APPROVED"
         assert AssetStatus.MINTED == "MINTED"
         assert AssetStatus.TRANSFERRED == "TRANSFERRED"
         assert AssetStatus.LICENSED == "LICENSED"

@@ -11,7 +11,7 @@ from typing import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.pool import StaticPool
-from sqlalchemy import text
+from sqlalchemy import text, select
 
 from app.core.database import Base
 from app.models.asset import Asset, AssetStatus, AssetType, LegalStatus, Attachment, MintRecord
@@ -116,8 +116,8 @@ async def test_asset_draft(db_session: AsyncSession, test_enterprise: Enterprise
 
 
 @pytest_asyncio.fixture
-async def test_asset_pending(db_session: AsyncSession, test_enterprise: Enterprise, test_user: User) -> Asset:
-    """创建测试资产(PENDING状态)"""
+async def test_asset_approved(db_session: AsyncSession, test_enterprise: Enterprise, test_user: User) -> Asset:
+    """创建测试资产(APPROVED状态)"""
     asset = Asset(
         id=uuid4(),
         enterprise_id=test_enterprise.id,
@@ -129,7 +129,7 @@ async def test_asset_pending(db_session: AsyncSession, test_enterprise: Enterpri
         creation_date=date(2024, 1, 1),
         legal_status=LegalStatus.PENDING,
         application_number="CN2024000002",
-        status=AssetStatus.PENDING,
+        status=AssetStatus.APPROVED,
     )
     db_session.add(asset)
     await db_session.commit()
@@ -148,10 +148,12 @@ async def test_asset_with_attachment(db_session: AsyncSession, test_enterprise: 
         type=AssetType.COPYRIGHT,
         description="Test Copyright Description",
         creator_name="Test Creator",
+        inventors=["Test Creator"],
         creation_date=date(2024, 1, 1),
         legal_status=LegalStatus.GRANTED,
         application_number="CN2024000003",
-        status=AssetStatus.PENDING,
+        rights_declaration="Original rights declaration",
+        status=AssetStatus.APPROVED,
     )
     db_session.add(asset)
     await db_session.flush()
@@ -163,6 +165,7 @@ async def test_asset_with_attachment(db_session: AsyncSession, test_enterprise: 
         file_type="application/pdf",
         file_size=1024,
         ipfs_cid="QmTest123",
+        is_primary=True,
     )
     db_session.add(attachment)
     await db_session.commit()
@@ -217,6 +220,8 @@ class TestNFTServiceMintAsset:
     async def test_mint_asset_without_attachment(self, db_session: AsyncSession, test_asset_draft: Asset):
         """测试铸造没有附件的资产"""
         nft_service = NFTService(db_session)
+        test_asset_draft.status = AssetStatus.APPROVED
+        await db_session.commit()
         
         with pytest.raises(Exception) as exc_info:
             await nft_service.mint_asset_nft(
@@ -253,6 +258,63 @@ class TestNFTServiceMintAsset:
         
         assert "MINTED" in str(exc_info.value)
 
+    @pytest.mark.asyncio
+    async def test_mint_asset_wrong_status_pending(self, db_session: AsyncSession, test_enterprise: Enterprise):
+        """测试铸造待审批资产"""
+        asset = Asset(
+            id=uuid4(),
+            enterprise_id=test_enterprise.id,
+            name="Pending Asset",
+            type=AssetType.PATENT,
+            description="Pending Asset Description",
+            creator_name="Creator",
+            creation_date=date(2024, 1, 1),
+            legal_status=LegalStatus.PENDING,
+            status=AssetStatus.PENDING,
+        )
+        db_session.add(asset)
+        await db_session.commit()
+
+        nft_service = NFTService(db_session)
+
+        with pytest.raises(Exception) as exc_info:
+            await nft_service.mint_asset_nft(
+                asset_id=asset.id,
+                minter_address="0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+            )
+
+        assert "APPROVED" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_mint_asset_invalid_wallet_signature(
+        self,
+        db_session: AsyncSession,
+        test_asset_with_attachment: Asset,
+    ):
+        """测试无效签名会被拒绝"""
+        nft_service = NFTService(db_session)
+
+        with pytest.raises(Exception) as exc_info:
+            await nft_service.mint_asset_nft(
+                asset_id=test_asset_with_attachment.id,
+                minter_address="0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+                signed_message="mint request",
+                wallet_signature="0xdeadbeef",
+            )
+
+        assert "SIGNATURE_VERIFICATION_FAILED" in str(exc_info.value)
+        result = await db_session.execute(
+            select(MintRecord)
+            .where(MintRecord.asset_id == test_asset_with_attachment.id)
+            .order_by(MintRecord.created_at.desc())
+            .limit(1)
+        )
+        mint_record = result.scalar_one_or_none()
+        assert mint_record is not None
+        assert mint_record.status == "FAILED"
+        assert mint_record.error_code == "SIGNATURE_VERIFICATION_FAILED"
+        assert mint_record.signature_verified is False
+
 
 class TestNFTServiceStatus:
     """测试NFT状态查询功能"""
@@ -277,14 +339,14 @@ class TestNFTServiceStatus:
         assert status["current_status"] == AssetStatus.DRAFT.value
     
     @pytest.mark.asyncio
-    async def test_get_mint_status_pending(self, db_session: AsyncSession, test_asset_with_attachment: Asset):
-        """测试获取PENDING状态资产的铸造状态"""
+    async def test_get_mint_status_approved(self, db_session: AsyncSession, test_asset_with_attachment: Asset):
+        """测试获取APPROVED状态资产的铸造状态"""
         nft_service = NFTService(db_session)
         
         status = await nft_service.get_mint_status(asset_id=test_asset_with_attachment.id)
         
         assert status["asset_id"] == str(test_asset_with_attachment.id)
-        assert status["current_status"] == AssetStatus.PENDING.value
+        assert status["current_status"] == AssetStatus.APPROVED.value
         assert status["can_retry"] is True  # 默认值
     
     @pytest.mark.asyncio
@@ -299,6 +361,33 @@ class TestNFTServiceStatus:
         assert status["can_retry"] is True
         assert status["mint_attempt_count"] == 1
         assert status["last_mint_error"] == "Test error"
+
+    @pytest.mark.asyncio
+    async def test_get_mint_history(self, db_session: AsyncSession, test_asset_with_attachment: Asset):
+        """测试获取企业铸造历史"""
+        mint_record = MintRecord(
+            asset_id=test_asset_with_attachment.id,
+            operation="REQUEST",
+            stage="COMPLETED",
+            status="SUCCESS",
+            token_id=1,
+            tx_hash="0x" + "1" * 64,
+            metadata_uri="ipfs://test",
+        )
+        db_session.add(mint_record)
+        await db_session.commit()
+
+        nft_service = NFTService(db_session)
+        result = await nft_service.get_mint_history(
+            enterprise_id=test_asset_with_attachment.enterprise_id,
+            page=1,
+            page_size=10,
+        )
+
+        assert result["total"] == 1
+        assert len(result["items"]) == 1
+        assert result["items"][0]["asset_id"] == str(test_asset_with_attachment.id)
+        assert result["items"][0]["status"] == "SUCCESS"
 
 
 class TestNFTServiceRetry:
@@ -321,7 +410,7 @@ class TestNFTServiceRetry:
         """测试重试非失败状态的资产"""
         nft_service = NFTService(db_session)
         
-        # 资产状态是PENDING，不是MINT_FAILED
+        # 资产状态是APPROVED，不是MINT_FAILED
         with pytest.raises(Exception) as exc_info:
             await nft_service.retry_mint(
                 asset_id=test_asset_with_attachment.id,
@@ -427,6 +516,8 @@ class TestNFTServiceMetadata:
         attr_types = [a["trait_type"] for a in metadata["attributes"]]
         assert "Asset Type" in attr_types
         assert "Creator" in attr_types
+        assert "Inventors" in attr_types
+        assert metadata["properties"]["rights_declaration"] == "Original rights declaration"
     
     @pytest.mark.asyncio
     async def test_generate_nft_metadata_with_multiple_attachments(self, db_session: AsyncSession, test_asset_with_attachment: Asset):
@@ -441,6 +532,7 @@ class TestNFTServiceMetadata:
             file_type="application/pdf",
             file_size=2048,
             ipfs_cid="QmTest456",
+            is_primary=False,
         )
         db_session.add(attachment2)
         await db_session.commit()
@@ -453,6 +545,32 @@ class TestNFTServiceMetadata:
         
         assert "attachments" in metadata
         assert len(metadata["attachments"]) == 1  # 除了第一张图片外的附件
+
+    @pytest.mark.asyncio
+    async def test_generate_nft_metadata_with_primary_attachment(self, db_session: AsyncSession, test_asset_with_attachment: Asset):
+        """测试主附件优先逻辑"""
+        nft_service = NFTService(db_session)
+
+        primary = Attachment(
+            id=uuid4(),
+            asset_id=test_asset_with_attachment.id,
+            file_name="cover.png",
+            file_type="image/png",
+            file_size=1024,
+            ipfs_cid="QmPrimaryAttachment",
+            is_primary=True,
+        )
+        test_asset_with_attachment.attachments[0].is_primary = False
+        db_session.add(primary)
+        await db_session.commit()
+        await db_session.refresh(test_asset_with_attachment, ["attachments"])
+
+        metadata = nft_service._generate_nft_metadata(
+            test_asset_with_attachment,
+            test_asset_with_attachment.attachments,
+        )
+
+        assert metadata["image"] == "ipfs://QmPrimaryAttachment"
 
 
 class TestUpdateAssetStatus:
@@ -468,7 +586,7 @@ class TestUpdateAssetStatus:
             approved=True
         )
         
-        assert result.status == AssetStatus.PENDING
+        assert result.status == AssetStatus.APPROVED
     
     @pytest.mark.asyncio
     async def test_update_status_after_approval_reject(self, db_session: AsyncSession, test_asset_draft: Asset):

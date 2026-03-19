@@ -32,12 +32,40 @@ DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'assetstatus') THEN
         CREATE TYPE assetstatus AS ENUM (
             'DRAFT',
+            'PENDING',
+            'APPROVED',
+            'MINTING',
+            'MINT_FAILED',
             'MINTED',
             'TRANSFERRED',
             'LICENSED',
             'STAKED'
         );
     END IF;
+END $$;
+
+DO $$ BEGIN
+    ALTER TYPE assetstatus ADD VALUE IF NOT EXISTS 'PENDING';
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    ALTER TYPE assetstatus ADD VALUE IF NOT EXISTS 'APPROVED';
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    ALTER TYPE assetstatus ADD VALUE IF NOT EXISTS 'MINTING';
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    ALTER TYPE assetstatus ADD VALUE IF NOT EXISTS 'MINT_FAILED';
+EXCEPTION
+    WHEN duplicate_object THEN null;
 END $$;
 
 -- Create users table
@@ -121,9 +149,11 @@ CREATE TABLE IF NOT EXISTS assets (
     type assettype NOT NULL,
     description TEXT NOT NULL,
     creator_name VARCHAR(100) NOT NULL,
+    inventors JSONB NOT NULL DEFAULT '[]'::jsonb,
     creation_date DATE NOT NULL,
     legal_status legalstatus NOT NULL,
     application_number VARCHAR(100),
+    rights_declaration TEXT,
     asset_metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
     status assetstatus NOT NULL DEFAULT 'DRAFT',
     nft_token_id VARCHAR(100),
@@ -156,6 +186,7 @@ CREATE TABLE IF NOT EXISTS attachments (
     file_type VARCHAR(100) NOT NULL,
     file_size BIGINT NOT NULL,
     ipfs_cid VARCHAR(100) UNIQUE NOT NULL,
+    is_primary BOOLEAN NOT NULL DEFAULT FALSE,
     uploaded_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 

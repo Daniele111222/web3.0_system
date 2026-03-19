@@ -245,7 +245,13 @@ class BlockchainClient:
                 f"获取区块号失败：{str(e)}"
             ) from e
     
-    async def mint_nft(self, to_address: str, metadata_uri: str) -> tuple:
+    async def mint_nft(
+        self,
+        to_address: str,
+        metadata_uri: str,
+        royalty_receiver: Optional[str] = None,
+        royalty_fee_bps: Optional[int] = None,
+    ) -> tuple:
         """
         铸造 NFT。
         
@@ -269,10 +275,24 @@ class BlockchainClient:
             logger.info(f"Minting NFT to {checksum_to} with metadata {metadata_uri}")
             
             contract = self._get_contract()
-            
-            tx_hash = contract.functions.mint(checksum_to, metadata_uri).transact({
-                'from': self.deployer_address
-            })
+            has_royalty = (
+                royalty_receiver is not None
+                and royalty_fee_bps is not None
+                and royalty_fee_bps > 0
+            )
+
+            if has_royalty:
+                checksum_royalty_receiver = self.w3.to_checksum_address(royalty_receiver)
+                tx_hash = contract.functions.mintWithRoyalty(
+                    checksum_to,
+                    metadata_uri,
+                    checksum_royalty_receiver,
+                    royalty_fee_bps,
+                ).transact({'from': self.deployer_address})
+            else:
+                tx_hash = contract.functions.mint(checksum_to, metadata_uri).transact({
+                    'from': self.deployer_address
+                })
             
             receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
             
@@ -290,6 +310,49 @@ class BlockchainClient:
         except Exception as e:
             logger.error(f"NFT 铸造失败：{e}")
             raise BlockchainConnectionError(f"NFT 铸造失败：{str(e)}")
+
+    async def estimate_mint_gas(
+        self,
+        to_address: str,
+        metadata_uri: str,
+        royalty_receiver: Optional[str] = None,
+        royalty_fee_bps: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        if not self.contract_address:
+            raise BlockchainConnectionError("NFT 合约未部署。请先部署合约并设置 CONTRACT_ADDRESS")
+
+        try:
+            checksum_to = self.w3.to_checksum_address(to_address)
+            contract = self._get_contract()
+            has_royalty = (
+                royalty_receiver is not None
+                and royalty_fee_bps is not None
+                and royalty_fee_bps > 0
+            )
+            if has_royalty:
+                checksum_royalty_receiver = self.w3.to_checksum_address(royalty_receiver)
+                gas_limit = contract.functions.mintWithRoyalty(
+                    checksum_to,
+                    metadata_uri,
+                    checksum_royalty_receiver,
+                    royalty_fee_bps,
+                ).estimate_gas({'from': self.deployer_address})
+            else:
+                gas_limit = contract.functions.mint(
+                    checksum_to,
+                    metadata_uri,
+                ).estimate_gas({'from': self.deployer_address})
+            gas_price = self.w3.eth.gas_price
+            estimated_fee_wei = gas_limit * gas_price
+            return {
+                "gas_limit": gas_limit,
+                "gas_price_wei": gas_price,
+                "estimated_fee_wei": estimated_fee_wei,
+                "estimated_fee_eth": str(Web3.from_wei(estimated_fee_wei, "ether")),
+            }
+        except Exception as e:
+            logger.error(f"预估 Gas 失败：{e}")
+            raise BlockchainConnectionError(f"预估 Gas 失败：{str(e)}")
     
     def _get_deployer_account(self) -> Account:
         """获取部署者账户"""

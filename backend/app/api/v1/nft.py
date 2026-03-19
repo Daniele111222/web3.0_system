@@ -14,17 +14,29 @@ from app.api.deps import get_current_user_id
 from app.core.exceptions import NotFoundException, ForbiddenException, BadRequestException, BlockchainException
 from app.services.nft_service import NFTService
 from app.services.ownership_service import OwnershipService
+from app.repositories.enterprise_repository import EnterpriseMemberRepository
 
 router = APIRouter(prefix="/nft", tags=["NFT"])
 
 
+def parse_current_user_id(current_user_id: UUID) -> UUID:
+    try:
+        return UUID(str(current_user_id))
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="无效的用户凭证")
+
+
 class MintRequest(BaseModel):
-    minter_address: str
+    minter_address: Optional[str] = Field(None, description="接收地址（可选，未提供时服务端自动回填）")
+    royalty_receiver: Optional[str] = Field(None, description="版税接收地址")
+    royalty_fee_bps: Optional[int] = Field(None, ge=0, le=1000, description="版税比例（基点）")
+    signed_message: Optional[str] = Field(None, description="钱包签名原文")
+    wallet_signature: Optional[str] = Field(None, description="钱包签名值")
 
 
 class BatchMintRequest(BaseModel):
     asset_ids: List[UUID]
-    minter_address: str
+    minter_address: Optional[str] = Field(None, description="接收地址（可选，未提供时服务端自动回填）")
 
 
 @router.post(
@@ -42,7 +54,7 @@ async def mint_nft(
 ) -> dict:
     """铸造资产的NFT。
 
-    将资产铸造为NFT。资产必须处于DRAFT或PENDING状态才能铸造。
+    将资产铸造为NFT。资产必须处于审批通过状态才能铸造。
     
     Args:
         asset_id: 要铸造NFT的资产ID
@@ -59,6 +71,10 @@ async def mint_nft(
         result = await nft_service.mint_asset_nft(
             asset_id=asset_id,
             minter_address=request.minter_address,
+            royalty_receiver=request.royalty_receiver,
+            royalty_fee_bps=request.royalty_fee_bps,
+            signed_message=request.signed_message,
+            wallet_signature=request.wallet_signature,
             operator_id=current_user_id,
         )
         return result
@@ -73,6 +89,27 @@ async def mint_nft(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to mint NFT: {str(e)}",
         )
+
+
+@router.post(
+    "/{asset_id}/mint",
+    response_model=dict,
+    status_code=status.HTTP_201_CREATED,
+    summary="铸造NFT（路径参数版本）",
+    deprecated=True,
+)
+async def mint_nft_by_asset_path(
+    asset_id: UUID,
+    request: MintRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user_id: UUID = Depends(get_current_user_id),
+) -> dict:
+    return await mint_nft(
+        asset_id=asset_id,
+        request=request,
+        db=db,
+        current_user_id=current_user_id,
+    )
 
 
 @router.post(
@@ -117,6 +154,37 @@ async def batch_mint_nft(
         )
 
 
+@router.post(
+    "/mint/estimate",
+    response_model=dict,
+    summary="预估铸造Gas",
+    description="预估指定资产铸造时的 Gas 费用",
+)
+async def estimate_mint_gas(
+    asset_id: UUID,
+    request: MintRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user_id: UUID = Depends(get_current_user_id),
+) -> dict:
+    nft_service = NFTService(db)
+    try:
+        return await nft_service.estimate_mint_fee(
+            asset_id=asset_id,
+            minter_address=request.minter_address,
+            royalty_receiver=request.royalty_receiver,
+            royalty_fee_bps=request.royalty_fee_bps,
+        )
+    except (NotFoundException, BadRequestException) as e:
+        if isinstance(e, NotFoundException):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to estimate mint gas: {str(e)}",
+        )
+
+
 @router.get(
     "/{asset_id}/mint/status",
     response_model=dict,
@@ -150,6 +218,24 @@ async def get_mint_status(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get mint status: {str(e)}",
         )
+
+
+@router.get(
+    "/mint/{asset_id}/status",
+    response_model=dict,
+    summary="获取铸造状态（别名路径）",
+    deprecated=True,
+)
+async def get_mint_status_alias(
+    asset_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user_id: UUID = Depends(get_current_user_id),
+) -> dict:
+    return await get_mint_status(
+        asset_id=asset_id,
+        db=db,
+        current_user_id=current_user_id,
+    )
 
 
 @router.post(
@@ -196,6 +282,27 @@ async def retry_mint_nft(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to retry mint: {str(e)}",
         )
+
+
+@router.post(
+    "/mint/{asset_id}/retry",
+    response_model=dict,
+    status_code=status.HTTP_201_CREATED,
+    summary="重试铸造（别名路径）",
+    deprecated=True,
+)
+async def retry_mint_nft_alias(
+    asset_id: UUID,
+    request: MintRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user_id: UUID = Depends(get_current_user_id),
+) -> dict:
+    return await retry_mint_nft(
+        asset_id=asset_id,
+        request=request,
+        db=db,
+        current_user_id=current_user_id,
+    )
 
 
 @router.post(
@@ -278,3 +385,62 @@ async def get_nft_history(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"查询失败: {str(e)}",
         )
+
+
+@router.get(
+    "/mint/history",
+    response_model=dict,
+    status_code=status.HTTP_200_OK,
+    summary="获取NFT铸造历史",
+    description="分页查询企业维度NFT铸造历史记录",
+)
+async def get_nft_mint_history(
+    enterprise_id: UUID = Query(..., description="企业ID"),
+    record_status: Optional[str] = Query(None, description="按记录状态筛选：PENDING/SUCCESS/FAILED"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+    current_user_id: UUID = Depends(get_current_user_id),
+) -> dict:
+    user_id = parse_current_user_id(current_user_id)
+    member_repo = EnterpriseMemberRepository(db)
+    member = await member_repo.get_member(enterprise_id, user_id)
+    if not member:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="您无权访问该企业铸造历史")
+
+    nft_service = NFTService(db)
+    try:
+        return await nft_service.get_mint_history(
+            enterprise_id=enterprise_id,
+            page=page,
+            page_size=page_size,
+            status_filter=record_status,
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get mint history: {str(e)}",
+        )
+
+
+@router.get(
+    "/history/{token_id}",
+    response_model=dict,
+    status_code=status.HTTP_200_OK,
+    summary="获取NFT历史（别名路径）",
+    deprecated=True,
+)
+async def get_nft_history_alias(
+    token_id: str,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+    current_user_id: UUID = Depends(get_current_user_id),
+) -> dict:
+    return await get_nft_history(
+        token_id=token_id,
+        page=page,
+        page_size=page_size,
+        db=db,
+        current_user_id=current_user_id,
+    )

@@ -3,14 +3,69 @@
  * 提供铸造、合约查询等功能的封装
  */
 import { useState, useCallback } from 'react';
-import { message } from 'antd';
 import type {
+  AssetMintStatus,
   MintNFTRequest,
   BatchMintNFTResponse,
+  MintStatusResponse,
   ContractInfoResponse,
   ContractStatusResponse,
   MintStatistics,
+  NFTAssetCardData,
+  MintGasEstimateResponse,
 } from '../types/nft';
+import assetService from '../services/asset';
+import nftService from '../services/nft';
+import type { Asset as AssetEntity } from '../types';
+
+const getCurrentEnterpriseId = (): string => localStorage.getItem('current_enterprise_id') || '';
+
+const assetTypeLabelMap: Record<string, string> = {
+  PATENT: '专利',
+  TRADEMARK: '商标',
+  COPYRIGHT: '版权',
+  TRADE_SECRET: '商业秘密',
+  DIGITAL_WORK: '数字作品',
+};
+
+type AssetWithMintFields = AssetEntity & {
+  mint_stage?: NFTAssetCardData['mint_stage'];
+  mint_progress?: number;
+  creator?: string;
+};
+
+const mapAssetToCard = (asset: AssetEntity): NFTAssetCardData => {
+  const source = asset as AssetWithMintFields;
+  const tokenId = asset.nft_token_id ? Number(asset.nft_token_id) : undefined;
+  return {
+    asset_id: asset.id,
+    asset_name: asset.name,
+    asset_type: assetTypeLabelMap[asset.type] ?? asset.type,
+    description: asset.description,
+    status: asset.status as AssetMintStatus,
+    mint_stage: source.mint_stage,
+    mint_progress: source.mint_progress ?? undefined,
+    token_id: Number.isFinite(tokenId) ? tokenId : undefined,
+    contract_address: asset.nft_contract_address,
+    tx_hash: asset.mint_tx_hash,
+    metadata_uri: asset.metadata_uri,
+    created_at: asset.created_at,
+    creator_name: source.creator_name ?? source.creator ?? '',
+  };
+};
+
+const fetchEnterpriseAssets = async (): Promise<NFTAssetCardData[]> => {
+  const enterpriseId = getCurrentEnterpriseId();
+  if (!enterpriseId) {
+    return [];
+  }
+  const response = await assetService.getAssets({
+    enterprise_id: enterpriseId,
+    page: 1,
+    page_size: 100,
+  });
+  return response.items.map(mapAssetToCard);
+};
 
 // ============================================
 // useMint Hook - 铸造相关操作
@@ -20,9 +75,13 @@ interface UseMintReturn {
   loading: boolean;
   error: string | null;
   mint: (assetId: string, request: MintNFTRequest) => Promise<void>;
-  batchMint: (assetIds: string[], minterAddress: string) => Promise<BatchMintNFTResponse>;
-  retryMint: (assetId: string, minterAddress: string) => Promise<void>;
-  fetchMintStatus: (assetId: string) => Promise<void>;
+  batchMint: (assetIds: string[], minterAddress?: string) => Promise<BatchMintNFTResponse>;
+  retryMint: (assetId: string, minterAddress?: string) => Promise<void>;
+  fetchMintStatus: (assetId: string) => Promise<MintStatusResponse | null>;
+  estimateMintGas: (
+    assetId: string,
+    request: MintNFTRequest
+  ) => Promise<MintGasEstimateResponse | null>;
   clearError: () => void;
 }
 
@@ -35,12 +94,9 @@ export const useMint = (): UseMintReturn => {
     setLoading(true);
     setError(null);
     try {
-      // TODO: 调用实际的API
-      console.log('Minting asset:', assetId, request);
-      // 模拟API调用
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await nftService.mintNFT(assetId, request);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '铸造失败';
+      const errorMessage = nftService.mapNftErrorMessage(err, '铸造失败');
       setError(errorMessage);
       throw err;
     } finally {
@@ -50,28 +106,16 @@ export const useMint = (): UseMintReturn => {
 
   // 批量铸造
   const batchMint = useCallback(
-    async (assetIds: string[], minterAddress: string): Promise<BatchMintNFTResponse> => {
+    async (assetIds: string[], minterAddress?: string): Promise<BatchMintNFTResponse> => {
       setLoading(true);
       setError(null);
       try {
-        // TODO: 调用实际的API
-        console.log('Batch minting:', assetIds, minterAddress);
-        await new Promise((resolve) => setTimeout(resolve, 3000));
-
-        return {
-          message: '批量铸造成功',
-          total: assetIds.length,
-          successful: assetIds.length,
-          failed: 0,
-          results: assetIds.map((id) => ({
-            asset_id: id,
-            status: 'success' as const,
-            token_id: Math.floor(Math.random() * 1000),
-            tx_hash: '0x' + Math.random().toString(16).slice(2),
-          })),
-        };
+        return await nftService.batchMintNFT({
+          asset_ids: assetIds,
+          minter_address: minterAddress,
+        });
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : '批量铸造失败';
+        const errorMessage = nftService.mapNftErrorMessage(err, '批量铸造失败');
         setError(errorMessage);
         throw err;
       } finally {
@@ -82,15 +126,13 @@ export const useMint = (): UseMintReturn => {
   );
 
   // 重试铸造
-  const retryMint = useCallback(async (assetId: string, minterAddress: string) => {
+  const retryMint = useCallback(async (assetId: string, minterAddress?: string) => {
     setLoading(true);
     setError(null);
     try {
-      // TODO: 调用实际的API
-      console.log('Retrying mint:', assetId, minterAddress);
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await nftService.retryMint(assetId, { minter_address: minterAddress });
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '重试失败';
+      const errorMessage = nftService.mapNftErrorMessage(err, '重试失败');
       setError(errorMessage);
       throw err;
     } finally {
@@ -101,10 +143,21 @@ export const useMint = (): UseMintReturn => {
   // 查询铸造状态
   const fetchMintStatus = useCallback(async (assetId: string) => {
     try {
-      // TODO: 调用实际的API
-      console.log('Fetching mint status:', assetId);
+      return await nftService.getMintStatus(assetId);
     } catch (err) {
-      console.error('Failed to fetch mint status:', err);
+      const errorMessage = nftService.mapNftErrorMessage(err, '获取铸造状态失败');
+      setError(errorMessage);
+      return null;
+    }
+  }, []);
+
+  const estimateMintGas = useCallback(async (assetId: string, request: MintNFTRequest) => {
+    try {
+      return await nftService.estimateMintGas(assetId, request);
+    } catch (err) {
+      const errorMessage = nftService.mapNftErrorMessage(err, '预估 Gas 失败');
+      setError(errorMessage);
+      return null;
     }
   }, []);
 
@@ -120,6 +173,7 @@ export const useMint = (): UseMintReturn => {
     batchMint,
     retryMint,
     fetchMintStatus,
+    estimateMintGas,
     clearError,
   };
 };
@@ -151,17 +205,8 @@ export const useContract = (): UseContractReturn => {
     setLoading(true);
     setError(null);
     try {
-      // TODO: 调用实际的API
-      // 模拟数据
-      const mockInfo: ContractInfoResponse = {
-        contract_address: '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0',
-        deployer_address: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
-        chain_id: 1337,
-        is_connected: true,
-        has_contract: true,
-        has_abi: true,
-      };
-      setContractInfo(mockInfo);
+      const info = await nftService.getContractInfo();
+      setContractInfo(info);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '获取合约信息失败';
       setError(errorMessage);
@@ -172,17 +217,16 @@ export const useContract = (): UseContractReturn => {
 
   // 获取合约状态
   const fetchContractStatus = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
-      // TODO: 调用实际的API
-      const mockStatus: ContractStatusResponse = {
-        ready: true,
-        issues: [],
-        warnings: [],
-        can_mint: true,
-      };
-      setContractStatus(mockStatus);
+      const status = await nftService.checkContractStatus();
+      setContractStatus(status);
     } catch (err) {
-      console.error('Failed to fetch contract status:', err);
+      const errorMessage = err instanceof Error ? err.message : '获取合约状态失败';
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -191,10 +235,9 @@ export const useContract = (): UseContractReturn => {
     setLoading(true);
     setError(null);
     try {
-      // TODO: 调用实际的API
-      console.log('Deploying contract...');
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      message.success('合约部署成功');
+      await nftService.deployContract();
+      await fetchContractInfo();
+      await fetchContractStatus();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '部署失败';
       setError(errorMessage);
@@ -202,25 +245,26 @@ export const useContract = (): UseContractReturn => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [fetchContractInfo, fetchContractStatus]);
 
   // 更新合约地址
-  const updateContractAddress = useCallback(async (address: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      // TODO: 调用实际的API
-      console.log('Updating contract address:', address);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      message.success('合约地址更新成功');
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '更新失败';
-      setError(errorMessage);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const updateContractAddress = useCallback(
+    async (address: string) => {
+      setLoading(true);
+      setError(null);
+      try {
+        await nftService.updateContractAddress({ contract_address: address });
+        await fetchContractInfo();
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : '更新失败';
+        setError(errorMessage);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [fetchContractInfo]
+  );
 
   // 清除错误
   const clearError = useCallback(() => {
@@ -262,18 +306,20 @@ export const useMintStatistics = (): UseMintStatisticsReturn => {
     setLoading(true);
     setError(null);
     try {
-      // TODO: 调用实际的API
-      // 模拟数据
-      const mockStats: MintStatistics = {
-        total_assets: 5,
-        minted_count: 1,
-        minting_count: 1,
-        failed_count: 1,
-        pending_count: 1,
-        draft_count: 1,
-        recent_mints: [],
+      const assets = await fetchEnterpriseAssets();
+      const mintedAssets = assets.filter((item) => item.status === 'MINTED');
+      const statisticsData: MintStatistics = {
+        total_assets: assets.length,
+        minted_count: mintedAssets.length,
+        minting_count: assets.filter((item) => item.status === 'MINTING').length,
+        failed_count: assets.filter((item) => item.status === 'MINT_FAILED').length,
+        pending_count: assets.filter((item) => item.status === 'APPROVED').length,
+        draft_count: assets.filter((item) => item.status === 'DRAFT').length,
+        recent_mints: mintedAssets
+          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+          .slice(0, 5),
       };
-      setStatistics(mockStats);
+      setStatistics(statisticsData);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '获取统计数据失败';
       setError(errorMessage);
@@ -296,9 +342,50 @@ export const useMintStatistics = (): UseMintStatisticsReturn => {
   };
 };
 
+interface UseNFTAssetsReturn {
+  loading: boolean;
+  error: string | null;
+  assets: NFTAssetCardData[];
+  fetchAssets: () => Promise<void>;
+  clearError: () => void;
+}
+
+export const useNFTAssets = (): UseNFTAssetsReturn => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [assets, setAssets] = useState<NFTAssetCardData[]>([]);
+
+  const fetchAssets = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const list = await fetchEnterpriseAssets();
+      setAssets(list);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '获取资产列表失败';
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
+  return {
+    loading,
+    error,
+    assets,
+    fetchAssets,
+    clearError,
+  };
+};
+
 // 默认导出
 export default {
   useMint,
   useContract,
   useMintStatistics,
+  useNFTAssets,
 };
