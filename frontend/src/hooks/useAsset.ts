@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import assetService, {
   type AssetCreateRequest,
+  type AssetCreateWithAttachmentsResponse,
   type AssetUpdateRequest,
   type AssetFilterParams,
   type AttachmentUploadRequest,
@@ -21,7 +22,7 @@ interface UseAssetReturn {
     enterpriseId: string,
     data: AssetCreateRequest,
     files?: File[]
-  ) => Promise<Asset | null>;
+  ) => Promise<AssetCreateWithAttachmentsResponse | null>;
   getAssets: (params: AssetFilterParams) => Promise<void>;
   getAsset: (assetId: string) => Promise<Asset | null>;
   updateAsset: (assetId: string, data: AssetUpdateRequest) => Promise<Asset | null>;
@@ -87,12 +88,12 @@ export function useAsset(): UseAssetReturn {
       enterpriseId: string,
       data: AssetCreateRequest,
       files: File[] = []
-    ): Promise<Asset | null> => {
+    ): Promise<AssetCreateWithAttachmentsResponse | null> => {
       setIsLoading(true);
       setError(null);
       try {
-        const asset = await assetService.createAsset(enterpriseId, data, files);
-        return asset;
+        const result = await assetService.createAssetWithAttachments(enterpriseId, data, files);
+        return result;
       } catch (err: unknown) {
         const errorMessage = extractErrorMessage(err);
         setError(errorMessage);

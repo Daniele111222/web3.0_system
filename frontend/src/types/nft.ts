@@ -264,6 +264,7 @@ export interface NFTAssetCardData {
   asset_name: string;
   asset_type: string;
   description?: string;
+  rights_declaration?: string;
   status: AssetMintStatus;
   mint_stage?: MintStage;
   mint_progress?: number;
@@ -272,6 +273,8 @@ export interface NFTAssetCardData {
   tx_hash?: string;
   metadata_uri?: string;
   thumbnail_url?: string;
+  preview_image?: string;
+  creation_timestamp?: string;
   created_at: string;
   creator_name?: string;
 }

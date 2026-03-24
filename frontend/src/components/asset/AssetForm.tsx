@@ -1,11 +1,14 @@
 import { useState, type FormEvent } from 'react';
 import type { AssetType, LegalStatus } from '../../types';
-import type { AssetCreateRequest } from '../../services/asset';
-import { FileUpload } from './FileUpload';
+import type { AssetCreateRequest, AssetCreateWithAttachmentsResponse } from '../../services/asset';
+import { FileUpload, type UploadStatusItem } from './FileUpload';
 import './Asset.less';
 
 interface AssetFormProps {
-  onSubmit: (data: AssetCreateRequest, files: File[]) => Promise<void>;
+  onSubmit: (
+    data: AssetCreateRequest,
+    files: File[]
+  ) => Promise<AssetCreateWithAttachmentsResponse | null>;
   onCancel: () => void;
   isLoading?: boolean;
 }
@@ -41,6 +44,8 @@ export function AssetForm({ onSubmit, onCancel, isLoading = false }: AssetFormPr
   // 表单错误信息
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [hashRecords, setHashRecords] = useState<Record<string, string>>({});
+  const [uploadStatusMap, setUploadStatusMap] = useState<Record<string, UploadStatusItem>>({});
 
   /**
    * 表单验证
@@ -109,7 +114,47 @@ export function AssetForm({ onSubmit, onCancel, isLoading = false }: AssetFormPr
       return;
     }
 
-    await onSubmit(formData, selectedFiles);
+    const sourceHashes = Object.entries(hashRecords).map(([fileName, sha256]) => ({
+      file_name: fileName,
+      sha256,
+    }));
+    const payload: AssetCreateRequest = {
+      ...formData,
+      asset_metadata: {
+        ...(formData.asset_metadata || {}),
+        source_file_hashes: sourceHashes,
+      },
+    };
+    if (selectedFiles.length > 0) {
+      const processingStatus = selectedFiles.reduce<Record<string, UploadStatusItem>>(
+        (acc, file) => {
+          acc[file.name] = { status: 'processing' };
+          return acc;
+        },
+        {}
+      );
+      setUploadStatusMap(processingStatus);
+    }
+    const result = await onSubmit(payload, selectedFiles);
+    if (!result) {
+      const failedStatus = selectedFiles.reduce<Record<string, UploadStatusItem>>((acc, file) => {
+        acc[file.name] = { status: 'failed', message: '上传失败' };
+        return acc;
+      }, {});
+      setUploadStatusMap(failedStatus);
+      return;
+    }
+    const uploadStatus = selectedFiles.reduce<Record<string, UploadStatusItem>>((acc, file) => {
+      acc[file.name] = { status: 'failed', message: '未匹配到上传结果' };
+      return acc;
+    }, {});
+    result.attachments.forEach((attachment) => {
+      uploadStatus[attachment.file_name] = {
+        status: 'success',
+        cid: attachment.ipfs_cid,
+      };
+    });
+    setUploadStatusMap(uploadStatus);
   };
 
   /**
@@ -300,7 +345,12 @@ export function AssetForm({ onSubmit, onCancel, isLoading = false }: AssetFormPr
       </div>
 
       {/* 附件上传 */}
-      <FileUpload onFilesSelected={handleFilesSelected} />
+      <FileUpload
+        onFilesSelected={handleFilesSelected}
+        onHashRecordsChange={setHashRecords}
+        uploadStatusMap={uploadStatusMap}
+        isSubmitting={isLoading}
+      />
 
       {/* 表单操作按钮 */}
       <div className="form-actions">

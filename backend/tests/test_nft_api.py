@@ -159,6 +159,11 @@ class TestNFTStatusAPI:
         """测试获取铸造状态别名路径 - 未认证"""
         response = await client.get(f"/api/v1/nft/mint/{uuid4()}/status")
         assert response.status_code in [401, 403]
+
+    @pytest.mark.asyncio
+    async def test_get_mint_status_task_alias_missing_auth(self, client: AsyncClient):
+        response = await client.get(f"/api/v1/nft/mint-status/{uuid4()}")
+        assert response.status_code in [401, 403]
     
     @pytest.mark.asyncio
     async def test_get_mint_status_not_found(self, client: AsyncClient, auth_token: str):
@@ -201,6 +206,14 @@ class TestNFTRetryAPI:
         """测试重试铸造别名路径 - 未认证"""
         response = await client.post(
             f"/api/v1/nft/mint/{uuid4()}/retry",
+            json={"minter_address": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"}
+        )
+        assert response.status_code in [401, 403]
+
+    @pytest.mark.asyncio
+    async def test_retry_mint_spec_alias_missing_auth(self, client: AsyncClient):
+        response = await client.post(
+            f"/api/v1/nft/retry-mint/{uuid4()}",
             json={"minter_address": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"}
         )
         assert response.status_code in [401, 403]

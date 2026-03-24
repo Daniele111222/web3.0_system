@@ -139,6 +139,11 @@ export const getMintStatus = async (assetId: string): Promise<MintStatusResponse
   return response.data;
 };
 
+export const getMintStatusByTaskId = async (taskId: string): Promise<MintStatusResponse> => {
+  const response = await api.get(`/nft/mint-status/${taskId}`);
+  return response.data;
+};
+
 /**
  * 重试铸造
  * 对铸造失败的 NFT 进行重试
@@ -151,6 +156,14 @@ export const retryMint = async (
   data: RetryMintNFTRequest
 ): Promise<MintNFTResponse> => {
   const response = await api.post(`/nft/${assetId}/mint/retry`, data);
+  return response.data;
+};
+
+export const retryMintByAssetId = async (
+  assetId: string,
+  data: RetryMintNFTRequest
+): Promise<MintNFTResponse> => {
+  const response = await api.post(`/nft/retry-mint/${assetId}`, data);
   return response.data;
 };
 
@@ -205,7 +218,9 @@ export const nftService = {
   mintNFT,
   batchMintNFT,
   getMintStatus,
+  getMintStatusByTaskId,
   retryMint,
+  retryMintByAssetId,
   estimateMintGas,
   getNFTHistory,
   getMintHistory,

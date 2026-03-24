@@ -6,7 +6,7 @@ import { AssetForm } from '../../components/asset/AssetForm';
 import { AssetList } from '../../components/asset/AssetList';
 import { useEnterpriseStore } from '../../store';
 import type { Asset } from '../../types';
-import type { AssetCreateRequest } from '../../services/asset';
+import type { AssetCreateRequest, AssetCreateWithAttachmentsResponse } from '../../services/asset';
 import './index.less';
 
 /**
@@ -99,16 +99,18 @@ const Assets = () => {
   /**
    * 处理创建资产
    */
-  const handleCreateAsset = async (data: AssetCreateRequest, files: File[]) => {
-    if (!currentEnterprise) return;
+  const handleCreateAsset = async (
+    data: AssetCreateRequest,
+    files: File[]
+  ): Promise<AssetCreateWithAttachmentsResponse | null> => {
+    if (!currentEnterprise) return null;
 
-    const asset = await createAsset(currentEnterprise.id, data, files);
-    if (asset) {
+    const result = await createAsset(currentEnterprise.id, data, files);
+    if (result) {
       const uploadedCount = files.length;
       setSuccessMessage(
         uploadedCount > 0 ? `资产创建成功，已上传 ${uploadedCount} 个附件！` : '资产创建成功！'
       );
-      setShowForm(false);
       getAssets({
         enterprise_id: currentEnterprise.id,
         page: 1,
@@ -116,6 +118,7 @@ const Assets = () => {
       });
       setTimeout(() => setSuccessMessage(null), 3000);
     }
+    return result;
   };
 
   /**

@@ -15,7 +15,12 @@ import {
 import { useMint, useMintStatistics, useNFTAssets } from '../../../hooks/useNFT';
 import { MintCard } from '../../../components/nft/MintCard';
 import { BatchMintModal } from '../../../components/nft/BatchMintModal';
-import type { BatchMintResultItem } from '../../../types/nft';
+import { MintConfirmModal } from '../../../components/nft/MintConfirmModal';
+import type {
+  BatchMintResultItem,
+  MintGasEstimateResponse,
+  MintNFTRequest,
+} from '../../../types/nft';
 import { AssetMintStatus } from '../../../types/nft';
 import nftService from '../../../services/nft';
 import styles from './style.module.less';
@@ -32,8 +37,23 @@ const NFTAssetsPage: React.FC = () => {
   const [searchText, setSearchText] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [batchModalVisible, setBatchModalVisible] = useState(false);
+  const [mintModalVisible, setMintModalVisible] = useState(false);
+  const [mintingAssetId, setMintingAssetId] = useState<string | null>(null);
+  const [mintAddress, setMintAddress] = useState('');
+  const [royaltyEnabled, setRoyaltyEnabled] = useState(false);
+  const [royaltyReceiver, setRoyaltyReceiver] = useState('');
+  const [royaltyFeeBps, setRoyaltyFeeBps] = useState(500);
+  const [estimating, setEstimating] = useState(false);
+  const [gasEstimate, setGasEstimate] = useState<MintGasEstimateResponse | null>(null);
 
-  const { loading: mintLoading, error: mintError, mint, batchMint, clearError } = useMint();
+  const {
+    loading: mintLoading,
+    error: mintError,
+    mint,
+    batchMint,
+    estimateMintGas,
+    clearError,
+  } = useMint();
   const {
     loading: assetsLoading,
     error: assetsError,
@@ -96,15 +116,53 @@ const NFTAssetsPage: React.FC = () => {
   }, [activeTab, searchText, typeFilter, assets]);
 
   // 处理单条铸造
+  const mintingAsset = useMemo(
+    () => assets.find((asset) => asset.asset_id === mintingAssetId) || null,
+    [assets, mintingAssetId]
+  );
+
   const handleMint = async (assetId: string) => {
+    const targetAsset = assets.find((asset) => asset.asset_id === assetId);
+    if (!targetAsset) {
+      return;
+    }
+    const walletAddress = localStorage.getItem('wallet_address') || '';
+    setMintingAssetId(targetAsset.asset_id);
+    setMintAddress(walletAddress);
+    setRoyaltyEnabled(false);
+    setRoyaltyReceiver(walletAddress);
+    setRoyaltyFeeBps(500);
+    setGasEstimate(null);
+    setMintModalVisible(true);
+  };
+
+  const handleMintConfirm = async (request: MintNFTRequest) => {
+    if (!mintingAsset) {
+      return;
+    }
     try {
-      const minterAddress = localStorage.getItem('wallet_address') || undefined;
-      await mint(assetId, { minter_address: minterAddress });
+      await mint(mintingAsset.asset_id, request);
       message.success('铸造请求已提交');
+      setMintModalVisible(false);
       fetchAssets();
       fetchStatistics();
     } catch (error) {
       message.error(`铸造失败：${nftService.mapNftErrorMessage(error, '未知错误')}`);
+    }
+  };
+
+  const handleEstimate = async (request: MintNFTRequest) => {
+    if (!mintingAsset) {
+      return;
+    }
+    setEstimating(true);
+    try {
+      const estimate = await estimateMintGas(mintingAsset.asset_id, request);
+      setGasEstimate(estimate);
+    } catch (error) {
+      message.error(`Gas 估算失败：${nftService.mapNftErrorMessage(error, '未知错误')}`);
+    } finally {
+      setEstimating(false);
     }
   };
 
@@ -293,6 +351,24 @@ const NFTAssetsPage: React.FC = () => {
         onConfirm={handleBatchMint}
         loading={mintLoading}
         results={batchResults}
+      />
+      <MintConfirmModal
+        open={mintModalVisible}
+        asset={mintingAsset}
+        mintAddress={mintAddress}
+        royaltyEnabled={royaltyEnabled}
+        royaltyReceiver={royaltyReceiver}
+        royaltyFeeBps={royaltyFeeBps}
+        gasEstimate={gasEstimate}
+        estimating={estimating}
+        confirming={mintLoading}
+        onCancel={() => setMintModalVisible(false)}
+        onConfirm={handleMintConfirm}
+        onEstimate={handleEstimate}
+        onMintAddressChange={setMintAddress}
+        onRoyaltyEnabledChange={setRoyaltyEnabled}
+        onRoyaltyReceiverChange={setRoyaltyReceiver}
+        onRoyaltyFeeBpsChange={setRoyaltyFeeBps}
       />
     </div>
   );

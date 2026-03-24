@@ -119,6 +119,14 @@ async def upload_file_alias(
     return await upload_file(file=file, name=name)
 
 
+@router.post("/upload-file", response_model=dict)
+async def upload_file_spec_alias(
+    file: UploadFile = File(...),
+    name: Optional[str] = None,
+):
+    return await upload_file(file=file, name=name)
+
+
 @router.post("/upload/json", response_model=dict)
 async def upload_json(
     data: dict,
@@ -164,6 +172,14 @@ async def upload_json(
 
 @router.post("/json/upload", response_model=dict, deprecated=True)
 async def upload_json_alias(
+    data: dict,
+    name: str = "data.json"
+):
+    return await upload_json(data=data, name=name)
+
+
+@router.post("/upload-json", response_model=dict)
+async def upload_json_spec_alias(
     data: dict,
     name: str = "data.json"
 ):

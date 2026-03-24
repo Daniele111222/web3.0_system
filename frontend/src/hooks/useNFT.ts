@@ -37,11 +37,17 @@ type AssetWithMintFields = AssetEntity & {
 const mapAssetToCard = (asset: AssetEntity): NFTAssetCardData => {
   const source = asset as AssetWithMintFields;
   const tokenId = asset.nft_token_id ? Number(asset.nft_token_id) : undefined;
+  const primaryAttachment = asset.attachments?.find((attachment) => attachment.is_primary);
+  const imageFromMetadata =
+    typeof asset.asset_metadata?.image === 'string' ? asset.asset_metadata.image : undefined;
+  const previewImage =
+    imageFromMetadata || (primaryAttachment ? `ipfs://${primaryAttachment.ipfs_cid}` : undefined);
   return {
     asset_id: asset.id,
     asset_name: asset.name,
     asset_type: assetTypeLabelMap[asset.type] ?? asset.type,
     description: asset.description,
+    rights_declaration: asset.rights_declaration,
     status: asset.status as AssetMintStatus,
     mint_stage: source.mint_stage,
     mint_progress: source.mint_progress ?? undefined,
@@ -49,6 +55,9 @@ const mapAssetToCard = (asset: AssetEntity): NFTAssetCardData => {
     contract_address: asset.nft_contract_address,
     tx_hash: asset.mint_tx_hash,
     metadata_uri: asset.metadata_uri,
+    thumbnail_url: previewImage,
+    preview_image: previewImage,
+    creation_timestamp: asset.creation_date || asset.created_at,
     created_at: asset.created_at,
     creator_name: source.creator_name ?? source.creator ?? '',
   };

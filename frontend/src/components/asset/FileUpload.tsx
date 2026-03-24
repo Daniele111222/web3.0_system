@@ -4,11 +4,19 @@ import './Asset.less';
 /**
  * 文件信息接口
  */
-interface FileInfo {
+export interface FileInfo {
   file: File;
   name: string;
   size: number;
   type: string;
+}
+
+export type UploadVisualStatus = 'pending' | 'processing' | 'success' | 'failed';
+
+export interface UploadStatusItem {
+  status: UploadVisualStatus;
+  cid?: string;
+  message?: string;
 }
 
 /**
@@ -17,10 +25,16 @@ interface FileInfo {
 interface FileUploadProps {
   /** 文件选择回调 */
   onFilesSelected: (files: FileInfo[]) => void;
+  /** 文件哈希变更回调 */
+  onHashRecordsChange?: (hashRecords: Record<string, string>) => void;
   /** 最大文件数量 */
   maxFiles?: number;
   /** 接受的文件后缀 */
   acceptedExtensions?: string[];
+  /** 上传状态映射 */
+  uploadStatusMap?: Record<string, UploadStatusItem>;
+  /** 提交中状态 */
+  isSubmitting?: boolean;
 }
 
 /**
@@ -34,6 +48,7 @@ interface FileUploadProps {
  */
 export function FileUpload({
   onFilesSelected,
+  onHashRecordsChange,
   maxFiles = 10,
   acceptedExtensions = [
     '.jpg',
@@ -54,14 +69,59 @@ export function FileUpload({
     '.rar',
     '.7z',
   ],
+  uploadStatusMap = {},
+  isSubmitting = false,
 }: FileUploadProps) {
   // 已选择的文件列表
   const [files, setFiles] = useState<FileInfo[]>([]);
   // 是否正在拖拽
   const [isDragging, setIsDragging] = useState(false);
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
+  const [hashRecords, setHashRecords] = useState<Record<string, string>>({});
+  const [hashingFiles, setHashingFiles] = useState<Record<string, boolean>>({});
   // 文件输入引用
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const sourceCodeExtensions = new Set([
+    '.py',
+    '.js',
+    '.ts',
+    '.tsx',
+    '.jsx',
+    '.java',
+    '.go',
+    '.rs',
+    '.sol',
+    '.c',
+    '.cpp',
+    '.h',
+    '.hpp',
+    '.cs',
+    '.php',
+    '.rb',
+    '.swift',
+    '.kt',
+    '.scala',
+    '.sql',
+    '.sh',
+    '.bat',
+    '.ps1',
+    '.yaml',
+    '.yml',
+    '.toml',
+    '.ini',
+    '.json',
+    '.xml',
+  ]);
+
+  const getFileExtension = (name: string): string => {
+    if (!name.includes('.')) {
+      return '';
+    }
+    return `.${name.split('.').pop()?.toLowerCase() ?? ''}`;
+  };
+
+  const isSourceFile = (name: string): boolean => sourceCodeExtensions.has(getFileExtension(name));
 
   /**
    * 格式化文件大小显示
@@ -96,9 +156,7 @@ export function FileUpload({
    * @returns 是否通过验证
    */
   const validateFile = (file: File): boolean => {
-    const extension = file.name.includes('.')
-      ? `.${file.name.split('.').pop()?.toLowerCase() ?? ''}`
-      : '';
+    const extension = getFileExtension(file.name);
     if (!acceptedExtensions.includes(extension)) {
       setValidationMessage(`不支持的文件类型: ${extension || '未知类型'}`);
       return false;
@@ -208,9 +266,41 @@ export function FileUpload({
    * 移除文件
    */
   const handleRemoveFile = (index: number) => {
+    const removedFile = files[index];
     const updatedFiles = files.filter((_, i) => i !== index);
     setFiles(updatedFiles);
     onFilesSelected(updatedFiles);
+    if (removedFile) {
+      const updatedHashes = { ...hashRecords };
+      delete updatedHashes[removedFile.name];
+      setHashRecords(updatedHashes);
+      onHashRecordsChange?.(updatedHashes);
+    }
+  };
+
+  const calculateFileHash = async (fileInfo: FileInfo) => {
+    try {
+      setHashingFiles((prev) => ({ ...prev, [fileInfo.name]: true }));
+      const fileBuffer = await fileInfo.file.arrayBuffer();
+      const digestBuffer = await crypto.subtle.digest('SHA-256', fileBuffer);
+      const digestArray = Array.from(new Uint8Array(digestBuffer));
+      const hashValue = digestArray.map((byte) => byte.toString(16).padStart(2, '0')).join('');
+      const updatedHashes = { ...hashRecords, [fileInfo.name]: hashValue };
+      setHashRecords(updatedHashes);
+      onHashRecordsChange?.(updatedHashes);
+      setValidationMessage(null);
+    } catch {
+      setValidationMessage(`文件 ${fileInfo.name} 哈希计算失败`);
+    } finally {
+      setHashingFiles((prev) => ({ ...prev, [fileInfo.name]: false }));
+    }
+  };
+
+  const statusLabelMap: Record<UploadVisualStatus, string> = {
+    pending: '待上传',
+    processing: '处理中',
+    success: '成功',
+    failed: '失败',
   };
 
   return (
@@ -267,20 +357,55 @@ export function FileUpload({
                   {fileInfo.name}
                 </span>
                 <span className="file-item-size">{formatFileSize(fileInfo.size)}</span>
+                {uploadStatusMap[fileInfo.name] && (
+                  <span className="file-item-status">
+                    {statusLabelMap[uploadStatusMap[fileInfo.name].status]}
+                  </span>
+                )}
               </div>
-              <button
-                type="button"
-                className="file-item-remove"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleRemoveFile(index);
-                }}
-                title="移除文件"
-              >
-                ✕
-              </button>
+              <div className="file-item-actions">
+                {isSourceFile(fileInfo.name) ? (
+                  <button
+                    type="button"
+                    className="file-item-hash"
+                    disabled={hashingFiles[fileInfo.name] || isSubmitting}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      calculateFileHash(fileInfo);
+                    }}
+                  >
+                    {hashingFiles[fileInfo.name] ? '计算中...' : '计算文件哈希'}
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  className="file-item-remove"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemoveFile(index);
+                  }}
+                  title="移除文件"
+                  disabled={isSubmitting}
+                >
+                  ✕
+                </button>
+              </div>
             </div>
           ))}
+          {files.map((fileInfo) => {
+            const statusItem = uploadStatusMap[fileInfo.name];
+            const hashValue = hashRecords[fileInfo.name];
+            if (!statusItem?.cid && !hashValue && !statusItem?.message) {
+              return null;
+            }
+            return (
+              <div key={`${fileInfo.name}-extra`} className="file-item-extra">
+                {statusItem?.cid ? <div>CID: {statusItem.cid}</div> : null}
+                {hashValue ? <div>SHA-256: {hashValue}</div> : null}
+                {statusItem?.message ? <div>{statusItem.message}</div> : null}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

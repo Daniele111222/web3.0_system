@@ -238,6 +238,23 @@ async def get_mint_status_alias(
     )
 
 
+@router.get(
+    "/mint-status/{task_id}",
+    response_model=dict,
+    summary="获取铸造状态（规格别名路径）",
+)
+async def get_mint_status_task_alias(
+    task_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user_id: UUID = Depends(get_current_user_id),
+) -> dict:
+    return await get_mint_status(
+        asset_id=task_id,
+        db=db,
+        current_user_id=current_user_id,
+    )
+
+
 @router.post(
     "/{asset_id}/mint/retry",
     response_model=dict,
@@ -292,6 +309,26 @@ async def retry_mint_nft(
     deprecated=True,
 )
 async def retry_mint_nft_alias(
+    asset_id: UUID,
+    request: MintRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user_id: UUID = Depends(get_current_user_id),
+) -> dict:
+    return await retry_mint_nft(
+        asset_id=asset_id,
+        request=request,
+        db=db,
+        current_user_id=current_user_id,
+    )
+
+
+@router.post(
+    "/retry-mint/{asset_id}",
+    response_model=dict,
+    status_code=status.HTTP_201_CREATED,
+    summary="重试铸造（规格别名路径）",
+)
+async def retry_mint_nft_spec_alias(
     asset_id: UUID,
     request: MintRequest,
     db: AsyncSession = Depends(get_db),
