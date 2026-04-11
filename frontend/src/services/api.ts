@@ -10,7 +10,9 @@ export const apiClient = axios.create({
   },
 });
 
-// 请求拦截器 - 添加认证令牌
+const isAuthPageRequest = (url?: string) =>
+  typeof url === 'string' && (url.includes('/auth/login') || url.includes('/auth/register'));
+
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('access_token');
@@ -22,19 +24,16 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// 响应拦截器 - 处理错误
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // 401 错误：清除 token 并跳转到登录页，不显示错误提示
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && !isAuthPageRequest(error.config?.url)) {
       localStorage.removeItem('access_token');
       localStorage.removeItem('auth-storage');
       if (window.location.pathname !== '/auth') {
         window.location.href = '/auth';
       }
-    } else {
-      // 其他错误：显示全局错误提示
+    } else if (!isAuthPageRequest(error.config?.url)) {
       handleApiError(error);
     }
     return Promise.reject(error);

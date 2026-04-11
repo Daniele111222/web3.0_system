@@ -64,8 +64,6 @@ class UserRegisterRequest(BaseModel):
         Raises:
             ValueError: 如果密码长度超过限制。
         """
-        if len(v.encode("utf-8")) > 72:
-            raise ValueError("密码长度不能超过 72 字节")
         return v
 
 
@@ -94,8 +92,6 @@ class UserLoginRequest(BaseModel):
         Raises:
             ValueError: 如果密码长度超过限制。
         """
-        if len(v.encode("utf-8")) > 72:
-            raise ValueError("密码长度不能超过 72 字节")
         return v
 
 
@@ -191,8 +187,6 @@ class ResetPasswordRequest(BaseModel):
     @classmethod
     def validate_password(cls, v: str) -> str:
         """验证密码长度。"""
-        if len(v.encode("utf-8")) > 72:
-            raise ValueError("密码长度不能超过 72 字节")
         return v
 
 

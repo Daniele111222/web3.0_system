@@ -17,23 +17,35 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    """
-    添加 refresh_tokens.is_revoked 字段及复合索引。
-    """
-    op.add_column(
-        "refresh_tokens",
-        sa.Column("is_revoked", sa.Boolean(), nullable=False, server_default=sa.false()),
-    )
-    op.create_index(
-        "ix_refresh_tokens_user_id_is_revoked",
-        "refresh_tokens",
-        ["user_id", "is_revoked"],
-    )
+    """Add refresh_tokens.is_revoked and its composite index if missing."""
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    columns = {column["name"] for column in inspector.get_columns("refresh_tokens")}
+    indexes = {index["name"] for index in inspector.get_indexes("refresh_tokens")}
+
+    if "is_revoked" not in columns:
+        op.add_column(
+            "refresh_tokens",
+            sa.Column("is_revoked", sa.Boolean(), nullable=False, server_default=sa.false()),
+        )
+
+    if "ix_refresh_tokens_user_id_is_revoked" not in indexes:
+        op.create_index(
+            "ix_refresh_tokens_user_id_is_revoked",
+            "refresh_tokens",
+            ["user_id", "is_revoked"],
+        )
 
 
 def downgrade() -> None:
-    """
-    回滚 refresh_tokens.is_revoked 字段及复合索引。
-    """
-    op.drop_index("ix_refresh_tokens_user_id_is_revoked", table_name="refresh_tokens")
-    op.drop_column("refresh_tokens", "is_revoked")
+    """Rollback refresh_tokens.is_revoked and its composite index."""
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    columns = {column["name"] for column in inspector.get_columns("refresh_tokens")}
+    indexes = {index["name"] for index in inspector.get_indexes("refresh_tokens")}
+
+    if "ix_refresh_tokens_user_id_is_revoked" in indexes:
+        op.drop_index("ix_refresh_tokens_user_id_is_revoked", table_name="refresh_tokens")
+
+    if "is_revoked" in columns:
+        op.drop_column("refresh_tokens", "is_revoked")

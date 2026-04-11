@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { handleApiError } from '@/components/common/ErrorNotification';
 import { useAuthStore } from '../store';
 import authService from '../services/auth';
 import type { LoginRequest, RegisterRequest, WalletBindRequest } from '../services/auth';
@@ -24,7 +25,8 @@ export const useAuth = (): UseAuthReturn => {
         const response = await authService.login(data);
         setAuth(response.user, response.tokens.access_token, response.tokens.refresh_token);
         return true;
-      } catch {
+      } catch (error) {
+        handleApiError(error);
         return false;
       } finally {
         setIsLoading(false);
@@ -40,7 +42,8 @@ export const useAuth = (): UseAuthReturn => {
         const response = await authService.register(data);
         setAuth(response.user, response.tokens.access_token, response.tokens.refresh_token);
         return true;
-      } catch {
+      } catch (error) {
+        handleApiError(error);
         return false;
       } finally {
         setIsLoading(false);
@@ -56,7 +59,7 @@ export const useAuth = (): UseAuthReturn => {
         await authService.logout(refreshToken);
       }
     } catch {
-      // 忽略登出错误
+      // Ignore logout errors.
     } finally {
       clearAuth();
       setIsLoading(false);

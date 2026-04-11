@@ -83,7 +83,7 @@ export const LoginForm = ({ onSuccess, onRegisterClick }: LoginFormProps) => {
               onChange={(e) => setPassword(e.target.value)}
               onFocus={() => setFocusedField('password')}
               onBlur={() => setFocusedField(null)}
-              placeholder="••••••••"
+              placeholder="请输入您的密码"
               required
               disabled={isLoading}
               autoComplete="current-password"
@@ -102,7 +102,6 @@ export const LoginForm = ({ onSuccess, onRegisterClick }: LoginFormProps) => {
             type="button"
             className="forgot-password"
             onClick={() => {
-              // 直接使用 window.location 导航到忘记密码页面
               window.location.href = '/auth/forgot-password';
             }}
           >
@@ -141,7 +140,7 @@ export const LoginForm = ({ onSuccess, onRegisterClick }: LoginFormProps) => {
       <div className="auth-footer">
         <div className="footer-line">
           <span></span>
-          <p>还没有账号？</p>
+          <p>还没有账户？</p>
           <span></span>
         </div>
         <button

@@ -1607,7 +1607,7 @@ erDiagram
 |------|------|
 | PATENT | 专利 |
 | TRADEMARK | 商标 |
-| COPYRIGHT | 版权 |
+| COPYRIGHT | 版权 | 
 | TRADE_SECRET | 商业秘密 |
 | DIGITAL_WORK | 数字作品 |
 

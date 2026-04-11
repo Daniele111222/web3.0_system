@@ -2,12 +2,13 @@ import uuid
 import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any, Iterable, Optional, Dict
+import bcrypt
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from app.core.config import settings
 
 # 密码哈希上下文
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 # 允许的 JWT 算法，防止算法混淆攻击
 ALLOWED_ALGORITHMS = ["HS256", "HS384", "HS512"]
@@ -20,11 +21,27 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     except ValueError as e:
         logger = logging.getLogger(__name__)
         logger.warning(f"密码验证失败: {str(e)}")
+        if not hashed_password.startswith("$2"):
+            return False
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.warning(f"密码验证异常，尝试旧版 bcrypt 回退: {str(e)}")
+        if not hashed_password.startswith("$2"):
+            return False
+
+    try:
+        return bcrypt.checkpw(
+            plain_password.encode("utf-8"),
+            hashed_password.encode("utf-8"),
+        )
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.warning(f"旧版 bcrypt 回退校验失败: {str(e)}")
         return False
 
 
 def get_password_hash(password: str) -> str:
-    """使用 bcrypt 对密码进行哈希处理。"""
+    """使用 pbkdf2_sha256 对密码进行哈希处理。"""
     return pwd_context.hash(password)
 
 
