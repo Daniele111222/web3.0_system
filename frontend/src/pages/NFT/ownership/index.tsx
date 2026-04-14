@@ -220,6 +220,7 @@ const OwnershipDashboard: React.FC = () => {
               type="text"
               icon={<HistoryOutlined />}
               onClick={() => navigate(`/nft/ownership/history/${record.token_id}`)}
+              disabled={!record.token_id || record.token_id <= 0}
             />
           </Tooltip>
           <Tooltip title="转移">

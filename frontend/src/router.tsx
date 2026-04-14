@@ -14,6 +14,7 @@ import NFTAssetsPage from './pages/NFT/assets';
 import NFTMintingPage from './pages/NFT/minting';
 import NFTHistoryListPage from './pages/NFT/history';
 import NFTContractsPage from './pages/NFT/contracts';
+import OwnershipDashboard from './pages/NFT/ownership';
 import ApprovalLayout from './pages/Approval';
 import PendingList from './pages/Approval/PendingList';
 import History from './pages/Approval/History';
@@ -98,6 +99,14 @@ export const router = createBrowserRouter([
           {
             path: 'history',
             element: <NFTHistoryListPage />,
+          },
+          {
+            path: 'ownership',
+            element: <OwnershipDashboard />,
+          },
+          {
+            path: 'ownership/history/:tokenId',
+            element: <NFTHistoryPage />,
           },
           {
             path: 'contracts',

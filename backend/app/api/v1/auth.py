@@ -219,15 +219,20 @@ async def forgot_password(
     
     try:
         await auth_service.request_password_reset(data.email)
+        await db.commit()
         return MessageResponse(
             message="如果该邮箱已注册，您将收到密码重置邮件",
             success=True,
         )
     except TooManyRequestsError as e:
+        await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail={"message": str(e), "code": e.code},
         )
+    except Exception:
+        await db.rollback()
+        raise
 
 
 @router.get(
@@ -272,15 +277,20 @@ async def reset_password(
     
     try:
         await auth_service.reset_password(data.token, data.new_password)
+        await db.commit()
         return MessageResponse(
             message="密码重置成功，请使用新密码登录",
             success=True,
         )
     except ResetTokenError as e:
+        await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={"message": str(e), "code": e.code},
         )
+    except Exception:
+        await db.rollback()
+        raise
 
 
 # ==================== 邮箱验证端点 ====================
@@ -302,15 +312,20 @@ async def send_verification_email(
     
     try:
         await auth_service.send_verification_email(UUID(user_id))
+        await db.commit()
         return MessageResponse(
             message="验证邮件已发送，请查收",
             success=True,
         )
     except TooManyRequestsError as e:
+        await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail={"message": str(e), "code": e.code},
         )
+    except Exception:
+        await db.rollback()
+        raise
 
 
 @router.get(
@@ -328,15 +343,20 @@ async def verify_email(
     
     try:
         await auth_service.verify_email(token)
+        await db.commit()
         return MessageResponse(
             message="邮箱验证成功",
             success=True,
         )
     except VerificationTokenError as e:
+        await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={"message": str(e), "code": e.code},
         )
+    except Exception:
+        await db.rollback()
+        raise
 
 
 @router.get(

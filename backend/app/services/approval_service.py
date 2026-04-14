@@ -166,6 +166,7 @@ class ApprovalService:
             comment=remarks or "提交审批申请",
         )
         await self.process_repo.create_process(process)
+        await self.db.commit()
         
         # 发送通知给系统管理员（这里简化处理，实际需要查询管理员列表）
         # await self._notify_admins(created_approval)
@@ -229,6 +230,7 @@ class ApprovalService:
             comment=remarks or "提交变更申请",
         )
         await self.process_repo.create_process(process)
+        await self.db.commit()
         
         return created_approval
     
@@ -311,6 +313,7 @@ class ApprovalService:
         
         # 8. 执行审批结果回调（如更新企业状态）
         await self._handle_approval_result(approval)
+        await self.db.commit()
         
         return approval
     
@@ -583,9 +586,12 @@ class ApprovalService:
         Returns:
             Tuple[List[Approval], int]: (审批列表, 总数)
         """
-        # 这里需要根据具体需求实现
-        # 暂时返回空结果
-        return [], 0
+        return await self.approval_repo.get_approval_history(
+            page=page,
+            page_size=page_size,
+            status=status,
+            approval_type=approval_type,
+        )
     
     async def get_user_approvals(
         self,
@@ -606,9 +612,12 @@ class ApprovalService:
         Returns:
             Tuple[List[Approval], int]: (审批列表, 总数)
         """
-        # 这里需要根据具体需求实现
-        # 暂时返回空结果
-        return [], 0
+        return await self.approval_repo.get_user_approvals(
+            user_id=user_id,
+            page=page,
+            page_size=page_size,
+            status=status,
+        )
     
     # ========================================================================
     # 审批通知相关方法

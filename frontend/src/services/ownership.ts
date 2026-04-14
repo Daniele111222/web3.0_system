@@ -24,7 +24,7 @@ export const getOwnershipAssets = async (
   enterpriseId: string,
   filters: OwnershipFilters
 ): Promise<PaginatedResponse<OwnershipAsset>> => {
-  const response = await api.get(`/api/v1/ownership/${enterpriseId}/assets`, {
+  const response = await api.get(`/ownership/${enterpriseId}/assets`, {
     params: filters,
   });
   return response.data.data;
@@ -36,7 +36,7 @@ export const getOwnershipAssets = async (
  * @returns 统计数据
  */
 export const getOwnershipStats = async (enterpriseId: string): Promise<OwnershipStats> => {
-  const response = await api.get(`/api/v1/ownership/${enterpriseId}/stats`);
+  const response = await api.get(`/ownership/${enterpriseId}/stats`);
   return response.data.data;
 };
 
@@ -46,7 +46,7 @@ export const getOwnershipStats = async (enterpriseId: string): Promise<Ownership
  * @returns 资产详情
  */
 export const getOwnershipAssetDetail = async (tokenId: number): Promise<OwnershipAsset> => {
-  const response = await api.get(`/api/v1/ownership/assets/${tokenId}`);
+  const response = await api.get(`/ownership/assets/${tokenId}`);
   return response.data.data;
 };
 
@@ -62,7 +62,7 @@ export const getTransferHistory = async (
   page: number = 1,
   pageSize: number = 20
 ): Promise<PaginatedResponse<TransferRecord>> => {
-  const response = await api.get(`/api/v1/ownership/assets/${tokenId}/history`, {
+  const response = await api.get(`/ownership/assets/${tokenId}/history`, {
     params: { page, page_size: pageSize },
   });
   return response.data.data;
@@ -74,7 +74,7 @@ export const getTransferHistory = async (
  * @returns 转移结果
  */
 export const transferNFT = async (data: TransferRequest): Promise<TransferResponse> => {
-  const response = await api.post('/api/v1/ownership/transfer', data);
+  const response = await api.post('/ownership/transfer', data);
   return response.data.data;
 };
 
@@ -90,7 +90,7 @@ export const updateOwnershipStatus = async (
   newStatus: string,
   remarks?: string
 ): Promise<{ success: boolean; token_id: number; new_status: string }> => {
-  const response = await api.patch(`/api/v1/ownership/assets/${tokenId}/status`, {
+  const response = await api.patch(`/ownership/assets/${tokenId}/status`, {
     new_status: newStatus,
     remarks,
   });

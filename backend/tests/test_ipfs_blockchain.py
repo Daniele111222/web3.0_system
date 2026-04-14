@@ -2,6 +2,7 @@
 import pytest
 import threading
 import time
+import json
 from unittest.mock import patch, MagicMock, Mock
 from io import BytesIO
 
@@ -229,6 +230,61 @@ class TestIPFSClient:
             # verify_cid should return False for empty inputs
             assert client.verify_cid("", b"content") is False
             assert client.verify_cid("cid", b"") is False
+
+
+class TestPinataService:
+    """Tests for Pinata request payload handling."""
+
+    def test_upload_file_wraps_metadata_for_pinata(self):
+        """Pinata file uploads should send metadata using name/keyvalues."""
+        from app.services.pinata_service import PinataService
+
+        service = PinataService(jwt_token="test-token")
+
+        with patch("app.services.pinata_service.requests.post") as mock_post:
+            mock_response = Mock()
+            mock_response.json.return_value = {
+                "IpfsHash": "QmTest123",
+                "PinSize": 12,
+                "Timestamp": "2026-04-12T00:00:00Z",
+            }
+            mock_response.raise_for_status.return_value = None
+            mock_post.return_value = mock_response
+
+            result = service.upload_file(
+                b"file-bytes",
+                "proof.pdf",
+                metadata={
+                    "asset_name": "Patent A",
+                    "content_type": "application/pdf",
+                    "tags": ["core", "legal"],
+                },
+            )
+
+            assert result["cid"] == "QmTest123"
+            _, kwargs = mock_post.call_args
+            pinata_metadata = json.loads(kwargs["data"]["pinataMetadata"])
+            assert pinata_metadata["name"] == "proof.pdf"
+            assert pinata_metadata["keyvalues"]["asset_name"] == "Patent A"
+            assert pinata_metadata["keyvalues"]["content_type"] == "application/pdf"
+            assert pinata_metadata["keyvalues"]["tags"] == '["core", "legal"]'
+
+    def test_upload_file_includes_response_body_in_error(self):
+        """Pinata errors should include response text for easier diagnosis."""
+        import requests
+        from app.services.pinata_service import PinataService, PinataUploadError
+
+        service = PinataService(jwt_token="test-token")
+        response = Mock()
+        response.text = '{"error":"bad metadata"}'
+        error = requests.HTTPError("400 Client Error", response=response)
+
+        with patch("app.services.pinata_service.requests.post", side_effect=error):
+            with pytest.raises(PinataUploadError) as exc_info:
+                service.upload_file(b"file-bytes", "proof.pdf", metadata={"asset_name": "Patent A"})
+
+        assert "响应内容" in str(exc_info.value)
+        assert "bad metadata" in str(exc_info.value)
 
 
 if __name__ == "__main__":

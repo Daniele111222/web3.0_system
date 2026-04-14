@@ -363,8 +363,15 @@ class EnterpriseService:
         await self._check_admin_permission(enterprise_id, inviter_id)
         
         # 验证被邀请用户存在
-        user_id = UUID(data.user_id)
-        user = await self.user_repo.get_by_id(user_id)
+        user = None
+        user_id = None
+        if data.user_id:
+            user_id = UUID(data.user_id)
+            user = await self.user_repo.get_by_id(user_id)
+        elif data.email:
+            user = await self.user_repo.get_by_email(data.email)
+            if user:
+                user_id = user.id
         if not user:
             raise UserNotFoundError()
         
@@ -416,7 +423,7 @@ class EnterpriseService:
             raise EnterpriseNotFoundError()
         
         # 验证操作者权限（只有 OWNER 可以更改角色）
-        await self._check_owner_permission(enterprise_id, operator_id)
+        await self._check_admin_permission(enterprise_id, operator_id)
         
         # 获取目标成员
         member = await self.member_repo.get_member(enterprise_id, target_user_id)
@@ -542,7 +549,7 @@ class EnterpriseService:
             raise EnterpriseNotFoundError()
         
         # 验证权限（只有 OWNER 可以绑定钱包）
-        await self._check_owner_permission(enterprise_id, user_id)
+        await self._check_admin_permission(enterprise_id, user_id)
         
         # 检查钱包是否已被其他企业绑定
         if await self.enterprise_repo.wallet_address_exists(wallet_address):

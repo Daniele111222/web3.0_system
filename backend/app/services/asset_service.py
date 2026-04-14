@@ -7,9 +7,9 @@ import requests
 from fastapi import HTTPException, status
 
 from app.models.asset import Asset, Attachment, AssetStatus
-from app.models.approval import Approval, ApprovalType, ApprovalStatus
+from app.models.approval import Approval, ApprovalAction, ApprovalProcess, ApprovalType, ApprovalStatus
 from app.repositories.asset_repository import AssetRepository
-from app.repositories.approval_repository import ApprovalRepository
+from app.repositories.approval_repository import ApprovalProcessRepository, ApprovalRepository
 from app.services.pinata_service import get_pinata_service
 from app.schemas.asset import (
     AssetCreateRequest,
@@ -390,21 +390,45 @@ class AssetService:
                 detail="资产必须至少有一个附件才能提交审批",
             )
         
+        approval_repo = ApprovalRepository(self.asset_repo.db)
+        process_repo = ApprovalProcessRepository(self.asset_repo.db)
+        existing_approvals = await approval_repo.get_approvals_by_target(
+            target_id=asset_id,
+            target_type="asset",
+            status=ApprovalStatus.PENDING,
+        )
+        if existing_approvals:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="该资产已有待审批的申请",
+            )
+
         asset.status = AssetStatus.PENDING
         asset.updated_at = datetime.utcnow()
-        await self.asset_repo.update_asset(asset)
-        
+
         approval = Approval(
             type=ApprovalType.ASSET_SUBMIT,
-            target_id=enterprise_id,
-            target_type="enterprise",
+            target_id=asset_id,
+            target_type="asset",
             applicant_id=applicant_id,
             status=ApprovalStatus.PENDING,
+            current_step=1,
+            total_steps=1,
             asset_id=asset_id,
             remarks=remarks,
         )
-        
-        approval_repo = ApprovalRepository(self.asset_repo.db)
+
         approval = await approval_repo.create_approval(approval)
-        
+        process = ApprovalProcess(
+            approval_id=approval.id,
+            step=1,
+            action=ApprovalAction.SUBMIT,
+            operator_id=applicant_id,
+            operator_role="applicant",
+            comment=remarks or "提交资产审批申请",
+        )
+        await process_repo.create_process(process)
+
+        await self.asset_repo.db.commit()
+
         return asset, approval

@@ -5,6 +5,7 @@ import logging
 from collections import defaultdict
 from typing import Dict, Tuple, Optional
 from fastapi import Request, HTTPException, status
+from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 logger = logging.getLogger(__name__)
@@ -120,7 +121,7 @@ class RateLimiter:
 rate_limiter = RateLimiter()
 
 # 针对认证端点的更严格限流器
-auth_rate_limiter = RateLimiter(requests_per_minute=10, requests_per_hour=100)
+auth_rate_limiter = RateLimiter(requests_per_minute=120, requests_per_hour=1200)
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
@@ -161,9 +162,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             if retry_after:
                 headers["Retry-After"] = str(retry_after)
             
-            raise HTTPException(
+            return JSONResponse(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail={"message": message, "code": "RATE_LIMIT_EXCEEDED"},
+                content={"detail": {"message": message, "code": "RATE_LIMIT_EXCEEDED"}},
                 headers=headers,
             )
         

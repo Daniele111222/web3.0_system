@@ -25,32 +25,82 @@ class OwnershipService:
     def __init__(self, db: AsyncSession) -> None:
         self.db = db
 
+    def _is_enterprise_owned_asset(self, enterprise_id: UUID):
+        """兼容历史数据：老数据可能缺少 current_owner_enterprise_id。"""
+        return and_(
+            Asset.nft_token_id.isnot(None),
+            Asset.nft_token_id != "",
+            (
+                (Asset.current_owner_enterprise_id == enterprise_id) |
+                (
+                    Asset.current_owner_enterprise_id.is_(None) &
+                    (Asset.enterprise_id == enterprise_id) &
+                    (Asset.status == AssetStatus.MINTED) &
+                    (
+                        Asset.ownership_status.is_(None) |
+                        (Asset.ownership_status != OwnershipStatus.TRANSFERRED)
+                    )
+                )
+            ),
+        )
+
+    def _resolve_owner_enterprise_id(self, asset: Asset) -> Optional[UUID]:
+        if asset.current_owner_enterprise_id:
+            return asset.current_owner_enterprise_id
+        if (
+            asset.status == AssetStatus.MINTED and
+            (asset.ownership_status is None or asset.ownership_status != OwnershipStatus.TRANSFERRED)
+        ):
+            return asset.enterprise_id
+        return None
+
+    def _parse_token_id(self, asset: Asset) -> Optional[int]:
+        raw_token_id = (asset.nft_token_id or "").strip()
+        if not raw_token_id:
+            return None
+        try:
+            token_id = int(raw_token_id)
+        except (TypeError, ValueError):
+            return None
+        return token_id if token_id > 0 else None
+
     # ------------------------------------------------------------------ #
     # 查询                                                                  #
     # ------------------------------------------------------------------ #
 
+    async def _get_owned_assets_for_enterprise(self, enterprise_id: UUID) -> List[Asset]:
+        stmt = (
+            select(Asset)
+            .where(self._is_enterprise_owned_asset(enterprise_id))
+            .order_by(Asset.created_at.desc())
+        )
+        return list((await self.db.execute(stmt)).scalars().all())
+
     async def get_enterprise_stats(self, enterprise_id: UUID) -> Dict[str, int]:
         """获取企业 NFT 资产权属统计。"""
-        stmt = select(
-            func.count(Asset.id).label("total"),
-            func.sum(case((Asset.ownership_status == OwnershipStatus.ACTIVE, 1), else_=0)).label("active"),
-            func.sum(case((Asset.ownership_status == OwnershipStatus.LICENSED, 1), else_=0)).label("licensed"),
-            func.sum(case((Asset.ownership_status == OwnershipStatus.STAKED, 1), else_=0)).label("staked"),
-            func.sum(case((Asset.ownership_status == OwnershipStatus.TRANSFERRED, 1), else_=0)).label("transferred"),
-        ).where(
-            and_(
-                Asset.current_owner_enterprise_id == enterprise_id,
-                Asset.nft_token_id.isnot(None),
-            )
-        )
-        result = await self.db.execute(stmt)
-        row = result.one()
+        assets = [
+            asset
+            for asset in await self._get_owned_assets_for_enterprise(enterprise_id)
+            if self._parse_token_id(asset) is not None
+        ]
         return {
-            "total_count": row.total or 0,
-            "active_count": row.active or 0,
-            "licensed_count": row.licensed or 0,
-            "staked_count": row.staked or 0,
-            "transferred_count": row.transferred or 0,
+            "total_count": len(assets),
+            "active_count": sum(
+                1 for asset in assets
+                if (asset.ownership_status or OwnershipStatus.ACTIVE) == OwnershipStatus.ACTIVE
+            ),
+            "licensed_count": sum(
+                1 for asset in assets
+                if asset.ownership_status == OwnershipStatus.LICENSED
+            ),
+            "staked_count": sum(
+                1 for asset in assets
+                if asset.ownership_status == OwnershipStatus.STAKED
+            ),
+            "transferred_count": sum(
+                1 for asset in assets
+                if asset.ownership_status == OwnershipStatus.TRANSFERRED
+            ),
         }
 
     async def get_enterprise_assets(
@@ -64,8 +114,7 @@ class OwnershipService:
     ) -> Tuple[List[Dict], int]:
         """获取企业名下 NFT 资产列表（已铸造且当前归属该企业）。"""
         conditions = [
-            Asset.current_owner_enterprise_id == enterprise_id,
-            Asset.nft_token_id.isnot(None),
+            self._is_enterprise_owned_asset(enterprise_id),
         ]
         if asset_type:
             conditions.append(Asset.type == asset_type)
@@ -90,24 +139,29 @@ class OwnershipService:
         )
         rows = (await self.db.execute(stmt)).all()
 
-        items = [
-            {
-                "asset_id": str(asset.id),
-                "asset_name": asset.name,
-                "asset_type": asset.type.value,
-            "token_id": int(asset.nft_token_id) if asset.nft_token_id else 0,
-                "contract_address": asset.nft_contract_address or "",
-                "owner_address": asset.owner_address or "",
-                "owner_enterprise_id": str(asset.current_owner_enterprise_id) if asset.current_owner_enterprise_id else None,
-                "owner_enterprise_name": enterprise_name,
-                "ownership_status": asset.ownership_status or OwnershipStatus.ACTIVE,
-                "metadata_uri": asset.metadata_uri or "",
-                "created_at": asset.created_at.isoformat(),
-                "updated_at": asset.updated_at.isoformat(),
-            }
-            for asset, enterprise_name in rows
-        ]
-        return items, total
+        items = []
+        for asset, enterprise_name in rows:
+            token_id = self._parse_token_id(asset)
+            if token_id is None:
+                continue
+
+            items.append(
+                {
+                    "asset_id": str(asset.id),
+                    "asset_name": asset.name,
+                    "asset_type": asset.type.value,
+                    "token_id": token_id,
+                    "contract_address": asset.nft_contract_address or "",
+                    "owner_address": asset.owner_address or "",
+                    "owner_enterprise_id": str(self._resolve_owner_enterprise_id(asset)) if self._resolve_owner_enterprise_id(asset) else None,
+                    "owner_enterprise_name": enterprise_name,
+                    "ownership_status": asset.ownership_status or OwnershipStatus.ACTIVE,
+                    "metadata_uri": asset.metadata_uri or "",
+                    "created_at": asset.created_at.isoformat(),
+                    "updated_at": asset.updated_at.isoformat(),
+                }
+            )
+        return items, len(items)
 
     async def get_asset_by_token_id(self, token_id: int) -> Optional[Dict]:
         """根据 Token ID 获取资产详情。"""
@@ -116,19 +170,25 @@ class OwnershipService:
         if not asset:
             return None
 
+        parsed_token_id = self._parse_token_id(asset)
+        if parsed_token_id is None:
+            return None
+
+        effective_owner_enterprise_id = self._resolve_owner_enterprise_id(asset)
+
         enterprise_name: Optional[str] = None
-        if asset.current_owner_enterprise_id:
-            ent_stmt = select(Enterprise.name).where(Enterprise.id == asset.current_owner_enterprise_id)
+        if effective_owner_enterprise_id:
+            ent_stmt = select(Enterprise.name).where(Enterprise.id == effective_owner_enterprise_id)
             enterprise_name = (await self.db.execute(ent_stmt)).scalar_one_or_none()
 
         return {
             "asset_id": str(asset.id),
             "asset_name": asset.name,
             "asset_type": asset.type.value,
-            "token_id": int(asset.nft_token_id) if asset.nft_token_id else 0,
+            "token_id": parsed_token_id,
             "contract_address": asset.nft_contract_address or "",
             "owner_address": asset.owner_address or "",
-            "owner_enterprise_id": str(asset.current_owner_enterprise_id) if asset.current_owner_enterprise_id else None,
+            "owner_enterprise_id": str(effective_owner_enterprise_id) if effective_owner_enterprise_id else None,
             "owner_enterprise_name": enterprise_name,
             "ownership_status": asset.ownership_status or OwnershipStatus.ACTIVE,
             "metadata_uri": asset.metadata_uri or "",

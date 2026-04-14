@@ -1,29 +1,32 @@
 import apiClient from './api';
 import type {
+  EnterpriseCreateRequest,
   EnterpriseDetail,
   EnterpriseListResponse,
-  EnterpriseCreateRequest,
-  EnterpriseUpdateRequest,
   EnterpriseMember,
+  EnterpriseUpdateRequest,
   InviteMemberRequest,
   UpdateMemberRoleRequest,
 } from '../types';
 import type { ApiResponse } from '../types';
 
-/**
- * 处理 API 响应，检查业务状态码
- * 后端返回格式: { success, message, code, data }
- * 如果 code 不是 SUCCESS，抛出错误
- */
 function handleApiResponse<T>(response: ApiResponse<T>): T {
   if (response.code !== 'SUCCESS') {
-    throw new Error(response.message || '操作失败');
+    throw new Error(response.message || 'Operation failed');
   }
   return response.data;
 }
 
+function normalizeEnterprisePayload<T extends { contactEmail?: string; contact_email?: string }>(
+  data: T
+): T & { contact_email?: string } {
+  return {
+    ...data,
+    contact_email: data.contact_email ?? data.contactEmail,
+  };
+}
+
 export const enterpriseService = {
-  // 获取当前用户的企业列表
   async getMyEnterprises(page = 1, pageSize = 20): Promise<EnterpriseListResponse> {
     const response = await apiClient.get<ApiResponse<EnterpriseListResponse>>('/enterprises', {
       params: { page, page_size: pageSize },
@@ -31,7 +34,6 @@ export const enterpriseService = {
     return handleApiResponse(response.data);
   },
 
-  // 获取企业详情
   async getEnterprise(enterpriseId: string): Promise<EnterpriseDetail> {
     const response = await apiClient.get<ApiResponse<EnterpriseDetail>>(
       `/enterprises/${enterpriseId}`
@@ -39,25 +41,25 @@ export const enterpriseService = {
     return handleApiResponse(response.data);
   },
 
-  // 创建企业
   async createEnterprise(data: EnterpriseCreateRequest): Promise<EnterpriseDetail> {
-    const response = await apiClient.post<ApiResponse<EnterpriseDetail>>('/enterprises', data);
+    const response = await apiClient.post<ApiResponse<EnterpriseDetail>>(
+      '/enterprises',
+      normalizeEnterprisePayload(data)
+    );
     return handleApiResponse(response.data);
   },
 
-  // 更新企业
   async updateEnterprise(
     enterpriseId: string,
     data: EnterpriseUpdateRequest
   ): Promise<EnterpriseDetail> {
     const response = await apiClient.put<ApiResponse<EnterpriseDetail>>(
       `/enterprises/${enterpriseId}`,
-      data
+      normalizeEnterprisePayload(data)
     );
     return handleApiResponse(response.data);
   },
 
-  // 删除企业
   async deleteEnterprise(enterpriseId: string): Promise<void> {
     const response = await apiClient.delete<ApiResponse<Record<string, unknown>>>(
       `/enterprises/${enterpriseId}`
@@ -65,7 +67,6 @@ export const enterpriseService = {
     handleApiResponse(response.data);
   },
 
-  // 获取企业成员列表
   async getMembers(enterpriseId: string): Promise<EnterpriseMember[]> {
     const response = await apiClient.get<ApiResponse<EnterpriseMember[]>>(
       `/enterprises/${enterpriseId}/members`
@@ -73,8 +74,10 @@ export const enterpriseService = {
     return handleApiResponse(response.data);
   },
 
-  // 邀请成员
-  async inviteMember(enterpriseId: string, data: InviteMemberRequest): Promise<EnterpriseMember> {
+  async inviteMember(
+    enterpriseId: string,
+    data: InviteMemberRequest
+  ): Promise<EnterpriseMember> {
     const response = await apiClient.post<ApiResponse<EnterpriseMember>>(
       `/enterprises/${enterpriseId}/members`,
       data
@@ -82,7 +85,6 @@ export const enterpriseService = {
     return handleApiResponse(response.data);
   },
 
-  // 更新成员角色
   async updateMemberRole(
     enterpriseId: string,
     userId: string,
@@ -95,7 +97,6 @@ export const enterpriseService = {
     return handleApiResponse(response.data);
   },
 
-  // 移除成员
   async removeMember(enterpriseId: string, userId: string): Promise<void> {
     const response = await apiClient.delete<ApiResponse<Record<string, unknown>>>(
       `/enterprises/${enterpriseId}/members/${userId}`

@@ -180,6 +180,7 @@ export const EnterpriseDetail: React.FC<EnterpriseDetailProps> = ({ enterpriseId
       await updateEnterprise(effectiveId, {
         ...currentEnterprise,
         ...values,
+        website: values.website?.trim() || undefined,
       });
       message.success('企业信息更新成功');
       setIsEditing(false);

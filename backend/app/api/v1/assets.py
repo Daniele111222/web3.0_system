@@ -4,6 +4,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, status, Query, Depends
 from math import ceil
 from pydantic import ValidationError
+from fastapi.encoders import jsonable_encoder
 
 from app.api.deps import DBSession, CurrentUserId
 from app.repositories.asset_repository import AssetRepository
@@ -188,7 +189,7 @@ async def get_assets(
     except ValidationError as exc:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=exc.errors(),
+            detail=jsonable_encoder(exc.errors()),
         )
     
     # 获取资产列表

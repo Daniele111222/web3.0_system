@@ -15,7 +15,6 @@ import {
   Clock,
   Building2,
   User,
-  AlertCircle,
   FileSpreadsheet,
   FileText,
 } from 'lucide-react';
@@ -29,17 +28,6 @@ import type {
 import './History.less';
 
 const { RangePicker } = DatePicker;
-
-/**
- * 优先级配置
- */
-const priorityConfig: Record<ApprovalPriority, { color: string; label: string; icon: LucideIcon }> =
-  {
-    low: { color: '#8c8c8c', label: '低', icon: Clock },
-    medium: { color: '#faad14', label: '中', icon: AlertCircle },
-    high: { color: '#fa8c16', label: '高', icon: AlertCircle },
-    urgent: { color: '#ff4d4f', label: '紧急', icon: AlertCircle },
-  };
 
 /**
  * 状态配置
@@ -58,8 +46,9 @@ const statusConfig: Record<
  * 类型配置
  */
 const typeConfig: Record<ApprovalType, { color: string; label: string; icon: LucideIcon }> = {
-  enterprise: { color: '#1890ff', label: '企业', icon: Building2 },
-  member: { color: '#52c41a', label: '成员', icon: User },
+  enterprise_create: { color: '#1890ff', label: '企业创建', icon: Building2 },
+  enterprise_update: { color: '#722ed1', label: '企业变更', icon: Building2 },
+  member_join: { color: '#52c41a', label: '成员加入', icon: User },
   asset_submit: { color: '#13c2c2', label: '资产提交审批', icon: FileText },
 };
 
@@ -168,8 +157,8 @@ export default function History() {
   const columns = [
     {
       title: '审批编号',
-      dataIndex: 'approvalId',
-      key: 'approvalId',
+      dataIndex: 'id',
+      key: 'id',
       width: 150,
       render: (value: string) => <span className="approval-code">{value}</span>,
     },
@@ -198,51 +187,27 @@ export default function History() {
     },
     {
       title: '申请人',
-      dataIndex: 'applicant',
-      key: 'applicant',
+      dataIndex: 'applicant_id',
+      key: 'applicant_id',
       width: 180,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      render: (value: any) => (
+      render: (value: string) => (
         <div className="applicant-info">
-          <div className="applicant-name">{value.name}</div>
-          <div className="applicant-email">{value.email}</div>
+          <div className="applicant-name">{value ? value.slice(0, 8) : '-'}</div>
+          <div className="applicant-email">{value || '-'}</div>
         </div>
       ),
     },
     {
-      title: '目标企业',
-      dataIndex: 'targetInfo',
-      key: 'targetInfo',
+      title: '目标信息',
+      dataIndex: 'target_id',
+      key: 'target_id',
       width: 200,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      render: (value: any) => (
+      render: (value: string, record: Approval) => (
         <div className="target-info">
-          <div className="target-name">{value.enterpriseName}</div>
+          <div className="target-name">{record.enterprise_name || record.asset_name || '-'}</div>
+          <div className="target-name">{value || '-'}</div>
         </div>
       ),
-    },
-    {
-      title: '优先级',
-      dataIndex: 'priority',
-      key: 'priority',
-      width: 100,
-      render: (value: string) => {
-        const config = priorityConfig[value as keyof typeof priorityConfig];
-        const Icon = config.icon;
-        return (
-          <Tag
-            className="priority-tag"
-            style={{
-              backgroundColor: `${config.color}20`,
-              color: config.color,
-              borderColor: `${config.color}40`,
-            }}
-          >
-            <Icon size={12} style={{ marginRight: 4 }} />
-            {config.label}
-          </Tag>
-        );
-      },
     },
     {
       title: '状态',
@@ -269,8 +234,8 @@ export default function History() {
     },
     {
       title: '处理时间',
-      dataIndex: 'completedAt',
-      key: 'completedAt',
+      dataIndex: 'completed_at',
+      key: 'completed_at',
       width: 150,
       render: (value: string) => (
         <span className="completed-time">
@@ -344,8 +309,10 @@ export default function History() {
               value={selectedType}
               onChange={handleTypeChange}
             >
-              <Select.Option value="enterprise">企业</Select.Option>
-              <Select.Option value="member">成员</Select.Option>
+              <Select.Option value="enterprise_create">企业创建</Select.Option>
+              <Select.Option value="enterprise_update">企业变更</Select.Option>
+              <Select.Option value="member_join">成员加入</Select.Option>
+              <Select.Option value="asset_submit">资产提交审批</Select.Option>
             </Select>
           </div>
           <div className="filter-item">
@@ -401,7 +368,7 @@ export default function History() {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           columns={columns as any}
           dataSource={data}
-          rowKey="approvalId"
+          rowKey="id"
           loading={loading}
           pagination={{
             ...pagination,

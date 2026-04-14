@@ -296,20 +296,36 @@ class BlockchainClient:
             
             receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
             
-            token_id = 0
-            if receipt.get('logs'):
-                for log in receipt['logs']:
-                    if len(log.get('topics', [])) > 0:
-                        try:
-                            token_id = int(log['topics'][3].hex(), 16)
-                            break
-                        except:
-                            pass
-            
+            token_id = self._extract_minted_token_id(contract, receipt)
+            if token_id is None:
+                raise BlockchainConnectionError("NFT 铸造成功但未能从交易回执中解析 token_id")
+
             return token_id, tx_hash.hex()
         except Exception as e:
             logger.error(f"NFT 铸造失败：{e}")
             raise BlockchainConnectionError(f"NFT 铸造失败：{str(e)}")
+
+    def _extract_minted_token_id(self, contract: Contract, receipt: Any) -> Optional[int]:
+        """从交易回执中解析新铸造的 token_id。"""
+        try:
+            minted_events = contract.events.NFTMinted().process_receipt(receipt)
+            if minted_events:
+                token_id = minted_events[0]["args"].get("tokenId")
+                if token_id is not None:
+                    return int(token_id)
+        except Exception:
+            logger.debug("Failed to decode NFTMinted event from receipt", exc_info=True)
+
+        try:
+            transfer_events = contract.events.Transfer().process_receipt(receipt)
+            if transfer_events:
+                token_id = transfer_events[0]["args"].get("tokenId")
+                if token_id is not None:
+                    return int(token_id)
+        except Exception:
+            logger.debug("Failed to decode Transfer event from receipt", exc_info=True)
+
+        return None
 
     async def estimate_mint_gas(
         self,
@@ -379,9 +395,16 @@ class BlockchainClient:
         
         if not self._contract_abi:
             raise BlockchainConnectionError("合约ABI未加载")
+
+        contract_address = self.w3.to_checksum_address(self.contract_address)
+        contract_code = self.w3.eth.get_code(contract_address)
+        if not contract_code:
+            raise BlockchainConnectionError(
+                f"NFT 合约地址 {self.contract_address} 当前没有部署合约代码，请重新部署本地合约并更新 CONTRACT_ADDRESS"
+            )
         
         return self.w3.eth.contract(
-            address=self.w3.to_checksum_address(self.contract_address),
+            address=contract_address,
             abi=self._contract_abi
         )
     

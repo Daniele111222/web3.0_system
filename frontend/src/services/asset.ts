@@ -184,8 +184,11 @@ class AssetService {
    * 提交资产审批
    */
   async submitForApproval(assetId: string, data: AssetSubmitRequest): Promise<AssetSubmitResponse> {
-    const response = await api.post<AssetSubmitResponse>(`/assets/${assetId}/submit`, data);
-    return response.data;
+    const response = await api.post<ApiResponse<AssetSubmitResponse>>(
+      `/assets/${assetId}/submit`,
+      data
+    );
+    return response.data.data;
   }
 }
 

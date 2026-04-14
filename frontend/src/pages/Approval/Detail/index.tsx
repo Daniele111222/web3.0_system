@@ -54,23 +54,17 @@ const typeConfig: Record<string, { color: string; label: string; icon: LucideIco
     icon: Building2,
     bg: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
   },
-  enterprise_delete: {
-    color: '#ff4d4f',
-    label: '企业注销',
-    icon: Building2,
-    bg: 'linear-gradient(135deg, #fff2f0 0%, #ffebe8 100%)',
-  },
-  member_add: {
+  member_join: {
     color: '#52c41a',
     label: '成员加入',
     icon: User,
     bg: 'linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%)',
   },
-  member_remove: {
-    color: '#fa8c16',
-    label: '成员移除',
-    icon: User,
-    bg: 'linear-gradient(135deg, #fff7e6 0%, #ffe7ba 100%)',
+  asset_submit: {
+    color: '#13c2c2',
+    label: '资产提交审批',
+    icon: FileText,
+    bg: 'linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%)',
   },
 };
 
@@ -386,6 +380,7 @@ export default function ApprovalDetail() {
                 <div className="template-list">
                   {quickTemplates.map((template) => (
                     <button
+                      type="button"
                       key={template.key}
                       className={`template-btn ${selectedTemplate === template.key ? 'active' : ''}`}
                       style={{ '--template-color': template.color } as React.CSSProperties}

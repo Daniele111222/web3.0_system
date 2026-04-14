@@ -244,6 +244,7 @@ class NFTService:
         # 铸造完成后初始化权属信息
         asset.owner_address = resolved_minter_address
         asset.ownership_status = "ACTIVE"
+        asset.current_owner_enterprise_id = asset.enterprise_id
         
         mint_record.token_id = token_id
         mint_record.stage = "COMPLETED"

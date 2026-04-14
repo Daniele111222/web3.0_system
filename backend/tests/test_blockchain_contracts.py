@@ -120,6 +120,44 @@ class TestBlockchainClient:
         assert info["has_contract"] is False
         assert info["has_abi"] is False
 
+    def test_extract_minted_token_id_prefers_nft_minted_event(self):
+        """测试优先从 NFTMinted 事件解析 token_id。"""
+        from app.core.blockchain import BlockchainClient
+
+        client = BlockchainClient.__new__(BlockchainClient)
+        contract = MagicMock()
+        receipt = {"logs": ["mock"]}
+
+        nft_minted_event = MagicMock()
+        nft_minted_event.process_receipt.return_value = [{"args": {"tokenId": 7}}]
+        transfer_event = MagicMock()
+        transfer_event.process_receipt.return_value = [{"args": {"tokenId": 3}}]
+        contract.events.NFTMinted.return_value = nft_minted_event
+        contract.events.Transfer.return_value = transfer_event
+
+        token_id = client._extract_minted_token_id(contract, receipt)
+
+        assert token_id == 7
+
+    def test_extract_minted_token_id_falls_back_to_transfer_event(self):
+        """测试当 NFTMinted 事件不可用时回退到 Transfer 事件。"""
+        from app.core.blockchain import BlockchainClient
+
+        client = BlockchainClient.__new__(BlockchainClient)
+        contract = MagicMock()
+        receipt = {"logs": ["mock"]}
+
+        nft_minted_event = MagicMock()
+        nft_minted_event.process_receipt.side_effect = ValueError("decode failed")
+        transfer_event = MagicMock()
+        transfer_event.process_receipt.return_value = [{"args": {"tokenId": 11}}]
+        contract.events.NFTMinted.return_value = nft_minted_event
+        contract.events.Transfer.return_value = transfer_event
+
+        token_id = client._extract_minted_token_id(contract, receipt)
+
+        assert token_id == 11
+
 
 class TestContractDeploymentService:
     """测试合约部署服务"""

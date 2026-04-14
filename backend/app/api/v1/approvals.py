@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, get_db
 from app.core.exceptions import AppException
-from app.models.approval import ApprovalAction, ApprovalType
+from app.models.approval import ApprovalAction, ApprovalStatus, ApprovalType
 from app.models.user import User
 from app.schemas.approval import (
     ApprovalCreateRequest,
@@ -271,6 +271,77 @@ async def get_pending_approvals(
         return ApiResponse(
             code="SUCCESS",
             message="获取待审批列表成功",
+            data=PageResult(
+                items=[ApprovalResponse.from_orm(a) for a in approvals],
+                total=total,
+                page=page,
+                page_size=page_size,
+                total_pages=total_pages,
+            ),
+        )
+    except AppException as e:
+        return ApiResponse(
+            code=e.code,
+            message=e.message,
+            data=None,
+        )
+
+
+@router.get(
+    "/history",
+    response_model=ApiResponse[PageResult[ApprovalResponse]],
+    status_code=status.HTTP_200_OK,
+    summary="获取审批历史列表",
+    description="获取所有已处理完成的审批记录，支持分页、状态和类型筛选。",
+)
+async def get_approval_history(
+    page: int = Query(1, ge=1, description="页码"),
+    page_size: int = Query(20, ge=1, le=100, description="每页数量"),
+    status_filter: Optional[str] = Query(None, alias="status", description="审批状态筛选"),
+    approval_type: Optional[str] = Query(None, description="审批类型筛选"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> ApiResponse[PageResult[ApprovalResponse]]:
+    """
+    获取审批历史列表。
+    """
+    try:
+        service = ApprovalService(db)
+
+        status_enum = None
+        if status_filter:
+            try:
+                status_enum = ApprovalStatus(status_filter)
+            except ValueError:
+                return ApiResponse(
+                    code="INVALID_STATUS",
+                    message=f"无效的审批状态: {status_filter}",
+                    data=None,
+                )
+
+        type_enum = None
+        if approval_type:
+            try:
+                type_enum = ApprovalType(approval_type)
+            except ValueError:
+                return ApiResponse(
+                    code="INVALID_TYPE",
+                    message=f"无效的审批类型: {approval_type}",
+                    data=None,
+                )
+
+        approvals, total = await service.get_approval_history(
+            page=page,
+            page_size=page_size,
+            status=status_enum,
+            approval_type=type_enum,
+        )
+
+        total_pages = (total + page_size - 1) // page_size if total > 0 else 0
+
+        return ApiResponse(
+            code="SUCCESS",
+            message="获取审批历史成功",
             data=PageResult(
                 items=[ApprovalResponse.from_orm(a) for a in approvals],
                 total=total,

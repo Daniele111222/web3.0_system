@@ -126,26 +126,24 @@ export function AssetList({ assets, isLoading, onAssetClick, onRefresh }: AssetL
         okText: '确认',
         cancelText: '取消',
         onOk: async () => {
-          const loading = message.loading('正在提交审批...', 0);
+          const hideLoading = message.loading('正在提交审批...', 0);
           try {
             await assetService.submitForApproval(asset.id, {});
-            // 检查组件是否仍然挂载，避免内存泄漏
+
             if (isMountedRef.current) {
-              loading();
               message.success('提交审批成功');
               if (onRefresh) {
                 onRefresh();
               }
             }
           } catch (error) {
-            // 检查组件是否仍然挂载
             if (isMountedRef.current) {
-              loading();
               const errorMsg = error instanceof Error ? error.message : '提交审批失败';
               message.error(`提交审批失败: ${errorMsg}`);
-              // 记录错误日志
-              console.error('提交资产审批失败:', error);
             }
+            console.error('提交资产审批失败:', error);
+          } finally {
+            hideLoading();
           }
         },
       });

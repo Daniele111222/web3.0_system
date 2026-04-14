@@ -37,7 +37,6 @@ class ApprovalRepository:
         """
         self.session.add(approval)
         await self.session.flush()
-        await self.session.refresh(approval)
         return approval
     
     async def get_approval_by_id(self, approval_id: UUID) -> Optional[Approval]:
@@ -66,7 +65,6 @@ class ApprovalRepository:
             Approval: 更新后的审批对象
         """
         await self.session.flush()
-        await self.session.refresh(approval)
         return approval
     
     async def get_approvals_by_target(
@@ -140,6 +138,58 @@ class ApprovalRepository:
         result = await self.session.execute(query)
         return list(result.scalars().all()), total
 
+    async def get_approval_history(
+        self,
+        page: int = 1,
+        page_size: int = 20,
+        status: Optional[ApprovalStatus] = None,
+        approval_type: Optional[ApprovalType] = None,
+    ) -> Tuple[List[Approval], int]:
+        """Get processed approvals history."""
+        completed_statuses = [
+            ApprovalStatus.APPROVED,
+            ApprovalStatus.REJECTED,
+            ApprovalStatus.RETURNED,
+        ]
+        query = select(Approval).where(Approval.status.in_(completed_statuses))
+
+        if status:
+            query = query.where(Approval.status == status)
+        if approval_type:
+            query = query.where(Approval.type == approval_type)
+
+        query = query.order_by(desc(Approval.updated_at))
+
+        count_result = await self.session.execute(query)
+        total = len(count_result.scalars().all())
+
+        skip = (page - 1) * page_size
+        paged_query = query.offset(skip).limit(page_size)
+        result = await self.session.execute(paged_query)
+        return list(result.scalars().all()), total
+
+    async def get_user_approvals(
+        self,
+        user_id: UUID,
+        page: int = 1,
+        page_size: int = 20,
+        status: Optional[ApprovalStatus] = None,
+    ) -> Tuple[List[Approval], int]:
+        """Get approvals submitted by a specific user."""
+        query = select(Approval).where(Approval.applicant_id == user_id)
+        if status:
+            query = query.where(Approval.status == status)
+
+        query = query.order_by(desc(Approval.created_at))
+
+        count_result = await self.session.execute(query)
+        total = len(count_result.scalars().all())
+
+        skip = (page - 1) * page_size
+        paged_query = query.offset(skip).limit(page_size)
+        result = await self.session.execute(paged_query)
+        return list(result.scalars().all()), total
+
 
 class ApprovalProcessRepository:
     """审批流程记录数据访问类。"""
@@ -165,7 +215,6 @@ class ApprovalProcessRepository:
         """
         self.session.add(process)
         await self.session.flush()
-        await self.session.refresh(process)
         return process
     
     async def get_processes_by_approval(
@@ -216,7 +265,6 @@ class ApprovalNotificationRepository:
         """
         self.session.add(notification)
         await self.session.flush()
-        await self.session.refresh(notification)
         return notification
     
     async def get_notifications_by_recipient(

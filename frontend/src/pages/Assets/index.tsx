@@ -107,6 +107,7 @@ const Assets = () => {
 
     const result = await createAsset(currentEnterprise.id, data, files);
     if (result) {
+      setShowForm(false);
       const uploadedCount = files.length;
       setSuccessMessage(
         uploadedCount > 0 ? `资产创建成功，已上传 ${uploadedCount} 个附件！` : '资产创建成功！'

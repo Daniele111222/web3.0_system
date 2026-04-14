@@ -6,7 +6,11 @@
 /**
  * 审批类型
  */
-export type ApprovalType = 'enterprise' | 'member' | 'asset_submit';
+export type ApprovalType =
+  | 'enterprise_create'
+  | 'enterprise_update'
+  | 'member_join'
+  | 'asset_submit';
 
 /**
  * 审批子类型
@@ -21,7 +25,7 @@ export type ApprovalStatus = 'pending' | 'approved' | 'rejected' | 'returned';
 /**
  * 目标类型
  */
-export type TargetType = 'enterprise' | 'member';
+export type TargetType = 'enterprise' | 'member' | 'asset';
 
 /**
  * 审批操作类型

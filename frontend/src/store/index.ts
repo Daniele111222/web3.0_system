@@ -130,28 +130,41 @@ export const useEnterpriseStore = create<EnterpriseState>()((set, get) => ({
   error: null,
 
   setEnterprises: (enterprises) => set({ enterprises }),
-  setCurrentEnterprise: (enterprise) => set({ currentEnterprise: enterprise }),
+  setCurrentEnterprise: (enterprise) => {
+    if (enterprise?.id) {
+      localStorage.setItem('current_enterprise_id', enterprise.id);
+    } else {
+      localStorage.removeItem('current_enterprise_id');
+    }
+    set({ currentEnterprise: enterprise });
+  },
   setMembers: (members) => set({ members }),
   setSettings: (settings) => set({ settings }),
   setLoading: (loading) => set({ isLoading: loading }),
   setError: (error) => set({ error }),
 
   clearEnterprise: () =>
-    set({
-      enterprises: [],
-      currentEnterprise: null,
-      members: [],
-      settings: null,
-      error: null,
-    }),
+    {
+      localStorage.removeItem('current_enterprise_id');
+      set({
+        enterprises: [],
+        currentEnterprise: null,
+        members: [],
+        settings: null,
+        error: null,
+      });
+    },
 
   clearCurrentEnterprise: () =>
-    set({
-      currentEnterprise: null,
-      members: [],
-      settings: null,
-      error: null,
-    }),
+    {
+      localStorage.removeItem('current_enterprise_id');
+      set({
+        currentEnterprise: null,
+        members: [],
+        settings: null,
+        error: null,
+      });
+    },
 
   fetchEnterpriseById: async (id: string) => {
     set({ isLoading: true, error: null });

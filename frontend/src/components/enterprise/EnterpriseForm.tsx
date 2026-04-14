@@ -37,6 +37,7 @@ export const EnterpriseForm = ({ initialData, onSubmit, onCancel }: EnterpriseFo
       return {
         ...initialFormData,
         ...initialData,
+        contactEmail: initialData.contactEmail ?? initialData.contact_email ?? '',
       };
     }
     return initialFormData;
@@ -98,7 +99,11 @@ export const EnterpriseForm = ({ initialData, onSubmit, onCancel }: EnterpriseFo
 
       try {
         // 直接提交表单数据，不进行模拟延迟
-        onSubmit(formData);
+        onSubmit({
+          ...formData,
+          contact_email: formData.contactEmail.trim() || undefined,
+          website: formData.website.trim() || undefined,
+        });
       } catch (error) {
         console.error('提交失败:', error);
       } finally {

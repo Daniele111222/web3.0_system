@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ethers } from 'ethers';
 import {
   Alert,
@@ -100,6 +101,7 @@ const isLikelyAddress = (query: string) => /^0x[a-fA-F0-9]{40}$/.test(query);
 const isEventLog = (log: ethers.Log | ethers.EventLog): log is ethers.EventLog => 'args' in log;
 
 export default function BlockchainExplorer() {
+  const [searchParams] = useSearchParams();
   const [provider, setProvider] = useState<ethers.JsonRpcProvider | null>(null);
   const [contract, setContract] = useState<ethers.Contract | null>(null);
   const [loading, setLoading] = useState(true);
@@ -129,6 +131,8 @@ export default function BlockchainExplorer() {
     },
     [txExplorerBaseUrl]
   );
+
+  const txHashQuery = useMemo(() => searchParams.get('txHash')?.trim() || '', [searchParams]);
 
   const initConnection = useCallback(async () => {
     try {
@@ -305,6 +309,10 @@ export default function BlockchainExplorer() {
   }, [contract, tokenIdInput]);
 
   const filteredTransferRecords = useMemo(() => {
+    if (txHashQuery) {
+      const normalizedTxHash = txHashQuery.toLowerCase();
+      return transferRecords.filter((item) => item.txHash.toLowerCase() === normalizedTxHash);
+    }
     const query = transferQuery.trim();
     if (!query) return transferRecords.slice(0, 100);
     if (/^\d+$/.test(query)) {
@@ -319,9 +327,18 @@ export default function BlockchainExplorer() {
     return transferRecords.filter(
       (item) =>
         item.from.toLowerCase().includes(query.toLowerCase()) ||
-        item.to.toLowerCase().includes(query.toLowerCase())
+        item.to.toLowerCase().includes(query.toLowerCase()) ||
+        item.txHash.toLowerCase().includes(query.toLowerCase())
     );
-  }, [transferRecords, transferQuery]);
+  }, [transferRecords, transferQuery, txHashQuery]);
+
+  const filteredMintRecords = useMemo(() => {
+    if (!txHashQuery) {
+      return mintRecords;
+    }
+    const normalizedTxHash = txHashQuery.toLowerCase();
+    return mintRecords.filter((item) => item.txHash.toLowerCase() === normalizedTxHash);
+  }, [mintRecords, txHashQuery]);
 
   useEffect(() => {
     initConnection();
@@ -438,6 +455,15 @@ export default function BlockchainExplorer() {
           <Text type="secondary">公开访问 | RPC: {RPC_URL}</Text>
         </div>
 
+        {txHashQuery && (
+          <Alert
+            type="info"
+            showIcon
+            message="正在查看指定交易"
+            description={`交易哈希：${txHashQuery}`}
+          />
+        )}
+
         {!CONTRACT_ADDRESS && (
           <Alert
             type="warning"
@@ -526,7 +552,7 @@ export default function BlockchainExplorer() {
             <Card title="最新铸造记录（NFTMinted 最近 50 条）">
               <Table
                 columns={mintColumns}
-                dataSource={mintRecords}
+                dataSource={filteredMintRecords}
                 pagination={{ pageSize: 10, showSizeChanger: false }}
                 scroll={{ x: 900 }}
               />

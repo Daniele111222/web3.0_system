@@ -26,25 +26,6 @@ from app.core.database import Base, get_db
 from app.core.security import create_access_token
 
 
-# 使用内存SQLite数据库进行测试
-TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
-
-# 创建引擎 - 使用scope="function"避免冲突
-test_engine = create_async_engine(
-    TEST_DATABASE_URL,
-    poolclass=StaticPool,
-    echo=False,
-    connect_args={"check_same_thread": False},
-)
-
-TestingSessionLocal = async_sessionmaker(
-    test_engine,
-    autoflush=False,
-    class_=AsyncSession,
-    expire_on_commit=False,
-)
-
-
 @pytest.fixture(scope="session")
 def event_loop():
     """创建事件循环。"""
@@ -63,15 +44,29 @@ def anyio_backend():
 @pytest_asyncio.fixture(scope="function")
 async def db_session():
     """创建数据库会话。"""
+    test_engine = create_async_engine(
+        "sqlite+aiosqlite:///:memory:",
+        poolclass=StaticPool,
+        echo=False,
+        connect_args={"check_same_thread": False},
+    )
+    session_local = async_sessionmaker(
+        test_engine,
+        autoflush=False,
+        class_=AsyncSession,
+        expire_on_commit=False,
+    )
+
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
     
-    async with TestingSessionLocal() as session:
+    async with session_local() as session:
         yield session
     
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
+    await test_engine.dispose()
 
 
 @pytest_asyncio.fixture

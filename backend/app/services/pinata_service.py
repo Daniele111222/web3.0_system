@@ -1,10 +1,11 @@
-"""Pinata IPFS 服务封装类。"""
+"""Pinata IPFS service wrapper."""
+
 import json
 import logging
 import os
 import time
-from typing import Optional, Union
 from functools import wraps
+from typing import Optional, Union
 
 import requests
 
@@ -13,24 +14,31 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 
-# 常量
-MAX_FILE_SIZE = 50 * 1024 * 1024  # 最大文件大小 50MB
-DEFAULT_TIMEOUT = 60  # 默认超时时间 60 秒
+MAX_FILE_SIZE = 50 * 1024 * 1024
+DEFAULT_TIMEOUT = 60
 MAX_RETRIES = 3
-RETRY_DELAY = 1  # 秒
+RETRY_DELAY = 1
 
 PINATA_API_URL = "https://api.pinata.cloud"
 PINATA_IPFS_GATEWAY = settings.PINATA_GATEWAY_URL.rstrip("/")
 ALLOWED_EXTENSIONS = {
-    ".jpg", ".jpeg", ".png", ".gif", ".webp",
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".gif",
+    ".webp",
     ".pdf",
     ".txt",
     ".json",
     ".mp4",
     ".mp3",
-    ".doc", ".docx",
-    ".xls", ".xlsx",
-    ".zip", ".rar", ".7z",
+    ".doc",
+    ".docx",
+    ".xls",
+    ".xlsx",
+    ".zip",
+    ".rar",
+    ".7z",
 }
 
 
@@ -38,28 +46,34 @@ def get_file_extension(filename: str) -> str:
     return os.path.splitext(filename)[1].lower() if filename else ""
 
 
+def _stringify_metadata_value(value: object) -> Union[str, int, float, bool]:
+    """Convert metadata values to Pinata-compatible scalar values."""
+    if isinstance(value, (str, int, float, bool)):
+        return value
+    if value is None:
+        return ""
+    return json.dumps(value, ensure_ascii=False, default=str)
+
+
 class PinataError(Exception):
-    """Pinata API 错误基类。"""
-    pass
+    """Base Pinata error."""
 
 
 class PinataUploadError(PinataError):
-    """上传文件到 Pinata 失败。"""
-    pass
+    """Raised when uploading to Pinata fails."""
 
 
 class PinataDeleteError(PinataError):
-    """从 Pinata 删除文件失败。"""
-    pass
+    """Raised when deleting a Pinata pin fails."""
 
 
 class PinataFileTooLargeError(PinataError):
-    """文件超过最大大小限制。"""
-    pass
+    """Raised when the file exceeds the configured size limit."""
 
 
 def retry_on_error(max_retries: int = MAX_RETRIES, delay: float = RETRY_DELAY):
-    """在指定异常时重试函数的装饰器。"""
+    """Retry transient Pinata operations with exponential backoff."""
+
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -67,8 +81,8 @@ def retry_on_error(max_retries: int = MAX_RETRIES, delay: float = RETRY_DELAY):
             for attempt in range(max_retries):
                 try:
                     return func(*args, **kwargs)
-                except (requests.RequestException, PinataError) as e:
-                    last_exception = e
+                except (requests.RequestException, PinataError) as exc:
+                    last_exception = exc
                     if attempt < max_retries - 1:
                         wait_time = delay * (2 ** attempt)
                         logger.warning(
@@ -81,7 +95,7 @@ def retry_on_error(max_retries: int = MAX_RETRIES, delay: float = RETRY_DELAY):
                                 "attempt": attempt + 1,
                                 "max_retries": max_retries,
                                 "wait_seconds": wait_time,
-                                "error": str(e),
+                                "error": str(exc),
                             },
                         )
                         time.sleep(wait_time)
@@ -94,118 +108,93 @@ def retry_on_error(max_retries: int = MAX_RETRIES, delay: float = RETRY_DELAY):
                                 "file_name": "",
                                 "operation": func.__name__,
                                 "max_retries": max_retries,
-                                "error": str(e),
+                                "error": str(exc),
                             },
                         )
             raise last_exception
+
         return wrapper
+
     return decorator
 
 
 class PinataService:
-    """Pinata IPFS 服务类。"""
-    
+    """Pinata IPFS service."""
+
     def __init__(
         self,
         api_key: Optional[str] = None,
         api_secret: Optional[str] = None,
         jwt_token: Optional[str] = None,
         max_file_size: int = MAX_FILE_SIZE,
-        timeout: int = DEFAULT_TIMEOUT
+        timeout: int = DEFAULT_TIMEOUT,
     ):
-        """
-        初始化 Pinata 服务。
-        
-        参数：
-            api_key: Pinata API Key
-            api_secret: Pinata API Secret (旧版 API Key)
-            jwt_token: Pinata JWT Token (新版推荐)
-            max_file_size: 最大文件大小（字节）
-            timeout: 请求超时时间（秒）
-        """
         self.api_key = api_key or settings.PINATA_API_KEY or None
         self.api_secret = api_secret or settings.PINATA_API_SECRET or None
         self.jwt_token = jwt_token or settings.PINATA_JWT_TOKEN or None
         self.max_file_size = max_file_size
         self.timeout = timeout
-        
+
         if not self.jwt_token and not (self.api_key and self.api_secret):
-            logger.warning("未配置 Pinata 凭证，部分功能可能无法使用")
-    
+            logger.warning("pinata_credentials_missing")
+
     def _get_headers(self) -> dict:
-        """获取请求头。"""
         if self.jwt_token:
             return {
                 "Authorization": f"Bearer {self.jwt_token}",
-                "Accept": "application/json"
+                "Accept": "application/json",
             }
-        elif self.api_key and self.api_secret:
+        if self.api_key and self.api_secret:
             return {
                 "pinata_api_key": self.api_key,
                 "pinata_secret_api_key": self.api_secret,
-                "Accept": "application/json"
+                "Accept": "application/json",
             }
-        else:
-            raise PinataError("未配置 Pinata 凭证")
-    
+        raise PinataError("未配置 Pinata 凭证")
+
     def _check_file_size(self, file_content: bytes) -> None:
-        """检查文件大小是否超过限制。"""
         file_size = len(file_content)
         if file_size > self.max_file_size:
             raise PinataFileTooLargeError(
                 f"文件大小（{file_size} 字节）超过最大允许大小（{self.max_file_size} 字节）"
             )
-    
+
     def _build_url(self, endpoint: str) -> str:
-        """构建完整 URL。"""
         return f"{PINATA_API_URL}{endpoint}"
-    
+
+    def _build_pinata_metadata(
+        self,
+        file_name: str,
+        metadata: Optional[dict] = None,
+    ) -> str:
+        payload = {"name": file_name}
+        if metadata:
+            payload["keyvalues"] = {
+                key: _stringify_metadata_value(value)
+                for key, value in metadata.items()
+            }
+        return json.dumps(payload, ensure_ascii=False)
+
     @retry_on_error()
     def upload_file(
         self,
         file_content: bytes,
         file_name: str,
-        metadata: Optional[dict] = None
+        metadata: Optional[dict] = None,
     ) -> dict:
-        """
-        上传文件到 Pinata。
-        
-        参数：
-            file_content: 文件内容字节
-            file_name: 文件名
-            metadata: 可选的元数据
-            
-        返回：
-            dict: 上传结果，包含 CID 等信息
-            
-        抛出：
-            PinataFileTooLargeError: 文件过大
-            PinataUploadError: 上传失败
-        """
         self._check_file_size(file_content)
-        
+
         try:
-            url = self._build_url("/pinning/pinFileToIPFS")
-            
-            files = {
-                "file": (file_name, file_content)
-            }
-            
-            data = {}
-            if metadata:
-                data["pinataMetadata"] = json.dumps(metadata)
-            
             response = requests.post(
-                url,
+                self._build_url("/pinning/pinFileToIPFS"),
                 headers=self._get_headers(),
-                files=files,
-                data=data,
-                timeout=self.timeout
+                files={"file": (file_name, file_content)},
+                data={"pinataMetadata": self._build_pinata_metadata(file_name, metadata)},
+                timeout=self.timeout,
             )
-            
             response.raise_for_status()
             result = response.json()
-            
+
             logger.info(
                 "pinata_upload_succeeded",
                 extra={
@@ -215,129 +204,115 @@ class PinataService:
                     "size": len(file_content),
                 },
             )
-            
+
             return {
                 "cid": result.get("IpfsHash"),
                 "size": result.get("PinSize"),
                 "timestamp": result.get("Timestamp"),
                 "gateway_url": f"{PINATA_IPFS_GATEWAY}/{result.get('IpfsHash')}",
-                "name": file_name
+                "name": file_name,
             }
-            
         except PinataFileTooLargeError:
             raise
-        except requests.RequestException as e:
+        except requests.RequestException as exc:
+            response_text = ""
+            if getattr(exc, "response", None) is not None:
+                try:
+                    response_text = exc.response.text
+                except Exception:
+                    response_text = ""
+
             logger.error(
                 "pinata_upload_failed",
-                extra={"asset_id": "", "cid": "", "file_name": file_name, "error": str(e)},
+                extra={
+                    "asset_id": "",
+                    "cid": "",
+                    "file_name": file_name,
+                    "error": str(exc),
+                    "response_text": response_text,
+                },
             )
-            raise PinataUploadError(f"上传失败：{str(e)}") from e
-        except Exception as e:
+
+            message = f"上传失败：{str(exc)}"
+            if response_text:
+                message = f"{message}，响应内容：{response_text}"
+            raise PinataUploadError(message) from exc
+        except Exception as exc:
             logger.error(
                 "pinata_upload_failed",
-                extra={"asset_id": "", "cid": "", "file_name": file_name, "error": str(e)},
+                extra={
+                    "asset_id": "",
+                    "cid": "",
+                    "file_name": file_name,
+                    "error": str(exc),
+                },
             )
-            raise PinataUploadError(f"上传失败：{str(e)}") from e
-    
+            raise PinataUploadError(f"上传失败：{str(exc)}") from exc
+
     @retry_on_error()
     def upload_json(
         self,
         json_data: dict,
         name: str = "data.json",
-        metadata: Optional[dict] = None
+        metadata: Optional[dict] = None,
     ) -> dict:
-        """
-        上传 JSON 数据到 Pinata。
-        
-        参数：
-            json_data: JSON 数据字典
-            name: 文件名
-            metadata: 可选的元数据
-            
-        返回：
-            dict: 上传结果
-        """
         try:
             json_bytes = json.dumps(json_data, ensure_ascii=False).encode("utf-8")
             return self.upload_file(json_bytes, name, metadata)
         except PinataUploadError:
             raise
-        except Exception as e:
+        except Exception as exc:
             logger.error(
                 "pinata_json_upload_failed",
-                extra={"asset_id": "", "cid": "", "file_name": name, "error": str(e)},
+                extra={
+                    "asset_id": "",
+                    "cid": "",
+                    "file_name": name,
+                    "error": str(exc),
+                },
             )
-            raise PinataUploadError(f"JSON 上传失败：{str(e)}") from e
-    
+            raise PinataUploadError(f"JSON 上传失败：{str(exc)}") from exc
+
     @retry_on_error()
     def delete_file(self, cid: str) -> bool:
-        """
-        从 Pinata 删除文件（取消固定）。
-        
-        参数：
-            cid: 要删除的 CID
-            
-        返回：
-            bool: 是否成功删除
-        """
         if not cid:
             logger.warning(
                 "pinata_delete_skipped_empty_cid",
                 extra={"asset_id": "", "cid": "", "file_name": ""},
             )
             return False
-        
+
         try:
-            url = self._build_url(f"/pinning/unpin/{cid}")
-            
             response = requests.delete(
-                url,
+                self._build_url(f"/pinning/unpin/{cid}"),
                 headers=self._get_headers(),
-                timeout=self.timeout
+                timeout=self.timeout,
             )
-            
-            if response.status_code == 200 or response.status_code == 404:
+            if response.status_code in {200, 404}:
                 logger.info(
                     "pinata_delete_succeeded",
                     extra={"asset_id": "", "cid": cid, "file_name": ""},
                 )
                 return True
-            else:
-                response.raise_for_status()
-                
-        except requests.RequestException as e:
+            response.raise_for_status()
+        except requests.RequestException as exc:
             logger.error(
                 "pinata_delete_failed",
-                extra={"asset_id": "", "cid": cid, "file_name": "", "error": str(e)},
+                extra={"asset_id": "", "cid": cid, "file_name": "", "error": str(exc)},
             )
-            raise PinataDeleteError(f"删除失败：{str(e)}") from e
-        
+            raise PinataDeleteError(f"删除失败：{str(exc)}") from exc
+
         return False
-    
+
     def get_gateway_url(self, cid: str) -> str:
-        """
-        获取文件的网关访问 URL。
-        
-        参数：
-            cid: IPFS CID
-            
-        返回：
-            str: 网关 URL
-        """
         return f"{PINATA_IPFS_GATEWAY}/{cid}"
 
 
-# 全局 Pinata 服务实例
 _pinata_service: Optional[PinataService] = None
 
 
 def get_pinata_service() -> PinataService:
-    """
-    获取全局 Pinata 服务实例。
-    
-    返回：
-        PinataService: Pinata 服务实例
-    """
+    """Get the shared Pinata service instance."""
     global _pinata_service
     if _pinata_service is None:
         _pinata_service = PinataService()

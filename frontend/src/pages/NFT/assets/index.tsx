@@ -16,6 +16,7 @@ import { useMint, useMintStatistics, useNFTAssets } from '../../../hooks/useNFT'
 import { MintCard } from '../../../components/nft/MintCard';
 import { BatchMintModal } from '../../../components/nft/BatchMintModal';
 import { MintConfirmModal } from '../../../components/nft/MintConfirmModal';
+import { useAuthStore, useWeb3Store } from '../../../store';
 import type {
   BatchMintResultItem,
   MintGasEstimateResponse,
@@ -45,6 +46,13 @@ const NFTAssetsPage: React.FC = () => {
   const [royaltyFeeBps, setRoyaltyFeeBps] = useState(500);
   const [estimating, setEstimating] = useState(false);
   const [gasEstimate, setGasEstimate] = useState<MintGasEstimateResponse | null>(null);
+  const boundWalletAddress = useAuthStore((state) => state.user?.wallet_address || '');
+  const connectedWalletAddress = useWeb3Store((state) => state.account || '');
+  const preferredWalletAddress =
+    connectedWalletAddress ||
+    boundWalletAddress ||
+    localStorage.getItem('wallet_address') ||
+    '';
 
   const {
     loading: mintLoading,
@@ -126,11 +134,10 @@ const NFTAssetsPage: React.FC = () => {
     if (!targetAsset) {
       return;
     }
-    const walletAddress = localStorage.getItem('wallet_address') || '';
     setMintingAssetId(targetAsset.asset_id);
-    setMintAddress(walletAddress);
+    setMintAddress(preferredWalletAddress);
     setRoyaltyEnabled(false);
-    setRoyaltyReceiver(walletAddress);
+    setRoyaltyReceiver(preferredWalletAddress);
     setRoyaltyFeeBps(500);
     setGasEstimate(null);
     setMintModalVisible(true);
@@ -144,8 +151,8 @@ const NFTAssetsPage: React.FC = () => {
       await mint(mintingAsset.asset_id, request);
       message.success('铸造请求已提交');
       setMintModalVisible(false);
-      fetchAssets();
-      fetchStatistics();
+      await fetchAssets();
+      await fetchStatistics();
     } catch (error) {
       message.error(`铸造失败：${nftService.mapNftErrorMessage(error, '未知错误')}`);
     }
@@ -175,8 +182,8 @@ const NFTAssetsPage: React.FC = () => {
         failed: result.failed,
         items: result.results,
       });
-      fetchAssets();
-      fetchStatistics();
+      await fetchAssets();
+      await fetchStatistics();
       message.success('批量铸造任务已提交');
     } catch (error) {
       message.error(`批量铸造失败：${nftService.mapNftErrorMessage(error, '未知错误')}`);
@@ -343,7 +350,7 @@ const NFTAssetsPage: React.FC = () => {
       {/* 批量铸造模态框 */}
       <BatchMintModal
         visible={batchModalVisible}
-        assets={filteredAssets}
+        assets={assets}
         onCancel={() => {
           setBatchModalVisible(false);
           setBatchResults(null);

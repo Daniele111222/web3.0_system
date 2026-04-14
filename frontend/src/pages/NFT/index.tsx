@@ -16,6 +16,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Row,
   Col,
@@ -175,6 +176,7 @@ const ContractInfoCard: React.FC<{
 // ============================================
 
 const NFTPage: React.FC = () => {
+  const navigate = useNavigate();
   const {
     loading: mintLoading,
     error: mintError,
@@ -398,6 +400,7 @@ const NFTPage: React.FC = () => {
               onViewDetail={(assetId) => {
                 const target = assets.find((item) => item.asset_id === assetId);
                 if (!target?.tx_hash) {
+                  message.warning('当前资产暂无链上交易哈希，无法打开区块链浏览器');
                   return;
                 }
                 const explorerMap: Record<number, string> = {
@@ -414,7 +417,13 @@ const NFTPage: React.FC = () => {
                     '_blank',
                     'noopener,noreferrer'
                   );
+                  return;
                 }
+                navigate(`/blockchain-explorer?txHash=${encodeURIComponent(target.tx_hash)}`);
+                void navigator.clipboard.writeText(target.tx_hash).catch(() => undefined);
+                message.info(
+                  `当前链 ${chainId || '-'} 使用内置区块链浏览器，已为你打开对应交易`
+                );
               }}
               loading={mintLoading}
             />

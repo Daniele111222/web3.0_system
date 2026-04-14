@@ -612,5 +612,47 @@ class TestUpdateAssetStatus:
             )
 
 
+class TestNFTMintOwnershipFields:
+    """测试铸造完成后的权属字段回写。"""
+
+    @pytest.mark.asyncio
+    async def test_mint_asset_sets_current_owner_enterprise(
+        self,
+        db_session: AsyncSession,
+        test_asset_with_attachment: Asset,
+    ):
+        nft_service = NFTService(db_session)
+
+        with patch('app.services.nft_service.get_blockchain_client') as mock_get_client:
+            mock_client = MagicMock()
+            mock_client.contract_address = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb"
+            mock_client.chain_id = 31337
+            mock_client.mint_nft = AsyncMock(return_value=(1, "0xabc123"))
+            mock_get_client.return_value = mock_client
+
+            with patch('app.services.nft_service.get_pinata_service') as mock_get_pinata:
+                mock_pinata = MagicMock()
+                mock_pinata.upload_json = MagicMock(
+                    return_value={
+                        "cid": "QmTest123",
+                        "gateway_url": "https://gateway.pinata.cloud/ipfs/QmTest123",
+                    }
+                )
+                mock_get_pinata.return_value = mock_pinata
+
+                result = await nft_service.mint_asset_nft(
+                    asset_id=test_asset_with_attachment.id,
+                    minter_address="0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+                )
+
+        assert result["status"] == AssetStatus.MINTED.value
+
+        minted_asset = await db_session.get(Asset, test_asset_with_attachment.id)
+        assert minted_asset is not None
+        assert minted_asset.owner_address == "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+        assert minted_asset.current_owner_enterprise_id == test_asset_with_attachment.enterprise_id
+        assert minted_asset.ownership_status == "ACTIVE"
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

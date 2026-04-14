@@ -17,8 +17,12 @@ import type {
 import assetService from '../services/asset';
 import nftService from '../services/nft';
 import type { Asset as AssetEntity } from '../types';
+import { useEnterpriseStore } from '../store';
 
-const getCurrentEnterpriseId = (): string => localStorage.getItem('current_enterprise_id') || '';
+const getCurrentEnterpriseId = (): string =>
+  useEnterpriseStore.getState().currentEnterprise?.id ||
+  localStorage.getItem('current_enterprise_id') ||
+  '';
 
 const assetTypeLabelMap: Record<string, string> = {
   PATENT: '专利',

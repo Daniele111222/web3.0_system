@@ -17,6 +17,7 @@ import type { NFTAssetCardData } from '../../../types/nft';
 import { AssetMintStatus, MintStage } from '../../../types/nft';
 import { useMint, useNFTAssets } from '../../../hooks/useNFT';
 import nftService from '../../../services/nft';
+import { useAuthStore, useWeb3Store } from '../../../store';
 import styles from './style.module.less';
 
 // const { Text, Title } = Typography;
@@ -134,6 +135,13 @@ const NFTMintingPage: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const { retryMint } = useMint();
   const { loading, assets, fetchAssets } = useNFTAssets();
+  const boundWalletAddress = useAuthStore((state) => state.user?.wallet_address || '');
+  const connectedWalletAddress = useWeb3Store((state) => state.account || '');
+  const preferredWalletAddress =
+    connectedWalletAddress ||
+    boundWalletAddress ||
+    localStorage.getItem('wallet_address') ||
+    '';
 
   useEffect(() => {
     fetchAssets();
@@ -150,10 +158,10 @@ const NFTMintingPage: React.FC = () => {
   // 处理重试
   const handleRetry = async (assetId: string) => {
     try {
-      const minterAddress = localStorage.getItem('wallet_address') || undefined;
+      const minterAddress = preferredWalletAddress || undefined;
       await retryMint(assetId, minterAddress);
       message.success('重试任务已提交');
-      fetchAssets();
+      await fetchAssets();
     } catch (error) {
       message.error(`重试失败：${nftService.mapNftErrorMessage(error, '未知错误')}`);
     }

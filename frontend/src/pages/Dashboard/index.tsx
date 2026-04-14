@@ -35,6 +35,7 @@ import { ownershipService } from '../../services/ownership';
 import type { OwnershipAsset, OwnershipStats, OwnershipFilters } from '../../types/ownership';
 import { OwnershipStatus } from '../../types/ownership';
 import TransferModal from '../../components/ownership/TransferModal';
+import { useEnterpriseStore } from '../../store';
 import styles from './style.module.less';
 
 const { Search } = Input;
@@ -69,7 +70,10 @@ const STATUS_CONFIG: Record<
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const enterpriseId = localStorage.getItem('current_enterprise_id') || '';
+  const enterpriseId =
+    useEnterpriseStore.getState().currentEnterprise?.id ||
+    localStorage.getItem('current_enterprise_id') ||
+    '';
 
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState<OwnershipStats | null>(null);
@@ -221,6 +225,7 @@ const Dashboard: React.FC = () => {
               type="text"
               icon={<HistoryOutlined />}
               onClick={() => navigate(`/dashboard/history/${record.token_id}`)}
+              disabled={!record.token_id || record.token_id <= 0}
             />
           </Tooltip>
           <Tooltip title="转移">

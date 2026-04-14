@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.api.deps import get_current_user_id
 from app.core.exceptions import NotFoundException, ForbiddenException, BadRequestException, BlockchainException
+from app.models.asset import Asset
 from app.services.nft_service import NFTService
 from app.services.ownership_service import OwnershipService
 from app.repositories.enterprise_repository import EnterpriseMemberRepository
@@ -24,6 +25,20 @@ def parse_current_user_id(current_user_id: UUID) -> UUID:
         return UUID(str(current_user_id))
     except (TypeError, ValueError):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="无效的用户凭证")
+
+
+async def ensure_asset_member_access(db: AsyncSession, asset_id: UUID, current_user_id: UUID) -> Asset:
+    asset = await db.get(Asset, asset_id)
+    if not asset:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset with ID {asset_id} not found")
+
+    user_id = parse_current_user_id(current_user_id)
+    member_repo = EnterpriseMemberRepository(db)
+    member = await member_repo.get_member(asset.enterprise_id, user_id)
+    if not member:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="您无权访问该资产")
+
+    return asset
 
 
 class MintRequest(BaseModel):
@@ -65,6 +80,7 @@ async def mint_nft(
     Returns:
         包含铸造结果的字典，包括token_id、交易哈希，元数据URI等
     """
+    await ensure_asset_member_access(db, asset_id, current_user_id)
     nft_service = NFTService(db)
 
     try:
@@ -77,6 +93,7 @@ async def mint_nft(
             wallet_signature=request.wallet_signature,
             operator_id=current_user_id,
         )
+        await db.commit()
         return result
     except (NotFoundException, BadRequestException) as e:
         if isinstance(e, NotFoundException):
@@ -136,6 +153,9 @@ async def batch_mint_nft(
     Returns:
         包含批量铸造结果的字典
     """
+    for asset_id in request.asset_ids:
+        await ensure_asset_member_access(db, asset_id, current_user_id)
+
     nft_service = NFTService(db)
 
     try:
@@ -144,6 +164,7 @@ async def batch_mint_nft(
             minter_address=request.minter_address,
             operator_id=current_user_id,
         )
+        await db.commit()
         return result
     except BadRequestException as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -166,6 +187,7 @@ async def estimate_mint_gas(
     db: AsyncSession = Depends(get_db),
     current_user_id: UUID = Depends(get_current_user_id),
 ) -> dict:
+    await ensure_asset_member_access(db, asset_id, current_user_id)
     nft_service = NFTService(db)
     try:
         return await nft_service.estimate_mint_fee(
@@ -206,6 +228,7 @@ async def get_mint_status(
     Returns:
         包含铸造状态的字典
     """
+    await ensure_asset_member_access(db, asset_id, current_user_id)
     nft_service = NFTService(db)
 
     try:
@@ -279,6 +302,7 @@ async def retry_mint_nft(
     Returns:
         包含重试结果的字典
     """
+    await ensure_asset_member_access(db, asset_id, current_user_id)
     nft_service = NFTService(db)
 
     try:
@@ -287,6 +311,7 @@ async def retry_mint_nft(
             minter_address=request.minter_address,
             operator_id=current_user_id,
         )
+        await db.commit()
         return result
     except (NotFoundException, BadRequestException) as e:
         if isinstance(e, NotFoundException):

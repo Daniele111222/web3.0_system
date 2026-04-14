@@ -14,32 +14,28 @@ from app.models.user import User
 from app.services.approval_service import ApprovalService
 
 
-TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
-
-test_engine = create_async_engine(
-    TEST_DATABASE_URL,
-    poolclass=StaticPool,
-    echo=False,
-    connect_args={"check_same_thread": False},
-)
-
-TestSessionLocal = async_sessionmaker(
-    test_engine,
-    autoflush=False,
-    class_=AsyncSession,
-    expire_on_commit=False,
-)
-
-
 @pytest_asyncio.fixture(scope="function")
 async def db_session():
+    test_engine = create_async_engine(
+        "sqlite+aiosqlite:///:memory:",
+        poolclass=StaticPool,
+        echo=False,
+        connect_args={"check_same_thread": False},
+    )
+    session_local = async_sessionmaker(
+        test_engine,
+        autoflush=False,
+        class_=AsyncSession,
+        expire_on_commit=False,
+    )
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
-    async with TestSessionLocal() as session:
+    async with session_local() as session:
         yield session
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
+    await test_engine.dispose()
 
 
 @pytest.mark.asyncio
