@@ -77,21 +77,26 @@ const NFTHistoryPage: React.FC = () => {
   const [asset, setAsset] = useState<OwnershipAsset | null>(null);
   const [history, setHistory] = useState<TransferRecord[]>([]);
 
+  const normalizedTokenId =
+    tokenId && /^[1-9]\d*$/.test(tokenId) ? Number.parseInt(tokenId, 10) : null;
+
   // 加载数据
   useEffect(() => {
-    if (tokenId) {
+    if (normalizedTokenId) {
       loadData();
+    } else {
+      setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tokenId]);
+  }, [normalizedTokenId]);
 
   const loadData = async () => {
-    if (!tokenId) return;
+    if (!normalizedTokenId) return;
     setLoading(true);
     try {
       const [assetData, historyData] = await Promise.all([
-        ownershipService.getOwnershipAssetDetail(parseInt(tokenId)),
-        ownershipService.getTransferHistory(parseInt(tokenId)),
+        ownershipService.getOwnershipAssetDetail(normalizedTokenId),
+        ownershipService.getTransferHistory(normalizedTokenId),
       ]);
       setAsset(assetData);
       setHistory(historyData.items);
@@ -164,7 +169,9 @@ const NFTHistoryPage: React.FC = () => {
                 </Space>
               }
             >
-              {history.length > 0 ? (
+              {!normalizedTokenId ? (
+                <Empty description="无效的 Token ID" />
+              ) : history.length > 0 ? (
                 <Timeline
                   mode="left"
                   items={history.map((record) => {

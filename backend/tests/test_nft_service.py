@@ -15,9 +15,11 @@ from sqlalchemy import text, select
 
 from app.core.database import Base
 from app.models.asset import Asset, AssetStatus, AssetType, LegalStatus, Attachment, MintRecord
+from app.models.ownership import NFTTransferRecord, TransferType
 from app.models.user import User
 from app.models.enterprise import Enterprise, EnterpriseMember, MemberRole
 from app.services.nft_service import NFTService
+from app.services.ownership_service import OwnershipService
 
 
 # 测试数据库
@@ -652,6 +654,115 @@ class TestNFTMintOwnershipFields:
         assert minted_asset.owner_address == "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
         assert minted_asset.current_owner_enterprise_id == test_asset_with_attachment.enterprise_id
         assert minted_asset.ownership_status == "ACTIVE"
+
+        history_result = await db_session.execute(select(NFTTransferRecord))
+        history_records = history_result.scalars().all()
+        assert len(history_records) == 1
+        assert history_records[0].token_id == 1
+        assert history_records[0].transfer_type == TransferType.MINT
+        assert history_records[0].contract_address == "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb"
+        assert history_records[0].to_address == "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+
+    @pytest.mark.asyncio
+    async def test_backfill_missing_mint_history_creates_record(
+        self,
+        db_session: AsyncSession,
+        test_asset_with_attachment: Asset,
+    ):
+        nft_service = NFTService(db_session)
+
+        test_asset_with_attachment.status = AssetStatus.MINTED
+        test_asset_with_attachment.nft_token_id = "77"
+        test_asset_with_attachment.nft_contract_address = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb"
+        test_asset_with_attachment.owner_address = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+        test_asset_with_attachment.recipient_address = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+        test_asset_with_attachment.current_owner_enterprise_id = test_asset_with_attachment.enterprise_id
+        test_asset_with_attachment.ownership_status = "ACTIVE"
+        test_asset_with_attachment.mint_tx_hash = "0xabc123"
+        test_asset_with_attachment.mint_confirmed_at = datetime.now(timezone.utc)
+        await db_session.flush()
+
+        result = await nft_service.backfill_missing_mint_history()
+
+        assert result["created"] == 1
+        history_result = await db_session.execute(select(NFTTransferRecord))
+        history_records = history_result.scalars().all()
+        assert len(history_records) == 1
+        assert history_records[0].token_id == 77
+        assert history_records[0].transfer_type == TransferType.MINT
+
+    @pytest.mark.asyncio
+    async def test_get_transfer_history_filters_by_contract_address(
+        self,
+        db_session: AsyncSession,
+        test_asset_with_attachment: Asset,
+    ):
+        ownership_service = OwnershipService(db_session)
+
+        duplicate_asset = Asset(
+            id=uuid4(),
+            enterprise_id=test_asset_with_attachment.enterprise_id,
+            creator_user_id=test_asset_with_attachment.creator_user_id,
+            name="Duplicate Token",
+            type=AssetType.COPYRIGHT,
+            description="Duplicate token on another contract",
+            creator_name="Test Creator",
+            creation_date=date(2024, 1, 2),
+            legal_status=LegalStatus.GRANTED,
+            application_number="CN2024000999",
+            status=AssetStatus.MINTED,
+            nft_token_id="1",
+            nft_contract_address="0x1111111111111111111111111111111111111111",
+            owner_address="0x1111111111111111111111111111111111111111",
+            recipient_address="0x1111111111111111111111111111111111111111",
+            current_owner_enterprise_id=test_asset_with_attachment.enterprise_id,
+            ownership_status="ACTIVE",
+            mint_completed_at=datetime(2026, 4, 1, tzinfo=timezone.utc),
+        )
+        test_asset_with_attachment.status = AssetStatus.MINTED
+        test_asset_with_attachment.nft_token_id = "1"
+        test_asset_with_attachment.nft_contract_address = "0x2222222222222222222222222222222222222222"
+        test_asset_with_attachment.owner_address = "0x2222222222222222222222222222222222222222"
+        test_asset_with_attachment.recipient_address = "0x2222222222222222222222222222222222222222"
+        test_asset_with_attachment.current_owner_enterprise_id = test_asset_with_attachment.enterprise_id
+        test_asset_with_attachment.ownership_status = "ACTIVE"
+        test_asset_with_attachment.mint_completed_at = datetime(2026, 4, 2, tzinfo=timezone.utc)
+        db_session.add(duplicate_asset)
+        await db_session.flush()
+
+        db_session.add(
+            NFTTransferRecord(
+                token_id=1,
+                contract_address="0x1111111111111111111111111111111111111111",
+                transfer_type=TransferType.MINT,
+                from_address="0x0000000000000000000000000000000000000000",
+                to_address="0x1111111111111111111111111111111111111111",
+                to_enterprise_id=test_asset_with_attachment.enterprise_id,
+            )
+        )
+        db_session.add(
+            NFTTransferRecord(
+                token_id=1,
+                contract_address="0x2222222222222222222222222222222222222222",
+                transfer_type=TransferType.MINT,
+                from_address="0x0000000000000000000000000000000000000000",
+                to_address="0x2222222222222222222222222222222222222222",
+                to_enterprise_id=test_asset_with_attachment.enterprise_id,
+            )
+        )
+        await db_session.flush()
+
+        asset = await ownership_service.get_asset_by_token_id(1)
+        assert asset is not None
+        assert asset["contract_address"] == "0x2222222222222222222222222222222222222222"
+
+        records, total = await ownership_service.get_transfer_history(
+            token_id=1,
+            contract_address=asset["contract_address"],
+        )
+        assert total == 1
+        assert len(records) == 1
+        assert records[0]["contract_address"] == "0x2222222222222222222222222222222222222222"
 
 
 if __name__ == "__main__":

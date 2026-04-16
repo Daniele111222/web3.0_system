@@ -8,12 +8,13 @@ from datetime import datetime, timezone, timedelta
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, cast, String
 from eth_account.messages import encode_defunct
 from web3 import Web3
 
 from app.models.asset import Asset, AssetStatus, Attachment, MintRecord
 from app.models.enterprise import Enterprise
+from app.models.ownership import NFTTransferRecord, TransferStatus, TransferType
 from app.core.blockchain import get_blockchain_client
 from app.core.exceptions import NotFoundException, BadRequestException, BlockchainException
 from app.services.pinata_service import get_pinata_service
@@ -39,6 +40,108 @@ class NFTService:
             db: 数据库会话
         """
         self.db = db
+
+    @staticmethod
+    def _normalize_token_id(token_id: Any) -> int:
+        try:
+            normalized = int(token_id)
+        except (TypeError, ValueError) as exc:
+            raise BadRequestException(f"Invalid token_id: {token_id}") from exc
+
+        if normalized <= 0:
+            raise BadRequestException(f"Invalid token_id: {token_id}")
+
+        return normalized
+
+    async def _get_enterprise_name(self, enterprise_id: Optional[UUID]) -> Optional[str]:
+        if not enterprise_id:
+            return None
+
+        stmt = select(Enterprise.name).where(Enterprise.id == enterprise_id)
+        return (await self.db.execute(stmt)).scalar_one_or_none()
+
+    async def _ensure_mint_history_record(
+        self,
+        asset: Asset,
+        token_id: Any,
+        tx_hash: Optional[str],
+        operator_id: Optional[UUID] = None,
+    ) -> tuple[Optional[NFTTransferRecord], bool]:
+        normalized_token_id = self._normalize_token_id(token_id)
+        contract_address = (asset.nft_contract_address or get_blockchain_client().contract_address or "").strip()
+        if not contract_address:
+            return None
+
+        existing_stmt = select(NFTTransferRecord).where(
+            NFTTransferRecord.token_id == normalized_token_id,
+            NFTTransferRecord.contract_address == contract_address,
+            cast(NFTTransferRecord.transfer_type, String()) == TransferType.MINT.value,
+        )
+        existing = (await self.db.execute(existing_stmt)).scalar_one_or_none()
+        if existing:
+            return existing, False
+
+        to_address = (asset.owner_address or asset.recipient_address or "").strip()
+        if not to_address:
+            return None, False
+
+        to_enterprise_id = asset.current_owner_enterprise_id or asset.enterprise_id
+        record = NFTTransferRecord(
+            token_id=normalized_token_id,
+            contract_address=contract_address,
+            transfer_type=TransferType.MINT,
+            from_address="0x0000000000000000000000000000000000000000",
+            from_enterprise_id=None,
+            from_enterprise_name=None,
+            to_address=to_address,
+            to_enterprise_id=to_enterprise_id,
+            to_enterprise_name=await self._get_enterprise_name(to_enterprise_id),
+            operator_user_id=operator_id,
+            tx_hash=tx_hash,
+            status=TransferStatus.CONFIRMED,
+            remarks="Initial mint record",
+            confirmed_at=asset.mint_confirmed_at or asset.mint_completed_at or datetime.now(timezone.utc),
+        )
+        self.db.add(record)
+        await self.db.flush()
+        return record, True
+
+    async def backfill_missing_mint_history(self) -> Dict[str, Any]:
+        stmt = (
+            select(Asset)
+            .where(
+                Asset.status == AssetStatus.MINTED,
+                Asset.nft_token_id.is_not(None),
+                Asset.nft_token_id != "",
+            )
+            .order_by(Asset.created_at.asc())
+        )
+        assets = list((await self.db.execute(stmt)).scalars().all())
+
+        created = 0
+        skipped = 0
+
+        for asset in assets:
+            try:
+                _, was_created = await self._ensure_mint_history_record(
+                    asset=asset,
+                    token_id=asset.nft_token_id,
+                    tx_hash=asset.mint_tx_hash,
+                )
+            except BadRequestException:
+                skipped += 1
+                continue
+
+            if was_created:
+                created += 1
+            else:
+                skipped += 1
+
+        return {
+            "scanned": len(assets),
+            "created": created,
+            "skipped": skipped,
+        }
 
     async def mint_asset_nft(
         self,
@@ -252,6 +355,12 @@ class NFTService:
         mint_record.completed_at = datetime.now(timezone.utc)
 
         await self.db.flush()
+        await self._ensure_mint_history_record(
+            asset=asset,
+            token_id=token_id,
+            tx_hash=tx_hash,
+            operator_id=operator_id,
+        )
 
         return {
             "message": "NFT minted successfully",

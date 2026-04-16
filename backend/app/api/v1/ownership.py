@@ -191,9 +191,10 @@ async def get_nft_transfer_history(
     current_user_id: str = Depends(get_current_user_id),
 ):
     service = OwnershipService(db)
-    await ensure_token_member_access(service, token_id, current_user_id)
+    asset = await ensure_token_member_access(service, token_id, current_user_id)
     records, total = await service.get_transfer_history(
         token_id=token_id,
+        contract_address=asset.get("contract_address") or None,
         page=page,
         page_size=page_size,
     )

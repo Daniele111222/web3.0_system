@@ -428,8 +428,10 @@ async def get_nft_history(
     """获取NFT权属变更历史。"""
     service = OwnershipService(db)
     try:
+        asset = await service.get_asset_by_token_id(int(token_id))
         records, total = await service.get_transfer_history(
             token_id=int(token_id),
+            contract_address=(asset or {}).get("contract_address") or None,
             page=page,
             page_size=page_size,
         )

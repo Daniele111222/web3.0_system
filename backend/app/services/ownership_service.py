@@ -64,6 +64,28 @@ class OwnershipService:
             return None
         return token_id if token_id > 0 else None
 
+    async def _resolve_asset_record(
+        self,
+        token_id: int,
+        contract_address: Optional[str] = None,
+    ) -> Optional[Asset]:
+        conditions = [Asset.nft_token_id == str(token_id)]
+        if contract_address:
+            conditions.append(Asset.nft_contract_address == contract_address)
+
+        stmt = (
+            select(Asset)
+            .where(and_(*conditions))
+            .order_by(
+                Asset.mint_completed_at.desc(),
+                Asset.mint_confirmed_at.desc(),
+                Asset.updated_at.desc(),
+                Asset.created_at.desc(),
+            )
+            .limit(1)
+        )
+        return (await self.db.execute(stmt)).scalar_one_or_none()
+
     # ------------------------------------------------------------------ #
     # 查询                                                                  #
     # ------------------------------------------------------------------ #
@@ -165,8 +187,7 @@ class OwnershipService:
 
     async def get_asset_by_token_id(self, token_id: int) -> Optional[Dict]:
         """根据 Token ID 获取资产详情。"""
-        stmt = select(Asset).where(Asset.nft_token_id == str(token_id))
-        asset = (await self.db.execute(stmt)).scalar_one_or_none()
+        asset = await self._resolve_asset_record(token_id)
         if not asset:
             return None
 
@@ -199,19 +220,22 @@ class OwnershipService:
     async def get_transfer_history(
         self,
         token_id: int,
+        contract_address: Optional[str] = None,
         page: int = 1,
         page_size: int = 20,
     ) -> Tuple[List[Dict], int]:
         """获取 NFT 完整权属变更历史。"""
-        count_stmt = select(func.count(NFTTransferRecord.id)).where(
-            NFTTransferRecord.token_id == token_id
-        )
+        conditions = [NFTTransferRecord.token_id == token_id]
+        if contract_address:
+            conditions.append(NFTTransferRecord.contract_address == contract_address)
+
+        count_stmt = select(func.count(NFTTransferRecord.id)).where(and_(*conditions))
         total = (await self.db.execute(count_stmt)).scalar() or 0
 
         offset = (page - 1) * page_size
         stmt = (
             select(NFTTransferRecord)
-            .where(NFTTransferRecord.token_id == token_id)
+            .where(and_(*conditions))
             .order_by(NFTTransferRecord.created_at.desc())
             .offset(offset)
             .limit(page_size)
@@ -293,8 +317,7 @@ class OwnershipService:
             包含 tx_hash 和 transfer_record_id 的字典
         """
         # 1. 获取资产
-        stmt = select(Asset).where(Asset.nft_token_id == str(token_id))
-        asset = (await self.db.execute(stmt)).scalar_one_or_none()
+        asset = await self._resolve_asset_record(token_id)
         if not asset:
             raise NotFoundException(f"Token ID {token_id} 对应的资产不存在")
         if asset.status != AssetStatus.MINTED:
@@ -384,8 +407,7 @@ class OwnershipService:
 
         不涉及链上转移，仅更新数据库状态并写入历史记录。
         """
-        stmt = select(Asset).where(Asset.nft_token_id == str(token_id))
-        asset = (await self.db.execute(stmt)).scalar_one_or_none()
+        asset = await self._resolve_asset_record(token_id)
         if not asset:
             raise NotFoundException(f"Token ID {token_id} 对应的资产不存在")
 
