@@ -20,11 +20,12 @@ import {
 import { BlockOutlined, LinkOutlined, SearchOutlined, SyncOutlined } from '@ant-design/icons';
 import type { TableProps } from 'antd';
 import { IPNFT_ABI } from '../utils/abis/IPNFT';
+import { getIpnftContractAddress } from '../utils/env';
 
 const { Title, Text, Paragraph } = Typography;
 
 const RPC_URL = import.meta.env.VITE_RPC_URL || 'http://127.0.0.1:8545';
-const CONTRACT_ADDRESS = import.meta.env.VITE_IPNFT_CONTRACT_ADDRESS || '';
+const CONTRACT_ADDRESS = getIpnftContractAddress();
 const EXPLORER_URL = import.meta.env.VITE_BLOCK_EXPLORER_URL || '';
 
 const CHAIN_NAME_MAP: Record<number, string> = {
@@ -468,7 +469,7 @@ export default function BlockchainExplorer() {
           <Alert
             type="warning"
             showIcon
-            message="未配置 VITE_IPNFT_CONTRACT_ADDRESS，合约相关功能不可用"
+            message="未配置 VITE_IPNFT_CONTRACT_ADDRESS 或 VITE_CONTRACT_ADDRESS，合约相关功能不可用"
           />
         )}
 

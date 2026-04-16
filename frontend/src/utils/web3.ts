@@ -1,8 +1,9 @@
 import { ethers } from 'ethers';
 import { IPNFT_ABI } from './abis/IPNFT';
+import { getIpnftContractAddress } from './env';
 
 // Contract configuration
-const CONTRACT_ADDRESS = import.meta.env.VITE_IPNFT_CONTRACT_ADDRESS;
+const CONTRACT_ADDRESS = getIpnftContractAddress();
 const RPC_URL = import.meta.env.VITE_RPC_URL || 'http://127.0.0.1:8545';
 
 // Provider singleton
@@ -50,6 +51,10 @@ export const getSigner = async (privateKey?: string): Promise<ethers.JsonRpcSign
 export const getContract = async (
   signerOrProvider?: ethers.Signer | ethers.Provider
 ): Promise<ethers.Contract> => {
+  if (!CONTRACT_ADDRESS) {
+    throw new Error('未配置 VITE_IPNFT_CONTRACT_ADDRESS 或 VITE_CONTRACT_ADDRESS');
+  }
+
   if (!contract) {
     const prov = signerOrProvider || (await initProvider());
     contract = new ethers.Contract(CONTRACT_ADDRESS, IPNFT_ABI, prov);
