@@ -1,6 +1,6 @@
 /** 
  * 审批管理布局样式
- * 采用极光科技风格，深色主题配合霓虹光效
+ * 采用极光科技风格，亮色主题配合柔和光效
  */
 
 /* ==================== 布局基础 ==================== */
@@ -339,5 +339,261 @@
 
   .approval-main {
     padding: 16px;
+  }
+}
+
+/* ==================== 亮色主题覆盖 ==================== */
+.approval-layout {
+  background:
+    radial-gradient(ellipse at 12% 0%, rgba(37, 99, 235, 0.08), transparent 42%),
+    radial-gradient(ellipse at 90% 16%, rgba(13, 148, 136, 0.1), transparent 40%),
+    #f6f8fb;
+  color: var(--text-primary);
+}
+
+.approval-sidebar {
+  background: rgba(255, 255, 255, 0.94);
+  border-right-color: var(--border-secondary);
+  box-shadow: 8px 0 28px rgba(15, 23, 42, 0.08);
+}
+
+.sidebar-header,
+.stats-section,
+.sidebar-footer {
+  border-color: var(--border-secondary);
+}
+
+.header-title,
+.stat-value {
+  color: var(--text-primary);
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.header-subtitle,
+.stat-label,
+.stats-loading,
+.footer-text {
+  color: var(--text-tertiary);
+}
+
+.footer-version {
+  color: var(--text-muted);
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.78);
+  border-color: var(--border-secondary);
+}
+
+.stat-card:hover {
+  background: #ffffff;
+  box-shadow: var(--shadow-card);
+}
+
+.nav-link {
+  color: var(--text-secondary);
+}
+
+.nav-link:hover {
+  background: rgba(13, 148, 136, 0.08);
+  color: var(--text-primary);
+}
+
+.nav-link.active {
+  background: rgba(13, 148, 136, 0.12);
+  color: var(--color-primary);
+}
+
+@media (max-width: 768px) {
+  .approval-sidebar {
+    border-bottom-color: var(--border-secondary);
+  }
+}
+
+/* ==================== 审批主列表亮色覆盖 ==================== */
+.approval-page {
+  min-height: 100vh;
+  padding: 32px;
+  background:
+    radial-gradient(ellipse at 12% 0%, rgba(13, 148, 136, 0.09), transparent 44%),
+    radial-gradient(ellipse at 88% 18%, rgba(37, 99, 235, 0.07), transparent 42%),
+    var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.approval-page .page-header-section,
+.approval-page .list-section {
+  position: relative;
+  z-index: 1;
+}
+
+.approval-page .header-title-area {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.approval-page .title-icon {
+  width: 58px;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(13, 148, 136, 0.14), rgba(37, 99, 235, 0.12));
+  color: var(--color-primary);
+  border: 1px solid rgba(13, 148, 136, 0.22);
+}
+
+.approval-page .main-title {
+  margin: 0 0 6px;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-primary);
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.approval-page .sub-title,
+.approval-page .filter-label {
+  margin: 0;
+  color: var(--text-tertiary);
+}
+
+.approval-page .filter-card,
+.approval-page .list-card {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border: 1px solid var(--border-secondary) !important;
+  box-shadow: var(--shadow-card) !important;
+}
+
+.approval-page .filter-card {
+  margin-bottom: 24px;
+}
+
+.approval-page .filter-card .ant-card-body {
+  padding: 20px 24px;
+}
+
+.approval-page .filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+.approval-page .filter-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.approval-page .filter-search {
+  margin-left: auto;
+}
+
+.approval-page .filter-card .ant-select-selector,
+.approval-page .filter-card .ant-picker,
+.approval-page .filter-card .ant-input-affix-wrapper {
+  background: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.14) !important;
+  color: var(--text-primary) !important;
+}
+
+.approval-page .filter-card .ant-picker-input > input,
+.approval-page .filter-card .ant-input {
+  color: var(--text-primary) !important;
+}
+
+.approval-page .list-card .ant-card-body {
+  padding: 16px;
+}
+
+.approval-page .approval-list .ant-list-item {
+  border: none;
+  padding: 0;
+  margin-bottom: 16px;
+}
+
+.approval-page .approval-item {
+  background: #ffffff !important;
+  border: 1px solid var(--border-secondary) !important;
+  border-radius: 14px;
+  padding: 20px 24px !important;
+  color: var(--text-primary) !important;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+}
+
+.approval-page .approval-item:hover {
+  background: #f8fafc !important;
+  border-color: var(--border-glow) !important;
+  box-shadow: var(--shadow-card-hover);
+}
+
+.approval-page .approval-id {
+  color: var(--text-primary) !important;
+  background: rgba(15, 23, 42, 0.05) !important;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-family: 'Monaco', 'Menlo', monospace;
+}
+
+.approval-page .approval-row .label,
+.approval-page .approval-meta .meta-item {
+  color: var(--text-tertiary) !important;
+}
+
+.approval-page .approval-row .value,
+.approval-page .approval-row .ant-typography,
+.approval-page .approval-content,
+.approval-page .ant-list-item-meta-description {
+  color: var(--text-secondary) !important;
+}
+
+.approval-page .approval-row .value.target-id {
+  background: rgba(15, 23, 42, 0.05) !important;
+  color: var(--text-primary) !important;
+}
+
+.approval-page .approval-meta {
+  border-top: 1px solid var(--border-secondary) !important;
+}
+
+.approval-page .approval-item .action-btn {
+  color: var(--text-tertiary) !important;
+}
+
+.approval-page .approval-item .action-btn.view:hover {
+  color: #2563eb !important;
+  background: rgba(37, 99, 235, 0.1) !important;
+}
+
+.approval-page .approval-item .action-btn.approve:hover {
+  color: #16a34a !important;
+  background: rgba(22, 163, 74, 0.1) !important;
+}
+
+.approval-page .approval-item .action-btn.reject:hover {
+  color: #dc2626 !important;
+  background: rgba(220, 38, 38, 0.1) !important;
+}
+
+.approval-page .approval-item .action-btn.return:hover {
+  color: #d97706 !important;
+  background: rgba(217, 119, 6, 0.1) !important;
+}
+
+@media (max-width: 768px) {
+  .approval-page {
+    padding: 18px;
+  }
+
+  .approval-page .filter-search {
+    margin-left: 0;
   }
 }

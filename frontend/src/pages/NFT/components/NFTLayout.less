@@ -8,15 +8,18 @@
 @text-primary: #122033;
 @text-secondary: #8892b0;
 @bg-dark: #f6f8fb;
-@bg-card: rgba(10, 10, 15, 0.95);
-@border-color: rgba(0, 212, 255, 0.1);
+@bg-card: rgba(255, 255, 255, 0.94);
+@border-color: rgba(15, 23, 42, 0.08);
 
 // ============================================
 // ============================================
 
 .nft-layout {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f6f8fb 0%, #f6f8fb 50%, #0d0d14 100%);
+  background:
+    radial-gradient(ellipse at 16% 0%, rgba(13, 148, 136, 0.1), transparent 42%),
+    radial-gradient(ellipse at 86% 18%, rgba(37, 99, 235, 0.08), transparent 40%),
+    #f6f8fb;
 }
 
 // ============================================
@@ -127,7 +130,7 @@
 
   .breadcrumb-wrapper {
     padding: 16px 24px;
-    background: rgba(10, 10, 15, 0.5);
+    background: rgba(255, 255, 255, 0.76);
     border-bottom: 1px solid @border-color;
 
     .nft-breadcrumb {

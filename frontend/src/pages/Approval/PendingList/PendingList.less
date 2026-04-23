@@ -1,6 +1,6 @@
 /** 
  * 待审批列表页面样式
- * 深色主题，卡片式列表布局
+ * 亮色主题，卡片式列表布局
  */
 
 /* ==================== 页面整体 ==================== */
@@ -477,5 +477,109 @@
       width: 100%;
       margin-top: 8px;
     }
+  }
+}
+
+/* ==================== 亮色主题覆盖 ==================== */
+.pending-list-page {
+  color: var(--text-primary);
+}
+
+.pending-list-page .page-title {
+  color: var(--text-primary);
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.pending-list-page .page-subtitle,
+.pending-list-page .filter-label {
+  color: var(--text-tertiary);
+}
+
+.pending-list-page .filter-card,
+.pending-list-page .list-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: var(--border-secondary);
+  box-shadow: var(--shadow-card);
+}
+
+.pending-list-page .filter-card {
+  .ant-select .ant-select-selector,
+  .ant-picker,
+  .ant-input-affix-wrapper {
+    background: #ffffff !important;
+    border-color: rgba(15, 23, 42, 0.14) !important;
+    color: var(--text-primary) !important;
+  }
+
+  .ant-picker .ant-picker-input > input,
+  .ant-input-affix-wrapper .ant-input {
+    color: var(--text-primary) !important;
+  }
+
+  .ant-select-arrow,
+  .ant-picker-suffix,
+  .ant-input-prefix {
+    color: var(--text-tertiary);
+  }
+
+  .ant-input::placeholder {
+    color: var(--text-muted);
+  }
+}
+
+.pending-list-page .approval-item {
+  background: #ffffff;
+  border-color: var(--border-secondary);
+}
+
+.pending-list-page .approval-item:hover {
+  background: #f8fafc;
+  border-color: var(--border-glow);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.pending-list-page .approval-id {
+  color: var(--text-primary);
+  background: rgba(15, 23, 42, 0.05);
+}
+
+.pending-list-page .approval-row .label,
+.pending-list-page .approval-meta .meta-item {
+  color: var(--text-tertiary);
+}
+
+.pending-list-page .approval-row .value {
+  color: var(--text-secondary);
+}
+
+.pending-list-page .approval-row .value.target-id {
+  background: rgba(15, 23, 42, 0.05);
+}
+
+.pending-list-page .approval-meta {
+  border-top-color: var(--border-secondary);
+}
+
+.pending-list-page .approval-item .action-btn.view,
+.pending-list-page .approval-item .action-btn.approve,
+.pending-list-page .approval-item .action-btn.reject,
+.pending-list-page .approval-item .action-btn.return {
+  color: var(--text-tertiary);
+}
+
+.pending-list-page .approval-list .ant-pagination {
+  .ant-pagination-item,
+  .ant-pagination-prev .ant-pagination-item-link,
+  .ant-pagination-next .ant-pagination-item-link,
+  .ant-pagination-options .ant-select .ant-select-selector {
+    background: #ffffff;
+    border-color: var(--border-secondary);
+    color: var(--text-secondary);
+  }
+
+  .ant-pagination-item a {
+    color: var(--text-secondary);
   }
 }

@@ -195,3 +195,56 @@
     font-size: 24px;
   }
 }
+
+/* ==================== 亮色主题覆盖 ==================== */
+.history-page {
+  color: var(--text-primary);
+}
+
+.history-page .page-title {
+  color: var(--text-primary);
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.history-page .page-subtitle,
+.history-page .filter-label {
+  color: var(--text-tertiary);
+}
+
+.history-page .filter-card,
+.history-page .table-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: var(--border-secondary);
+  box-shadow: var(--shadow-card);
+}
+
+.history-page .table-card .ant-table-thead > tr > th {
+  background: #f1f5f9;
+  border-bottom-color: var(--border-secondary);
+  color: #334155;
+}
+
+.history-page .table-card .ant-table-tbody > tr > td {
+  border-bottom-color: var(--border-secondary);
+  color: var(--text-secondary);
+}
+
+.history-page .table-card .ant-table-tbody > tr:hover > td {
+  background: #f8fafc;
+}
+
+.history-page .approval-code {
+  color: var(--text-primary);
+  background: rgba(15, 23, 42, 0.05);
+}
+
+.history-page .applicant-info .applicant-name,
+.history-page .target-info .target-name {
+  color: var(--text-primary);
+}
+
+.history-page .applicant-info .applicant-email {
+  color: var(--text-tertiary);
+}
