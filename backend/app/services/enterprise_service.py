@@ -1,4 +1,7 @@
 """企业管理业务逻辑服务。"""
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
+import secrets
 from typing import Optional, List
 from uuid import UUID
 
@@ -30,7 +33,24 @@ from app.schemas.enterprise import (
     MemberResponse,
     InviteMemberRequest,
     UpdateMemberRoleRequest,
+    WalletBindChallengeResponse,
 )
+
+
+WALLET_BIND_CHALLENGE_TTL = timedelta(minutes=10)
+
+
+@dataclass
+class WalletBindChallenge:
+    token: str
+    enterprise_id: UUID
+    user_id: UUID
+    wallet_address: str
+    message: str
+    expires_at: datetime
+
+
+_wallet_bind_challenges: dict[str, WalletBindChallenge] = {}
 
 
 class EnterpriseNotFoundError(NotFoundException):
@@ -73,6 +93,13 @@ class WalletBindError(BadRequestException):
     
     def __init__(self, message: str):
         super().__init__(message, "WALLET_BIND_ERROR")
+
+
+class WalletBindChallengeError(BadRequestException):
+    """当钱包绑定 challenge 无效时抛出。"""
+
+    def __init__(self, message: str):
+        super().__init__(message, "WALLET_BIND_CHALLENGE_ERROR")
 
 
 class CannotRemoveOwnerError(ForbiddenException):
@@ -521,52 +548,97 @@ class EnterpriseService:
         enterprise_id: UUID,
         wallet_address: str,
         signature: str,
-        message: str,
+        challenge_token: str,
         user_id: UUID,
     ) -> EnterpriseDetailResponse:
         """
         为企业绑定钱包地址。
-        
+
         只有所有者可以绑定钱包。
-        
-        Args:
-            enterprise_id (UUID): 企业 ID。
-            wallet_address (str): 钱包地址。
-            signature (str): 钱包签名。
-            message (str): 签名的原始消息。
-            user_id (UUID): 操作者的用户 ID。
-            
-        Returns:
-            EnterpriseDetailResponse: 更新后的企业详情。
-            
-        Raises:
-            EnterpriseNotFoundError: 如果企业不存在。
-            PermissionDeniedError: 如果操作者不是所有者。
-            WalletBindError: 如果钱包已被绑定或签名无效。
         """
         enterprise = await self.enterprise_repo.get_by_id(enterprise_id)
         if not enterprise:
             raise EnterpriseNotFoundError()
-        
-        # 验证权限（只有 OWNER 可以绑定钱包）
-        await self._check_admin_permission(enterprise_id, user_id)
-        
-        # 检查钱包是否已被其他企业绑定
+
+        await self._check_owner_permission(enterprise_id, user_id)
+
         if await self.enterprise_repo.wallet_address_exists(wallet_address):
             existing = await self.enterprise_repo.get_by_wallet_address(wallet_address)
             if existing and existing.id != enterprise_id:
                 raise WalletBindError("该钱包地址已绑定到其他企业")
-        
-        # 验证签名
-        if not self._verify_wallet_signature(wallet_address, signature, message):
+
+        challenge = self._get_wallet_bind_challenge(
+            challenge_token=challenge_token,
+            enterprise_id=enterprise_id,
+            user_id=user_id,
+            wallet_address=wallet_address,
+        )
+
+        if not self._verify_wallet_signature(wallet_address, signature, challenge.message):
             raise WalletBindError("无效的钱包签名")
-        
-        # 更新钱包地址
+
+        _wallet_bind_challenges.pop(challenge_token, None)
+
         enterprise = await self.enterprise_repo.update_wallet_address(
             enterprise_id, wallet_address
         )
-        
+
         return self._enterprise_to_detail_response(enterprise)
+
+    async def create_wallet_bind_challenge(
+        self,
+        enterprise_id: UUID,
+        wallet_address: str,
+        user_id: UUID,
+    ) -> WalletBindChallengeResponse:
+        """
+        生成一次性的企业钱包绑定 challenge。
+        """
+        enterprise = await self.enterprise_repo.get_by_id(enterprise_id)
+        if not enterprise:
+            raise EnterpriseNotFoundError()
+
+        await self._check_owner_permission(enterprise_id, user_id)
+
+        if await self.enterprise_repo.wallet_address_exists(wallet_address):
+            existing = await self.enterprise_repo.get_by_wallet_address(wallet_address)
+            if existing and existing.id != enterprise_id:
+                raise WalletBindError("该钱包地址已绑定到其他企业")
+
+        self._cleanup_expired_wallet_bind_challenges()
+
+        now = datetime.now(timezone.utc)
+        expires_at = now + WALLET_BIND_CHALLENGE_TTL
+        challenge_token = secrets.token_urlsafe(32)
+        nonce = secrets.token_hex(16)
+        message = "\n".join(
+            [
+                "IP-NFT Enterprise Wallet Bind Challenge",
+                "",
+                f"Enterprise: {enterprise.name}",
+                f"Enterprise ID: {enterprise_id}",
+                f"Wallet Address: {wallet_address}",
+                f"Requested By User ID: {user_id}",
+                f"Nonce: {nonce}",
+                f"Expires At (UTC): {expires_at.isoformat()}",
+            ]
+        )
+
+        _wallet_bind_challenges[challenge_token] = WalletBindChallenge(
+            token=challenge_token,
+            enterprise_id=enterprise_id,
+            user_id=user_id,
+            wallet_address=wallet_address,
+            message=message,
+            expires_at=expires_at,
+        )
+
+        return WalletBindChallengeResponse(
+            challenge_token=challenge_token,
+            wallet_address=wallet_address,
+            message=message,
+            expires_at=expires_at,
+        )
 
     async def _check_owner_permission(
         self,
@@ -632,6 +704,37 @@ class EnterpriseService:
             return recovered_address.lower() == wallet_address.lower()
         except Exception:
             return False
+
+    def _cleanup_expired_wallet_bind_challenges(self) -> None:
+        now = datetime.now(timezone.utc)
+        expired_tokens = [
+            token
+            for token, challenge in _wallet_bind_challenges.items()
+            if challenge.expires_at <= now
+        ]
+        for token in expired_tokens:
+            _wallet_bind_challenges.pop(token, None)
+
+    def _get_wallet_bind_challenge(
+        self,
+        challenge_token: str,
+        enterprise_id: UUID,
+        user_id: UUID,
+        wallet_address: str,
+    ) -> WalletBindChallenge:
+        self._cleanup_expired_wallet_bind_challenges()
+
+        challenge = _wallet_bind_challenges.get(challenge_token)
+        if not challenge:
+            raise WalletBindChallengeError("钱包绑定挑战不存在或已过期")
+
+        if challenge.enterprise_id != enterprise_id or challenge.user_id != user_id:
+            raise WalletBindChallengeError("钱包绑定挑战与当前企业或用户不匹配")
+
+        if challenge.wallet_address.lower() != wallet_address.lower():
+            raise WalletBindChallengeError("钱包地址与签名挑战不匹配")
+
+        return challenge
     
     def _enterprise_to_response(
         self,

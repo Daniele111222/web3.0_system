@@ -15,6 +15,8 @@ from app.schemas.enterprise import (
     InviteMemberRequest,
     UpdateMemberRoleRequest,
     BindWalletRequest,
+    WalletBindChallengeRequest,
+    WalletBindChallengeResponse,
 )
 from app.schemas.response import ApiResponse
 
@@ -237,10 +239,36 @@ async def remove_member(
 
 
 @router.post(
+    "/{enterprise_id}/wallet/challenge",
+    response_model=ApiResponse[WalletBindChallengeResponse],
+    summary="生成企业钱包绑定挑战",
+    description="生成一次性的企业钱包绑定签名消息（仅企业所有者可操作）",
+)
+async def create_enterprise_wallet_bind_challenge(
+    enterprise_id: str,
+    data: WalletBindChallengeRequest,
+    db: DBSession,
+    current_user_id: CurrentUserId,
+) -> ApiResponse[WalletBindChallengeResponse]:
+    """生成企业钱包绑定 challenge。"""
+    service = EnterpriseService(db)
+    result = await service.create_wallet_bind_challenge(
+        UUID(enterprise_id),
+        data.wallet_address,
+        UUID(current_user_id),
+    )
+    return ApiResponse(
+        code="SUCCESS",
+        message="钱包绑定挑战生成成功",
+        data=result,
+    )
+
+
+@router.post(
     "/{enterprise_id}/wallet",
     response_model=ApiResponse[EnterpriseDetailResponse],
     summary="绑定企业钱包",
-    description="将区块链钱包地址绑定到企业（仅企业所有者和管理员可操作）",
+    description="使用一次性挑战完成企业钱包绑定（仅企业所有者可操作）",
 )
 async def bind_enterprise_wallet(
     enterprise_id: str,
@@ -254,7 +282,7 @@ async def bind_enterprise_wallet(
         UUID(enterprise_id),
         data.wallet_address,
         data.signature,
-        data.message,
+        data.challenge_token,
         UUID(current_user_id),
     )
     await db.commit()

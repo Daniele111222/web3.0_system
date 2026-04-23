@@ -13,7 +13,18 @@ import type { ApiResponse } from '../types';
 export interface BindEnterpriseWalletRequest {
   wallet_address: string;
   signature: string;
+  challenge_token: string;
+}
+
+export interface WalletBindChallengeRequest {
+  wallet_address: string;
+}
+
+export interface WalletBindChallengeResponse {
+  challenge_token: string;
+  wallet_address: string;
   message: string;
+  expires_at: string;
 }
 
 function handleApiResponse<T>(response: ApiResponse<T>): T {
@@ -72,6 +83,17 @@ export const enterpriseService = {
   ): Promise<EnterpriseDetail> {
     const response = await apiClient.post<ApiResponse<EnterpriseDetail>>(
       `/enterprises/${enterpriseId}/wallet`,
+      data
+    );
+    return handleApiResponse(response.data);
+  },
+
+  async createWalletBindChallenge(
+    enterpriseId: string,
+    data: WalletBindChallengeRequest
+  ): Promise<WalletBindChallengeResponse> {
+    const response = await apiClient.post<ApiResponse<WalletBindChallengeResponse>>(
+      `/enterprises/${enterpriseId}/wallet/challenge`,
       data
     );
     return handleApiResponse(response.data);

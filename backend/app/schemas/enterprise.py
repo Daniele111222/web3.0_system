@@ -197,6 +197,29 @@ class UpdateMemberRoleRequest(BaseModel):
         return value
 
 
+class WalletBindChallengeRequest(BaseModel):
+    wallet_address: str = Field(
+        ...,
+        min_length=42,
+        max_length=42,
+        description="Ethereum wallet address",
+    )
+
+    @field_validator("wallet_address")
+    @classmethod
+    def validate_wallet_address(cls, value: str) -> str:
+        if not re.match(r"^0x[a-fA-F0-9]{40}$", value):
+            raise ValueError("Invalid Ethereum wallet address")
+        return value.lower()
+
+
+class WalletBindChallengeResponse(BaseModel):
+    challenge_token: str = Field(..., description="One-time bind challenge token")
+    wallet_address: str = Field(..., description="Ethereum wallet address")
+    message: str = Field(..., description="Message to be signed")
+    expires_at: datetime = Field(..., description="Challenge expiration time")
+
+
 class BindWalletRequest(BaseModel):
     wallet_address: str = Field(
         ...,
@@ -205,7 +228,7 @@ class BindWalletRequest(BaseModel):
         description="Ethereum wallet address",
     )
     signature: str = Field(..., description="Signature payload")
-    message: str = Field(..., description="Signed message")
+    challenge_token: str = Field(..., min_length=16, description="One-time bind challenge token")
 
     @field_validator("wallet_address")
     @classmethod

@@ -33,6 +33,7 @@ import {
 } from '@ant-design/icons';
 import { useEnterpriseStore, useAuthStore } from '../../store';
 import { enterpriseService } from '../../services/enterprise';
+import type { WalletBindChallengeResponse } from '../../services/enterprise';
 import type { Enterprise, EnterpriseMember, EnterpriseRole, EnterpriseSettings } from '../../types';
 
 const { Option } = Select;
@@ -50,6 +51,7 @@ interface WalletBindFormData {
   wallet_address: string;
   message: string;
   signature: string;
+  challenge_token: string;
 }
 
 const ETHEREUM_ADDRESS_PATTERN = /^0x[a-fA-F0-9]{40}$/;
@@ -121,6 +123,8 @@ export const EnterpriseDetail: React.FC<EnterpriseDetailProps> = ({ enterpriseId
   const [roleLoading, setRoleLoading] = useState(false);
   const [isWalletModalVisible, setIsWalletModalVisible] = useState(false);
   const [walletBindingLoading, setWalletBindingLoading] = useState(false);
+  const [walletChallengeLoading, setWalletChallengeLoading] = useState(false);
+  const [walletChallenge, setWalletChallenge] = useState<WalletBindChallengeResponse | null>(null);
 
   // 检查当前用户是否是管理员或所有者
   const canManageEnterprise = useCallback(() => {
@@ -145,21 +149,6 @@ export const EnterpriseDetail: React.FC<EnterpriseDetailProps> = ({ enterpriseId
   const formatWalletAddress = (address: string): string => {
     return `${address.slice(0, 8)}...${address.slice(-6)}`;
   };
-
-  const createWalletBindMessage = useCallback((): string => {
-    const enterpriseName = currentEnterprise?.name || '当前企业';
-    const enterpriseIdentifier = effectiveId || currentEnterprise?.id || '';
-    return [
-      'IP-NFT 企业钱包绑定验证',
-      '',
-      `企业名称: ${enterpriseName}`,
-      `企业ID: ${enterpriseIdentifier}`,
-      `操作人: ${user?.email || user?.username || user?.id || '当前用户'}`,
-      `时间戳: ${Date.now()}`,
-      '',
-      '请签名以确认您拥有该钱包，并同意将其绑定为企业链上业务钱包。',
-    ].join('\n');
-  }, [currentEnterprise?.id, currentEnterprise?.name, effectiveId, user]);
 
   // 企业详情标签页配置
   const enterpriseTabs = [
@@ -345,11 +334,13 @@ export const EnterpriseDetail: React.FC<EnterpriseDetailProps> = ({ enterpriseId
   const openWalletModal = useCallback(() => {
     walletForm.setFieldsValue({
       wallet_address: currentEnterprise?.wallet_address || '',
-      message: createWalletBindMessage(),
+      message: '',
       signature: '',
+      challenge_token: '',
     });
+    setWalletChallenge(null);
     setIsWalletModalVisible(true);
-  }, [createWalletBindMessage, currentEnterprise?.wallet_address, walletForm]);
+  }, [currentEnterprise?.wallet_address, walletForm]);
 
   useEffect(() => {
     const tab = searchParams.get('tab');
@@ -390,20 +381,60 @@ export const EnterpriseDetail: React.FC<EnterpriseDetailProps> = ({ enterpriseId
     }
   };
 
+  const resetWalletChallenge = useCallback(() => {
+    setWalletChallenge(null);
+    walletForm.setFieldsValue({
+      message: '',
+      signature: '',
+      challenge_token: '',
+    });
+  }, [walletForm]);
+
+  const handleGenerateWalletChallenge = async () => {
+    if (!effectiveId) return;
+
+    try {
+      const values = await walletForm.validateFields(['wallet_address']);
+      setWalletChallengeLoading(true);
+      const challenge = await enterpriseService.createWalletBindChallenge(effectiveId, {
+        wallet_address: values.wallet_address.trim(),
+      });
+      setWalletChallenge(challenge);
+      walletForm.setFieldsValue({
+        wallet_address: challenge.wallet_address,
+        message: challenge.message,
+        signature: '',
+        challenge_token: challenge.challenge_token,
+      });
+      message.success('签名消息已生成');
+    } catch (err) {
+      if (err instanceof Error) {
+        message.error('生成签名消息失败：' + err.message);
+      }
+    } finally {
+      setWalletChallengeLoading(false);
+    }
+  };
+
   const handleBindEnterpriseWallet = async (values: WalletBindFormData) => {
     if (!effectiveId) return;
+    if (!values.challenge_token) {
+      message.warning('请先生成签名消息');
+      return;
+    }
 
     setWalletBindingLoading(true);
     try {
       const enterprise = await enterpriseService.bindWallet(effectiveId, {
         wallet_address: values.wallet_address.trim(),
-        message: values.message.trim(),
         signature: values.signature.trim(),
+        challenge_token: values.challenge_token,
       });
       setCurrentEnterprise(enterprise);
       message.success('企业钱包绑定成功');
       setIsWalletModalVisible(false);
       walletForm.resetFields();
+      setWalletChallenge(null);
     } catch (err) {
       message.error('钱包绑定失败：' + (err instanceof Error ? err.message : '未知错误'));
     } finally {
@@ -1027,22 +1058,50 @@ export const EnterpriseDetail: React.FC<EnterpriseDetailProps> = ({ enterpriseId
               },
             ]}
           >
-            <Input placeholder="0x..." autoComplete="off" />
+            <Input
+              placeholder="0x..."
+              autoComplete="off"
+              onChange={() => {
+                if (walletChallenge) {
+                  resetWalletChallenge();
+                }
+              }}
+            />
           </Form.Item>
+
+          <div className="flex justify-end mb-4">
+            <Button loading={walletChallengeLoading} onClick={handleGenerateWalletChallenge}>
+              生成签名消息
+            </Button>
+          </div>
 
           <Form.Item
             name="message"
             label="签名消息"
             rules={[{ required: true, message: '请输入签名消息' }]}
           >
-            <TextArea rows={7} />
+            <TextArea rows={7} readOnly placeholder="请先生成签名消息" />
           </Form.Item>
 
           <div className="flex justify-end mb-4">
-            <Button icon={<CopyOutlined />} onClick={copyWalletMessage}>
+            <Button icon={<CopyOutlined />} onClick={copyWalletMessage} disabled={!walletChallenge}>
               复制签名消息
             </Button>
           </div>
+
+          {walletChallenge && (
+            <div className="text-xs text-gray-500 mb-4">
+              挑战过期时间：{new Date(walletChallenge.expires_at).toLocaleString('zh-CN')}
+            </div>
+          )}
+
+          <Form.Item
+            name="challenge_token"
+            hidden
+            rules={[{ required: true, message: '缺少挑战令牌' }]}
+          >
+            <Input />
+          </Form.Item>
 
           <Form.Item
             name="signature"
