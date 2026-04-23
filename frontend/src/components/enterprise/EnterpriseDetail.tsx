@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Card,
   Descriptions,
   Button,
+  Alert,
   Space,
   Tag,
   message,
@@ -27,8 +28,11 @@ import {
   InfoCircleOutlined,
   UserAddOutlined,
   CrownOutlined,
+  WalletOutlined,
+  CopyOutlined,
 } from '@ant-design/icons';
 import { useEnterpriseStore, useAuthStore } from '../../store';
+import { enterpriseService } from '../../services/enterprise';
 import type { Enterprise, EnterpriseMember, EnterpriseRole, EnterpriseSettings } from '../../types';
 
 const { Option } = Select;
@@ -41,6 +45,14 @@ interface FormData {
   contactEmail?: string;
   contactPhone?: string;
 }
+
+interface WalletBindFormData {
+  wallet_address: string;
+  message: string;
+  signature: string;
+}
+
+const ETHEREUM_ADDRESS_PATTERN = /^0x[a-fA-F0-9]{40}$/;
 
 // 辅助函数：获取角色标签
 const getRoleBadge = (role: EnterpriseRole): React.ReactNode => {
@@ -71,10 +83,12 @@ interface EnterpriseDetailProps {
 export const EnterpriseDetail: React.FC<EnterpriseDetailProps> = ({ enterpriseId, onBack }) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   // 优先使用 props 传入的 enterpriseId，否则使用路由参数
   const effectiveId = enterpriseId || id;
   const [form] = Form.useForm<FormData>();
   const [settingsForm] = Form.useForm();
+  const [walletForm] = Form.useForm<WalletBindFormData>();
 
   const {
     currentEnterprise,
@@ -90,13 +104,14 @@ export const EnterpriseDetail: React.FC<EnterpriseDetailProps> = ({ enterpriseId
     removeMember,
     inviteMember,
     updateMemberRole,
+    setCurrentEnterprise,
     clearCurrentEnterprise,
   } = useEnterpriseStore();
 
   const { user } = useAuthStore();
 
   const [isEditing, setIsEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSettingsEditing, setIsSettingsEditing] = useState(false);
   const [isInviteModalVisible, setIsInviteModalVisible] = useState(false);
@@ -104,26 +119,47 @@ export const EnterpriseDetail: React.FC<EnterpriseDetailProps> = ({ enterpriseId
   const [selectedMember, setSelectedMember] = useState<EnterpriseMember | null>(null);
   const [inviteLoading, setInviteLoading] = useState(false);
   const [roleLoading, setRoleLoading] = useState(false);
+  const [isWalletModalVisible, setIsWalletModalVisible] = useState(false);
+  const [walletBindingLoading, setWalletBindingLoading] = useState(false);
 
   // 检查当前用户是否是管理员或所有者
-  const canManageEnterprise = () => {
+  const canManageEnterprise = useCallback(() => {
     if (!currentEnterprise || !user) return false;
     // 同时检查 userId 和 user_id
     const member = members.find(
       (m: EnterpriseMember) => m.userId === user.id || m.user_id === user.id
     );
     return member?.role === 'admin' || member?.role === 'owner';
-  };
+  }, [currentEnterprise, members, user]);
 
   // 检查当前用户是否是所有者
-  const isOwner = () => {
+  const isOwner = useCallback(() => {
     if (!currentEnterprise || !user) return false;
     // 同时检查 userId 和 user_id
     const member = members.find(
       (m: EnterpriseMember) => m.userId === user.id || m.user_id === user.id
     );
     return member?.role === 'owner';
+  }, [currentEnterprise, members, user]);
+
+  const formatWalletAddress = (address: string): string => {
+    return `${address.slice(0, 8)}...${address.slice(-6)}`;
   };
+
+  const createWalletBindMessage = useCallback((): string => {
+    const enterpriseName = currentEnterprise?.name || '当前企业';
+    const enterpriseIdentifier = effectiveId || currentEnterprise?.id || '';
+    return [
+      'IP-NFT 企业钱包绑定验证',
+      '',
+      `企业名称: ${enterpriseName}`,
+      `企业ID: ${enterpriseIdentifier}`,
+      `操作人: ${user?.email || user?.username || user?.id || '当前用户'}`,
+      `时间戳: ${Date.now()}`,
+      '',
+      '请签名以确认您拥有该钱包，并同意将其绑定为企业链上业务钱包。',
+    ].join('\n');
+  }, [currentEnterprise?.id, currentEnterprise?.name, effectiveId, user]);
 
   // 企业详情标签页配置
   const enterpriseTabs = [
@@ -304,6 +340,75 @@ export const EnterpriseDetail: React.FC<EnterpriseDetailProps> = ({ enterpriseId
   const openRoleModal = (member: EnterpriseMember) => {
     setSelectedMember(member);
     setIsRoleModalVisible(true);
+  };
+
+  const openWalletModal = useCallback(() => {
+    walletForm.setFieldsValue({
+      wallet_address: currentEnterprise?.wallet_address || '',
+      message: createWalletBindMessage(),
+      signature: '',
+    });
+    setIsWalletModalVisible(true);
+  }, [createWalletBindMessage, currentEnterprise?.wallet_address, walletForm]);
+
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab && tab !== activeTab) {
+      setActiveTab(tab);
+    }
+
+    if (searchParams.get('wallet') === 'bind' && currentEnterprise && !isWalletModalVisible) {
+      if (isOwner()) {
+        openWalletModal();
+      } else {
+        message.warning('仅企业创建人可以绑定企业钱包');
+      }
+
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete('wallet');
+      setSearchParams(nextParams, { replace: true });
+    }
+  }, [
+    activeTab,
+    currentEnterprise,
+    isOwner,
+    isWalletModalVisible,
+    openWalletModal,
+    searchParams,
+    setSearchParams,
+  ]);
+
+  const copyWalletMessage = async () => {
+    const signedMessage = walletForm.getFieldValue('message');
+    if (!signedMessage) return;
+
+    try {
+      await navigator.clipboard.writeText(signedMessage);
+      message.success('签名消息已复制');
+    } catch {
+      message.warning('复制失败，请手动复制签名消息');
+    }
+  };
+
+  const handleBindEnterpriseWallet = async (values: WalletBindFormData) => {
+    if (!effectiveId) return;
+
+    setWalletBindingLoading(true);
+    try {
+      const enterprise = await enterpriseService.bindWallet(effectiveId, {
+        wallet_address: values.wallet_address.trim(),
+        message: values.message.trim(),
+        signature: values.signature.trim(),
+      });
+      setCurrentEnterprise(enterprise);
+      message.success('企业钱包绑定成功');
+      setIsWalletModalVisible(false);
+      walletForm.resetFields();
+    } catch (err) {
+      message.error('钱包绑定失败：' + (err instanceof Error ? err.message : '未知错误'));
+    } finally {
+      setWalletBindingLoading(false);
+    }
   };
 
   const renderOverview = () => {
@@ -567,6 +672,44 @@ export const EnterpriseDetail: React.FC<EnterpriseDetailProps> = ({ enterpriseId
           </div>
         }
       >
+        <div className="mb-6">
+          <div className="flex justify-between items-start gap-4 p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+                <WalletOutlined />
+              </div>
+              <div>
+                <div className="font-medium text-gray-900 mb-1">企业 Web3 钱包</div>
+                <div className="text-sm text-gray-500">
+                  {currentEnterprise?.wallet_address
+                    ? '当前企业已绑定链上业务钱包'
+                    : '用于 IP-NFT 铸造、归属和链上资产流转'}
+                </div>
+                <div className="mt-3">
+                  {currentEnterprise?.wallet_address ? (
+                    <Tag color="blue" className="font-mono">
+                      {formatWalletAddress(currentEnterprise.wallet_address)}
+                    </Tag>
+                  ) : (
+                    <Tag color="default">未绑定</Tag>
+                  )}
+                </div>
+              </div>
+            </div>
+            {isOwner() ? (
+              <Button type="primary" icon={<WalletOutlined />} onClick={openWalletModal}>
+                {currentEnterprise?.wallet_address ? '更换钱包' : '绑定钱包'}
+              </Button>
+            ) : (
+              <Tooltip title="仅企业创建人可以绑定企业钱包">
+                <Button disabled icon={<WalletOutlined />}>
+                  绑定钱包
+                </Button>
+              </Tooltip>
+            )}
+          </div>
+        </div>
+
         {isSettingsEditing ? (
           <Form form={settingsForm} layout="vertical" onFinish={handleUpdateSettings}>
             <Form.Item name="requireApproval" label="成员加入需要审批" valuePropName="checked">
@@ -845,6 +988,68 @@ export const EnterpriseDetail: React.FC<EnterpriseDetailProps> = ({ enterpriseId
                 保存
               </Button>
             </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* 绑定企业钱包弹窗 */}
+      <Modal
+        title="绑定企业 Web3 钱包"
+        open={isWalletModalVisible}
+        onCancel={() => setIsWalletModalVisible(false)}
+        okText="确认绑定"
+        cancelText="取消"
+        confirmLoading={walletBindingLoading}
+        onOk={() => walletForm.submit()}
+        destroyOnClose
+      >
+        <Alert
+          className="mb-4"
+          type="info"
+          showIcon
+          message="仅企业创建人可绑定或更换企业钱包"
+          description="请填写钱包地址，并使用该钱包对下方消息签名后填入签名结果。"
+        />
+        <Form form={walletForm} layout="vertical" onFinish={handleBindEnterpriseWallet}>
+          <Form.Item
+            name="wallet_address"
+            label="钱包地址"
+            validateTrigger={['onBlur', 'onSubmit']}
+            rules={[
+              { required: true, message: '请输入钱包地址' },
+              {
+                validator: (_, value: string | undefined) => {
+                  if (!value || ETHEREUM_ADDRESS_PATTERN.test(value.trim())) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject(new Error('请输入有效的以太坊钱包地址'));
+                },
+              },
+            ]}
+          >
+            <Input placeholder="0x..." autoComplete="off" />
+          </Form.Item>
+
+          <Form.Item
+            name="message"
+            label="签名消息"
+            rules={[{ required: true, message: '请输入签名消息' }]}
+          >
+            <TextArea rows={7} />
+          </Form.Item>
+
+          <div className="flex justify-end mb-4">
+            <Button icon={<CopyOutlined />} onClick={copyWalletMessage}>
+              复制签名消息
+            </Button>
+          </div>
+
+          <Form.Item
+            name="signature"
+            label="签名结果"
+            rules={[{ required: true, message: '请输入签名结果' }]}
+          >
+            <TextArea rows={4} placeholder="0x..." autoComplete="off" />
           </Form.Item>
         </Form>
       </Modal>

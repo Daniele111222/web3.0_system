@@ -10,6 +10,12 @@ import type {
 } from '../types';
 import type { ApiResponse } from '../types';
 
+export interface BindEnterpriseWalletRequest {
+  wallet_address: string;
+  signature: string;
+  message: string;
+}
+
 function handleApiResponse<T>(response: ApiResponse<T>): T {
   if (response.code !== 'SUCCESS') {
     throw new Error(response.message || 'Operation failed');
@@ -60,6 +66,17 @@ export const enterpriseService = {
     return handleApiResponse(response.data);
   },
 
+  async bindWallet(
+    enterpriseId: string,
+    data: BindEnterpriseWalletRequest
+  ): Promise<EnterpriseDetail> {
+    const response = await apiClient.post<ApiResponse<EnterpriseDetail>>(
+      `/enterprises/${enterpriseId}/wallet`,
+      data
+    );
+    return handleApiResponse(response.data);
+  },
+
   async deleteEnterprise(enterpriseId: string): Promise<void> {
     const response = await apiClient.delete<ApiResponse<Record<string, unknown>>>(
       `/enterprises/${enterpriseId}`
@@ -74,10 +91,7 @@ export const enterpriseService = {
     return handleApiResponse(response.data);
   },
 
-  async inviteMember(
-    enterpriseId: string,
-    data: InviteMemberRequest
-  ): Promise<EnterpriseMember> {
+  async inviteMember(enterpriseId: string, data: InviteMemberRequest): Promise<EnterpriseMember> {
     const response = await apiClient.post<ApiResponse<EnterpriseMember>>(
       `/enterprises/${enterpriseId}/members`,
       data
