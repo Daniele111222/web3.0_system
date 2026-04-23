@@ -1,11 +1,9 @@
+/* NFT 首页样式：亮色主题下的概览、统计和快捷入口。 */
+
 /**
- * NFT 铸造页面样式 - CSS Module
- * 赛博朋克科技风格主页面
- * 包含统计卡片、资产列表、合约信息等模块
  */
 
 // ============================================
-// CSS 变量定义 (使用 :root 以便在模块中访问)
 // ============================================
 
 :root {
@@ -13,24 +11,22 @@
   --success-glow: #00ff88;
   --error-glow: #ff4444;
   --warning-glow: #ffaa00;
-  --text-primary: #ffffff;
+  --text-primary: #122033;
   --text-secondary: #8892b0;
   --text-muted: #5a6474;
-  --card-bg: #0a0a0f;
+  --card-bg: #f6f8fb;
   --card-border: #1a1a2e;
 }
 
 // ============================================
-// 页面整体布局
 // ============================================
 
 .nftPage {
   min-height: 100vh;
-  background: linear-gradient(135deg, #050508 0%, #0a0a0f 50%, #0d0d14 100%);
+  background: linear-gradient(135deg, #f6f8fb 0%, #f6f8fb 50%, #0d0d14 100%);
   padding: 24px;
   position: relative;
 
-  // 背景装饰效果
   &::before {
     content: '';
     position: fixed;
@@ -57,7 +53,6 @@
 }
 
 // ============================================
-// 页面头部
 // ============================================
 
 .pageHeader {
@@ -114,7 +109,7 @@
     font-size: 28px;
     font-weight: 700;
     color: var(--text-primary);
-    background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
+    background: linear-gradient(135deg, #122033 0%, #60a5fa 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -147,8 +142,8 @@
   &:disabled {
     background: linear-gradient(
       135deg,
-      rgba(255, 255, 255, 0.1) 0%,
-      rgba(255, 255, 255, 0.05) 100%
+      rgba(15, 23, 42, 0.08) 0%,
+      rgba(15, 23, 42, 0.05) 100%
     );
     opacity: 0.5;
     cursor: not-allowed;
@@ -163,7 +158,6 @@
 }
 
 // ============================================
-// 统计卡片区
 // ============================================
 
 .statsSection {
@@ -182,7 +176,7 @@
   background: linear-gradient(135deg, rgba(10, 10, 15, 0.9) 0%, rgba(18, 18, 26, 0.95) 100%);
   border: 1px solid rgba(0, 212, 255, 0.1);
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
   transition: all 0.3s ease;
   overflow: hidden;
 
@@ -265,7 +259,6 @@
 }
 
 // ============================================
-// 主内容区
 // ============================================
 
 .mainContent {
@@ -274,10 +267,10 @@
 }
 
 .assetsCard {
-  background: linear-gradient(135deg, rgba(10, 10, 15, 0.95) 0%, rgba(18, 18, 26, 0.98) 100%);
+  background: linear-gradient(135deg, rgba(10, 10, 15, 0.95) 0%, rgba(248, 250, 252, 0.98) 100%);
   border: 1px solid rgba(0, 212, 255, 0.1);
   border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.1);
   overflow: hidden;
 }
 
@@ -374,14 +367,13 @@
 }
 
 // ============================================
-// 合约信息卡片
 // ============================================
 
 .contractInfoCard {
-  background: linear-gradient(135deg, rgba(10, 10, 15, 0.95) 0%, rgba(18, 18, 26, 0.98) 100%);
+  background: linear-gradient(135deg, rgba(10, 10, 15, 0.95) 0%, rgba(248, 250, 252, 0.98) 100%);
   border: 1px solid rgba(0, 212, 255, 0.1);
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
   overflow: hidden;
 
   :global(.ant-card-head) {
@@ -424,7 +416,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 8px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.05);
 
   &:last-child {
     border-bottom: none;
@@ -448,14 +440,13 @@
 }
 
 // ============================================
-// 快捷操作卡片
 // ============================================
 
 .quickActionsCard {
-  background: linear-gradient(135deg, rgba(10, 10, 15, 0.95) 0%, rgba(18, 18, 26, 0.98) 100%);
+  background: linear-gradient(135deg, rgba(10, 10, 15, 0.95) 0%, rgba(248, 250, 252, 0.98) 100%);
   border: 1px solid rgba(0, 212, 255, 0.1);
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
   overflow: hidden;
 
   :global(.ant-card-head) {
@@ -508,8 +499,8 @@
         &:disabled {
           background: linear-gradient(
             135deg,
-            rgba(255, 255, 255, 0.1) 0%,
-            rgba(255, 255, 255, 0.05) 100%
+            rgba(15, 23, 42, 0.08) 0%,
+            rgba(15, 23, 42, 0.05) 100%
           );
           opacity: 0.5;
           cursor: not-allowed;
@@ -517,13 +508,13 @@
       }
 
       &:not(:global(.ant-btn-primary)) {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(15, 23, 42, 0.05);
+        border: 1px solid rgba(15, 23, 42, 0.08);
         color: var(--text-secondary);
 
         &:hover {
-          background: rgba(255, 255, 255, 0.1);
-          border-color: rgba(255, 255, 255, 0.2);
+          background: rgba(15, 23, 42, 0.08);
+          border-color: rgba(18, 32, 51, 0.2);
           color: var(--text-primary);
         }
       }
@@ -532,14 +523,13 @@
 }
 
 // ============================================
-// 帮助卡片
 // ============================================
 
 .helpCard {
-  background: linear-gradient(135deg, rgba(10, 10, 15, 0.95) 0%, rgba(18, 18, 26, 0.98) 100%);
+  background: linear-gradient(135deg, rgba(10, 10, 15, 0.95) 0%, rgba(248, 250, 252, 0.98) 100%);
   border: 1px solid rgba(0, 212, 255, 0.1);
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
   overflow: hidden;
 
   :global(.ant-card-body) {
@@ -581,7 +571,6 @@
 }
 
 // ============================================
-// 错误提示
 // ============================================
 
 .errorAlert {
@@ -605,7 +594,6 @@
 }
 
 // ============================================
-// 响应式适配
 // ============================================
 
 @media (max-width: 992px) {

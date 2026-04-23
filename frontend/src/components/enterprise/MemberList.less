@@ -1,5 +1,6 @@
+/* 企业成员列表样式：亮色主题下的筛选、统计、表格与弹窗。 */
+
 /* MemberList Component Styles
- * 成员列表组件专用样式
  * Dark luxury theme with glassmorphism effects
  */
 
@@ -37,7 +38,7 @@
 }
 
 .member-stat-card {
-  background: rgba(26, 26, 36, 0.8);
+  background: var(--bg-card);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 1.25rem;
@@ -125,7 +126,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background: rgba(26, 26, 36, 0.8);
+  background: var(--bg-card);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
   padding: 0.625rem 1rem;
@@ -168,7 +169,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: rgba(26, 26, 36, 0.8);
+  background: var(--bg-card);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
   padding: 0.5rem 0.75rem;
@@ -205,7 +206,7 @@
    ============================================ */
 
 .member-list-card {
-  background: rgba(26, 26, 36, 0.8);
+  background: var(--bg-card);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
   overflow: hidden;
@@ -280,7 +281,6 @@
   }
 }
 
-/* 头像 */
 .member-avatar {
   position: relative;
   width: 44px;
@@ -318,7 +318,6 @@
   border: 2px solid #1a1a24;
 }
 
-/* 用户信息 */
 .member-info {
   display: flex;
   flex-direction: column;
@@ -350,7 +349,6 @@
   color: rgba(255, 255, 255, 0.5);
 }
 
-/* 角色选择器 */
 .member-role-selector {
   position: relative;
 }
@@ -414,7 +412,6 @@
   color: #00d4aa;
 }
 
-/* 状态 */
 .member-status {
   display: inline-flex;
   align-items: center;
@@ -424,7 +421,6 @@
   font-weight: 500;
 }
 
-/* 加入时间 */
 .member-joined {
   display: inline-flex;
   align-items: center;
@@ -433,7 +429,6 @@
   color: rgba(255, 255, 255, 0.4);
 }
 
-/* 操作菜单 */
 .member-actions {
   position: relative;
 }

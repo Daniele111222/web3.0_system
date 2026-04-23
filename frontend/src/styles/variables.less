@@ -1,52 +1,9 @@
-/*
- * IP-NFT Design System Variables v2.0
- * Future Tech Luxury Theme - Dark Aurora
- * 
- * This file contains all design tokens used across the IP-NFT application.
- * Import this file at the root of your application to ensure all variables are available.
- * 
- * Usage:
- *   @import './styles/variables.less';  // For CSS/LESS files
- *   import './styles/variables.less';    // For JavaScript/TypeScript files
- * 
- * Available Variable Categories:
- *   - Primary Colors (Aurora Teal to Purple)
- *   - Secondary Colors (Purple Spectrum)
- *   - Neutral Colors (Slate Scale)
- *   - Semantic Colors (Success, Warning, Error, Info)
- *   - Background Colors
- *   - Text Colors
- *   - Border Colors
- *   - Gradients
- *   - Shadows
- *   - Typography
- *   - Spacing
- *   - Border Radius
- *   - Z-Index
- *   - Transitions
- *   - Blur & Backdrop Filters
- *   - Opacity
- *   - Breakpoints
- *   - Container Widths
- */
-
-/* ============================================
-   THEME CONFIGURATION
-   ============================================ */
 :root {
-  /* Theme Mode */
-  --theme-mode: dark;
-  --theme-name: 'aurora-dark';
-  --theme-version: '2.0.0';
+  --theme-mode: light;
+  --theme-name: 'ledger-light';
+  --theme-version: '3.0.0';
+  color-scheme: light;
 
-  color-scheme: dark;
-}
-
-/* ============================================
-   PRIMARY COLORS - Aurora Teal to Purple
-   ============================================ */
-:root {
-  /* Primary Teal */
   --color-primary-50: #f0fdfa;
   --color-primary-100: #ccfbf1;
   --color-primary-200: #99f6e4;
@@ -57,75 +14,216 @@
   --color-primary-700: #0f766e;
   --color-primary-800: #115e59;
   --color-primary-900: #134e4a;
-  --color-primary-950: #042f2e;
 
-  /* Primary (Aurora Teal) - Main Brand Color */
-  --color-primary: #00d4aa;
-  --color-primary-light: #5ff5d4;
-  --color-primary-dark: #00a884;
-  --color-primary-alpha-10: rgba(0, 212, 170, 0.1);
-  --color-primary-alpha-15: rgba(0, 212, 170, 0.15);
-  --color-primary-alpha-20: rgba(0, 212, 170, 0.2);
-  --color-primary-alpha-30: rgba(0, 212, 170, 0.3);
-  --color-primary-alpha-40: rgba(0, 212, 170, 0.4);
-  --color-primary-alpha-50: rgba(0, 212, 170, 0.5);
+  --color-primary: #0d9488;
+  --color-primary-light: #14b8a6;
+  --color-primary-dark: #0f766e;
+  --color-primary-alpha-10: rgba(13, 148, 136, 0.1);
+  --color-primary-alpha-15: rgba(13, 148, 136, 0.15);
+  --color-primary-alpha-20: rgba(13, 148, 136, 0.2);
+  --color-primary-alpha-30: rgba(13, 148, 136, 0.3);
+  --color-primary-alpha-40: rgba(13, 148, 136, 0.4);
+  --color-primary-alpha-50: rgba(13, 148, 136, 0.5);
 
-  /* ============================================
-     SECONDARY COLORS - Purple Spectrum
-     ============================================ */
-  /* Secondary Violet */
-  --color-secondary-50: #f5f3ff;
-  --color-secondary-100: #ede9fe;
-  --color-secondary-200: #ddd6fe;
-  --color-secondary-300: #c4b5fd;
-  --color-secondary-400: #a78bfa;
-  --color-secondary-500: #8b5cf6;
-  --color-secondary-600: #7c3aed;
-  --color-secondary-700: #6d28d9;
-  --color-secondary-800: #5b21b6;
-  --color-secondary-900: #4c1d95;
-  --color-secondary-950: #2e1065;
+  --color-secondary: #2563eb;
+  --color-secondary-light: #60a5fa;
+  --color-secondary-dark: #1d4ed8;
+  --color-secondary-alpha-10: rgba(37, 99, 235, 0.1);
+  --color-secondary-alpha-15: rgba(37, 99, 235, 0.15);
+  --color-secondary-alpha-20: rgba(37, 99, 235, 0.2);
+  --color-secondary-alpha-30: rgba(37, 99, 235, 0.3);
 
-  /* Secondary (Aurora Purple) */
-  --color-secondary: #7c3aed;
-  --color-secondary-light: #a78bfa;
-  --color-secondary-dark: #5b21b6;
-  --color-secondary-alpha-10: rgba(124, 58, 237, 0.1);
-  --color-secondary-alpha-15: rgba(124, 58, 237, 0.15);
-  --color-secondary-alpha-20: rgba(124, 58, 237, 0.2);
-  --color-secondary-alpha-30: rgba(124, 58, 237, 0.3);
-
-  /* ============================================
-     ACCENT COLORS - Cyan, Blue, Pink, Orange
-     ============================================ */
-  /* Cyan Accent */
-  --color-accent-cyan: #06b6d4;
-  --color-accent-cyan-light: #67e8f9;
-  --color-accent-cyan-dark: #0891b2;
-  --color-accent-cyan-alpha-10: rgba(6, 182, 212, 0.1);
-  --color-accent-cyan-alpha-25: rgba(6, 182, 212, 0.25);
-  --color-accent-cyan-alpha-50: rgba(6, 182, 212, 0.5);
-
-  /* Blue Accent */
-  --color-accent-blue: #3b82f6;
+  --color-accent-cyan: #0891b2;
+  --color-accent-cyan-light: #22d3ee;
+  --color-accent-cyan-dark: #0e7490;
+  --color-accent-cyan-alpha-10: rgba(8, 145, 178, 0.1);
+  --color-accent-cyan-alpha-25: rgba(8, 145, 178, 0.25);
+  --color-accent-blue: #2563eb;
   --color-accent-blue-light: #60a5fa;
-  --color-accent-blue-dark: #2563eb;
-  --color-accent-blue-alpha-10: rgba(59, 130, 246, 0.1);
-  --color-accent-blue-alpha-30: rgba(59, 130, 246, 0.3);
+  --color-accent-blue-dark: #1d4ed8;
+  --color-accent-pink: #db2777;
+  --color-accent-orange: #ea580c;
 
-  /* Pink/Magenta Accent */
-  --color-accent-pink: #ec4899;
-  --color-accent-pink-light: #f472b6;
-  --color-accent-pink-dark: #db2777;
-  --color-accent-pink-alpha-10: rgba(236, 72, 153, 0.1);
-  --color-accent-pink-alpha-30: rgba(236, 72, 153, 0.3);
+  --color-success: #16a34a;
+  --color-success-50: #f0fdf4;
+  --color-success-200: #bbf7d0;
+  --color-success-300: #86efac;
+  --color-success-500: #22c55e;
+  --color-success-600: #16a34a;
+  --color-success-700: #15803d;
+  --color-success-800: #166534;
+  --color-warning: #d97706;
+  --color-warning-50: #fffbeb;
+  --color-warning-200: #fde68a;
+  --color-warning-300: #fcd34d;
+  --color-warning-600: #d97706;
+  --color-warning-700: #b45309;
+  --color-warning-800: #92400e;
+  --color-error: #dc2626;
+  --color-error-light: #ef4444;
+  --color-error-50: #fef2f2;
+  --color-error-200: #fecaca;
+  --color-error-300: #fca5a5;
+  --color-error-500: #ef4444;
+  --color-error-600: #dc2626;
+  --color-error-700: #b91c1c;
+  --color-error-800: #991b1b;
+  --color-info: #2563eb;
+  --color-info-50: #eff6ff;
+  --color-info-200: #bfdbfe;
+  --color-info-300: #93c5fd;
+  --color-info-600: #2563eb;
+  --color-info-700: #1d4ed8;
+  --color-info-800: #1e40af;
 
-  /* Orange Accent */
-  --color-accent-orange: #f97316;
-  --color-accent-orange-light: #fb923c;
-  --color-accent-orange-dark: #ea580c;
-  --color-accent-orange-alpha-10: rgba(249, 115, 22, 0.1);
-  --color-accent-orange-alpha-30: rgba(249, 115, 22, 0.3);
+  --color-gray-50: #f8fafc;
+  --color-gray-100: #f1f5f9;
+  --color-gray-200: #e2e8f0;
+  --color-gray-300: #cbd5e1;
+  --color-gray-400: #94a3b8;
+  --color-gray-500: #64748b;
+  --color-gray-600: #475569;
+  --color-gray-700: #334155;
+  --color-gray-800: #1e293b;
+  --color-gray-900: #0f172a;
+
+  --bg-primary: #f6f8fb;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #eef3f8;
+  --bg-quaternary: #e2e8f0;
+  --bg-card: rgba(255, 255, 255, 0.86);
+  --bg-glass: rgba(255, 255, 255, 0.72);
+  --bg-glass-hover: rgba(255, 255, 255, 0.92);
+  --bg-hover: #f1f5f9;
+  --bg-input: #ffffff;
+
+  --text-primary: #122033;
+  --text-secondary: rgba(18, 32, 51, 0.74);
+  --text-tertiary: rgba(18, 32, 51, 0.54);
+  --text-muted: rgba(18, 32, 51, 0.4);
+  --text-disabled: rgba(18, 32, 51, 0.26);
+
+  --border-primary: rgba(15, 23, 42, 0.12);
+  --border-secondary: rgba(15, 23, 42, 0.08);
+  --border-tertiary: rgba(15, 23, 42, 0.05);
+  --border-glow: rgba(13, 148, 136, 0.26);
+  --border-focus: rgba(13, 148, 136, 0.42);
+
+  --gradient-primary: linear-gradient(135deg, #0d9488, #2563eb);
+  --gradient-primary-hover: linear-gradient(135deg, #14b8a6, #3b82f6);
+  --gradient-aurora: linear-gradient(135deg, rgba(13, 148, 136, 0.12), rgba(37, 99, 235, 0.1));
+  --gradient-glow: radial-gradient(circle at 50% 50%, rgba(13, 148, 136, 0.18) 0%, transparent 70%);
+  --gradient-text: linear-gradient(135deg, #122033 0%, #0f766e 52%, #1d4ed8 100%);
+  --gradient-border: linear-gradient(135deg, rgba(13, 148, 136, 0.38), rgba(37, 99, 235, 0.28));
+  --gradient-shine: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  --gradient-error: linear-gradient(135deg, #ef4444, #dc2626);
+  --gradient-success: linear-gradient(135deg, #22c55e, #16a34a);
+
+  --shadow-none: none;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 6px 16px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 12px 30px rgba(15, 23, 42, 0.11);
+  --shadow-xl: 0 18px 44px rgba(15, 23, 42, 0.14);
+  --shadow-2xl: 0 28px 70px rgba(15, 23, 42, 0.18);
+  --shadow-card: 0 14px 36px rgba(15, 23, 42, 0.1);
+  --shadow-card-hover: 0 18px 48px rgba(15, 23, 42, 0.14);
+  --shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.08);
+  --shadow-inner: inset 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-inset: inset 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-glow: 0 0 34px rgba(13, 148, 136, 0.18);
+  --shadow-glow-lg: 0 0 56px rgba(13, 148, 136, 0.22);
+  --shadow-focus: 0 0 0 3px rgba(13, 148, 136, 0.15);
+  --shadow-error: 0 0 0 3px rgba(220, 38, 38, 0.14);
+  --shadow-primary-sm: 0 4px 10px rgba(13, 148, 136, 0.16);
+  --shadow-primary-md: 0 8px 20px rgba(13, 148, 136, 0.2);
+  --shadow-primary-lg: 0 14px 32px rgba(13, 148, 136, 0.24);
+  --primary-glow: 0 0 24px rgba(13, 148, 136, 0.18);
+  --success-glow: 0 0 24px rgba(22, 163, 74, 0.18);
+  --warning-glow: 0 0 24px rgba(217, 119, 6, 0.18);
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Monaco, monospace;
+  --font-family-base: var(--font-sans);
+  --font-family-mono: var(--font-mono);
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 0.9375rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+
+  --font-light: 300;
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  --leading-none: 1;
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+  --leading-loose: 2;
+
+  --tracking-tighter: 0;
+  --tracking-tight: 0;
+  --tracking-normal: 0;
+  --tracking-wide: 0;
+  --tracking-wider: 0;
+  --tracking-widest: 0;
+
+  --space-0: 0;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  --radius-none: 0;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+  --radius-2xl: 18px;
+  --radius-full: 9999px;
+
+  --container-sm: 24rem;
+  --container-md: 28rem;
+  --container-lg: 32rem;
+  --container-xl: 36rem;
+  --container-2xl: 42rem;
+
+  --icon-sm: 14px;
+  --icon-md: 16px;
+  --icon-lg: 18px;
+  --icon-xl: 20px;
+  --icon-2xl: 24px;
+
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.25s ease;
+  --transition-slow: 0.4s ease;
+  --transition-slower: 0.6s ease;
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --z-skip-link: 1600;
 }
 
-/* Continue with more CSS variables in the next section */
+[data-theme='dark'] {
+  color-scheme: light;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: 0.01ms;
+    --transition-base: 0.01ms;
+    --transition-slow: 0.01ms;
+  }
+}

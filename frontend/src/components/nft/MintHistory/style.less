@@ -1,38 +1,35 @@
+// 铸造历史样式：亮色主题下的历史卡片、时间线和空状态。
+
 /**
- * MintHistory 组件样式
- * 铸造历史记录的时间线和卡片样式
- * 赛博朋克风格设计
  */
 
 @import '../../../styles/variables.less';
 
 // ============================================
-// 变量定义
 // ============================================
 
 @primary-glow: #00d4ff;
 @success-glow: #00ff88;
 @error-glow: #ff4444;
 @warning-glow: #ffaa00;
-@text-primary: #ffffff;
+@text-primary: #122033;
 @text-secondary: #8892b0;
 @text-muted: #5a6474;
-@card-bg: #0a0a0f;
+@card-bg: #f6f8fb;
 @card-border: #1a1a2e;
 
 // ============================================
-// 主卡片样式
 // ============================================
 
 .mint-history-card {
-  background: linear-gradient(135deg, @card-bg 0%, #12121a 100%);
+  background: linear-gradient(135deg, @card-bg 0%, #122033 100%);
   border: 1px solid rgba(0, 212, 255, 0.15);
   border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.1);
 
   .ant-card-head {
     background: transparent;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.07);
     padding: 16px 20px;
 
     .ant-card-head-title {
@@ -51,7 +48,6 @@
 }
 
 // ============================================
-// 头部样式
 // ============================================
 
 .history-header {
@@ -80,7 +76,6 @@
 }
 
 // ============================================
-// 筛选标签页样式
 // ============================================
 
 .filter-tabs {
@@ -94,8 +89,8 @@
     .ant-tabs-nav-wrap {
       .ant-tabs-nav-list {
         .ant-tabs-tab {
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(15, 23, 42, 0.05);
+          border: 1px solid rgba(15, 23, 42, 0.08);
           border-radius: 6px;
           padding: 4px 12px;
           margin: 0 4px;
@@ -105,7 +100,7 @@
 
           &:hover {
             color: @text-primary;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(15, 23, 42, 0.08);
           }
 
           &.ant-tabs-tab-active {
@@ -128,7 +123,6 @@
 }
 
 // ============================================
-// 时间线样式
 // ============================================
 
 .mint-timeline {
@@ -139,9 +133,8 @@
       padding-bottom: 0;
     }
 
-    // 时间线圆点
     .ant-timeline-item-tail {
-      border-left: 2px dashed rgba(255, 255, 255, 0.1);
+      border-left: 2px dashed rgba(15, 23, 42, 0.08);
       left: 15px;
     }
 
@@ -155,50 +148,45 @@
       align-items: center;
       justify-content: center;
       background: @card-bg;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 0 10px rgba(15, 23, 42, 0.14);
 
-      // 成功状态
       &.success {
         border-color: @success-glow;
         color: @success-glow;
         box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
       }
 
-      // 失败状态
       &.error {
         border-color: @error-glow;
         color: @error-glow;
         box-shadow: 0 0 15px rgba(255, 68, 68, 0.3);
       }
 
-      // 进行中状态
       &.processing {
         border-color: @warning-glow;
         color: @warning-glow;
         box-shadow: 0 0 15px rgba(255, 170, 0, 0.3);
       }
 
-      // 默认状态
       &.default {
         border-color: @text-muted;
         color: @text-muted;
       }
     }
 
-    // 时间线内容
     .ant-timeline-item-content {
       margin-left: 48px;
 
       .timeline-card {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(15, 23, 42, 0.035);
+        border: 1px solid rgba(15, 23, 42, 0.07);
         border-radius: 8px;
         overflow: hidden;
         transition: all 0.2s ease;
 
         &:hover {
-          background: rgba(255, 255, 255, 0.05);
-          border-color: rgba(255, 255, 255, 0.12);
+          background: rgba(15, 23, 42, 0.05);
+          border-color: rgba(15, 23, 42, 0.1);
         }
 
         &.has-error {
@@ -209,7 +197,6 @@
           padding: 12px;
         }
 
-        // 时间线头部
         .timeline-header {
           display: flex;
           justify-content: space-between;
@@ -236,7 +223,6 @@
           }
         }
 
-        // 详情行
         .timeline-detail {
           display: flex;
           align-items: center;
@@ -266,7 +252,6 @@
           }
         }
 
-        // 错误信息
         .timeline-error {
           display: flex;
           align-items: flex-start;
@@ -290,14 +275,13 @@
           }
         }
 
-        // 持续时间
         .timeline-duration {
           display: flex;
           align-items: center;
           gap: 6px;
           margin-top: 8px;
           padding-top: 8px;
-          border-top: 1px solid rgba(255, 255, 255, 0.05);
+          border-top: 1px solid rgba(15, 23, 42, 0.05);
 
           .anticon {
             font-size: 12px;
@@ -310,7 +294,6 @@
           }
         }
 
-        // 操作按钮
         .timeline-actions {
           margin-top: 10px;
           display: flex;
@@ -333,7 +316,6 @@
 }
 
 // ============================================
-// 空状态样式
 // ============================================
 
 .ant-empty {
@@ -355,7 +337,6 @@
 }
 
 // ============================================
-// 加载状态样式
 // ============================================
 
 .ant-spin {

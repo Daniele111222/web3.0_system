@@ -1,32 +1,28 @@
+/* NFT 仪表盘样式：亮色主题下的统计卡片和快捷操作。 */
+
 /**
  * NFT Dashboard - Deep Space Tech Aesthetic
- * 深空科技风格 - 沉浸式宇宙界面
  */
 
 // ============================================
-// 设计系统变量
 // ============================================
 
-// 色彩系统 - 深空星云色调
-@ds-bg-deep: #020204; // 虚空黑
-@ds-bg-midnight: #0a0a12; // 午夜蓝黑
-@ds-bg-void: #0f0f1a; // 虚空紫黑
-@ds-bg-card: rgba(15, 15, 26, 0.85); // 卡片背景
+@ds-bg-deep: #122033;
+@ds-bg-midnight: #f6f8fb;
+@ds-bg-void: #122033;
+@ds-bg-card: rgba(15, 15, 26, 0.85);
 
-// 光效色彩 - 星云极光
-@ds-aurora-cyan: #00f5ff; // 极光青
-@ds-aurora-violet: #8b5cf6; // 极光紫
-@ds-aurora-pink: #ec4899; // 极光粉
-@ds-aurora-amber: #f59e0b; // 极光橙
-@ds-aurora-green: #10b981; // 极光绿
+@ds-aurora-cyan: #0891b2;
+@ds-aurora-violet: #2563eb;
+@ds-aurora-pink: #ec4899;
+@ds-aurora-amber: #f59e0b;
+@ds-aurora-green: #10b981;
 
-// 文字色彩
-@ds-text-primary: #ffffff;
-@ds-text-secondary: rgba(255, 255, 255, 0.7);
-@ds-text-tertiary: rgba(255, 255, 255, 0.45);
-@ds-text-muted: rgba(255, 255, 255, 0.3);
+@ds-text-primary: #122033;
+@ds-text-secondary: rgba(18, 32, 51, 0.64);
+@ds-text-tertiary: rgba(18, 32, 51, 0.44);
+@ds-text-muted: rgba(18, 32, 51, 0.3);
 
-// 光晕效果
 @glow-cyan:
   0 0 20px rgba(0, 245, 255, 0.4),
   0 0 40px rgba(0, 245, 255, 0.2);
@@ -38,7 +34,6 @@
   0 0 40px rgba(236, 72, 153, 0.2);
 
 // ============================================
-// 动画关键帧
 // ============================================
 
 @keyframes aurora-flow {
@@ -94,7 +89,6 @@
 }
 
 // ============================================
-// Dashboard 页面样式
 // ============================================
 
 .nft-dashboard-page {
@@ -108,7 +102,6 @@
   position: relative;
   overflow-x: hidden;
 
-  // 星空背景装饰
   &::before {
     content: '';
     position: absolute;
@@ -117,20 +110,19 @@
     right: 0;
     bottom: 0;
     background-image:
-      radial-gradient(1px 1px at 20px 30px, rgba(255, 255, 255, 0.4), transparent),
-      radial-gradient(1px 1px at 40px 70px, rgba(255, 255, 255, 0.3), transparent),
-      radial-gradient(1px 1px at 130px 80px, rgba(255, 255, 255, 0.5), transparent),
+      radial-gradient(1px 1px at 20px 30px, rgba(18, 32, 51, 0.4), transparent),
+      radial-gradient(1px 1px at 40px 70px, rgba(18, 32, 51, 0.3), transparent),
+      radial-gradient(1px 1px at 130px 80px, rgba(18, 32, 51, 0.48), transparent),
       radial-gradient(2px 2px at 160px 120px, rgba(0, 245, 255, 0.3), transparent),
-      radial-gradient(1px 1px at 250px 50px, rgba(255, 255, 255, 0.4), transparent),
+      radial-gradient(1px 1px at 250px 50px, rgba(18, 32, 51, 0.4), transparent),
       radial-gradient(2px 2px at 300px 180px, rgba(139, 92, 246, 0.3), transparent),
-      radial-gradient(1px 1px at 380px 90px, rgba(255, 255, 255, 0.3), transparent);
+      radial-gradient(1px 1px at 380px 90px, rgba(18, 32, 51, 0.3), transparent);
     background-size: 400px 250px;
     opacity: 0.6;
     pointer-events: none;
   }
 
   // ============================================
-  // 页面头部
   // ============================================
   .page-header {
     display: flex;
@@ -139,16 +131,15 @@
     margin-bottom: 40px;
     padding: 24px 28px;
     background:
-      linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%),
-      rgba(15, 15, 26, 0.6);
+      linear-gradient(135deg, rgba(15, 23, 42, 0.05) 0%, rgba(15, 23, 42, 0.025) 100%),
+      rgba(255, 255, 255, 0.86);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(15, 23, 42, 0.07);
     border-radius: 20px;
     position: relative;
     z-index: 1;
     overflow: hidden;
 
-    // 顶部光效边线
     &::before {
       content: '';
       position: absolute;
@@ -201,7 +192,7 @@
           color: @ds-text-primary;
           margin: 0 0 6px 0;
           letter-spacing: -0.5px;
-          background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 50%, #c4b5fd 100%);
+          background: linear-gradient(135deg, #122033 0%, #60a5fa 50%, #99f6e4 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
@@ -220,7 +211,6 @@
   }
 
   // ============================================
-  // 统计卡片区域
   // ============================================
   .stats-section {
     margin-bottom: 40px;
@@ -229,17 +219,16 @@
 
     .dashboard-stat-card {
       background:
-        linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%),
+        linear-gradient(135deg, rgba(15, 23, 42, 0.07) 0%, rgba(15, 23, 42, 0.025) 100%),
         rgba(15, 15, 26, 0.7);
       backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(15, 23, 42, 0.07);
       border-radius: 20px;
       transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
       overflow: hidden;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 8px 32px rgba(15, 23, 42, 0.12);
 
-      // 渐变边框效果
       &::before {
         content: '';
         position: absolute;
@@ -267,7 +256,7 @@
       &:hover {
         transform: translateY(-8px);
         box-shadow:
-          0 20px 60px rgba(0, 0, 0, 0.5),
+          0 20px 60px rgba(15, 23, 42, 0.14),
           0 0 40px rgba(0, 245, 255, 0.1);
 
         &::before {
@@ -292,18 +281,16 @@
           position: relative;
           overflow: hidden;
 
-          // 图标背景渐变
           background: linear-gradient(
             135deg,
             rgba(0, 245, 255, 0.2) 0%,
             rgba(139, 92, 246, 0.2) 100%
           );
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(15, 23, 42, 0.08);
           box-shadow:
             inset 0 0 20px rgba(0, 245, 255, 0.1),
             0 0 20px rgba(0, 245, 255, 0.2);
 
-          // 动态光效
           &::after {
             content: '';
             position: absolute;
@@ -311,7 +298,7 @@
             background: linear-gradient(
               45deg,
               transparent 30%,
-              rgba(255, 255, 255, 0.1) 50%,
+              rgba(15, 23, 42, 0.08) 50%,
               transparent 70%
             );
             animation: shimmer 3s infinite;
@@ -337,7 +324,7 @@
                 font-weight: 700;
                 font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
                 letter-spacing: -1px;
-                background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
+                background: linear-gradient(135deg, #122033 0%, #60a5fa 100%);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
                 background-clip: text;
@@ -350,7 +337,6 @@
   }
 
   // ============================================
-  // 快捷操作区域
   // ============================================
   .quick-actions-section {
     position: relative;
@@ -362,25 +348,24 @@
       color: @ds-text-secondary;
       margin-bottom: 20px;
       padding-bottom: 12px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      border-bottom: 1px solid rgba(15, 23, 42, 0.06);
       text-transform: uppercase;
       letter-spacing: 1.5px;
     }
 
     .quick-action-card {
       background:
-        linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%),
-        rgba(15, 15, 26, 0.6);
+        linear-gradient(135deg, rgba(15, 23, 42, 0.05) 0%, rgba(15, 23, 42, 0.015) 100%),
+        rgba(255, 255, 255, 0.86);
       backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(15, 23, 42, 0.06);
       border-radius: 16px;
       transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
       overflow: hidden;
       cursor: pointer;
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 4px 24px rgba(15, 23, 42, 0.1);
 
-      // 底部渐变光效
       &::before {
         content: '';
         position: absolute;
@@ -397,7 +382,7 @@
         transform: translateY(-4px);
         border-color: rgba(0, 245, 255, 0.2);
         box-shadow:
-          0 12px 40px rgba(0, 0, 0, 0.4),
+          0 12px 40px rgba(15, 23, 42, 0.12),
           0 0 30px rgba(0, 245, 255, 0.1);
 
         &::before {
@@ -465,7 +450,6 @@
 }
 
 // ============================================
-// 响应式适配
 // ============================================
 
 @media (max-width: 768px) {

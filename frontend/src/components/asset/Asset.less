@@ -1,38 +1,31 @@
+// 资产管理组件样式：亮色主题下的卡片、表单、上传与状态展示。
+
 // ========================================
-// 资产管理组件样式 - 深色科技主题
-// 设计风格：深色背景 + 紫色/蓝色渐变点缀 + 卡片式布局
 // ========================================
 
-// CSS 变量定义 - 保持与Enterprise页面一致
 :root {
-  // 主色调 - 深色主题
-  --asset-bg-primary: #0f172a;
-  --asset-bg-secondary: #1e293b;
-  --asset-bg-tertiary: #334155;
+  --asset-bg-primary: #f6f8fb;
+  --asset-bg-secondary: #ffffff;
+  --asset-bg-tertiary: #eef3f8;
 
-  // 文字颜色
-  --asset-text-primary: #f8fafc;
-  --asset-text-secondary: #cbd5e1;
-  --asset-text-muted: #94a3b8;
+  --asset-text-primary: #122033;
+  --asset-text-secondary: rgba(18, 32, 51, 0.72);
+  --asset-text-muted: rgba(18, 32, 51, 0.48);
 
-  // 强调色 - 紫色/蓝色渐变
-  --asset-accent-purple: #8b5cf6;
+  --asset-accent-purple: #2563eb;
   --asset-accent-blue: #3b82f6;
   --asset-accent-cyan: #06b6d4;
 
-  // 状态颜色
   --asset-success: #10b981;
   --asset-warning: #f59e0b;
   --asset-error: #ef4444;
 
-  // 边框和阴影
   --asset-border: rgba(148, 163, 184, 0.2);
-  --asset-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --asset-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
-  --asset-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --asset-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.1);
+  --asset-shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.12);
+  --asset-shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.14);
   --asset-shadow-glow: 0 0 20px rgba(139, 92, 246, 0.3);
 
-  // 圆角
   --asset-radius-sm: 6px;
   --asset-radius-md: 8px;
   --asset-radius-lg: 12px;
@@ -40,7 +33,6 @@
 }
 
 // ========================================
-// AssetList 组件样式
 // ========================================
 
 .asset-list {
@@ -50,7 +42,6 @@
   padding: 8px;
 }
 
-// 加载状态
 .loading {
   display: flex;
   flex-direction: column;
@@ -78,7 +69,6 @@
   }
 }
 
-// 空状态
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -112,9 +102,8 @@
   }
 }
 
-// 资产卡片
 .asset-card {
-  background: linear-gradient(135deg, var(--asset-bg-secondary) 0%, rgba(30, 41, 59, 0.8) 100%);
+  background: linear-gradient(135deg, var(--asset-bg-secondary) 0%, rgba(255, 255, 255, 0.88) 100%);
   border-radius: var(--asset-radius-xl);
   border: 1px solid var(--asset-border);
   padding: 24px;
@@ -123,7 +112,6 @@
   position: relative;
   overflow: hidden;
 
-  // 悬停光效
   &::before {
     content: '';
     position: absolute;
@@ -146,13 +134,11 @@
     }
   }
 
-  // 激活状态
   &:active {
     transform: translateY(-2px);
   }
 }
 
-// 卡片头部
 .asset-card-header {
   display: flex;
   justify-content: space-between;
@@ -171,7 +157,6 @@
   word-break: break-word;
 }
 
-// 状态徽章
 .asset-card-badge {
   display: inline-flex;
   align-items: center;
@@ -183,7 +168,6 @@
   white-space: nowrap;
   flex-shrink: 0;
 
-  // 状态圆点
   &::before {
     content: '';
     width: 6px;
@@ -192,7 +176,6 @@
   }
 }
 
-// 草稿状态
 .badge-draft {
   background: rgba(245, 158, 11, 0.15);
   color: var(--asset-warning);
@@ -203,7 +186,6 @@
   }
 }
 
-// 已铸造状态
 .badge-minted {
   background: rgba(16, 185, 129, 0.15);
   color: var(--asset-success);
@@ -214,7 +196,6 @@
   }
 }
 
-// 待审批状态
 .badge-pending {
   background: rgba(59, 130, 246, 0.15);
   color: #3b82f6;
@@ -225,7 +206,6 @@
   }
 }
 
-// 已拒绝状态
 .badge-rejected {
   background: rgba(239, 68, 68, 0.15);
   color: var(--asset-error);
@@ -236,7 +216,6 @@
   }
 }
 
-// 卡片操作按钮
 .asset-card-actions {
   display: flex;
   justify-content: flex-end;
@@ -246,7 +225,6 @@
   border-top: 1px solid var(--asset-border);
 }
 
-// 卡片描述
 .asset-card-description {
   font-size: 14px;
   color: var(--asset-text-secondary);
@@ -258,7 +236,6 @@
   overflow: hidden;
 }
 
-// 卡片元信息
 .asset-card-meta {
   display: flex;
   flex-wrap: wrap;
@@ -276,7 +253,6 @@
 }
 
 // ========================================
-// AssetForm 组件样式
 // ========================================
 
 .asset-form {
@@ -366,7 +342,7 @@
   gap: 4px;
 
   &::before {
-    content: '⚠';
+    content: '!';
     font-size: 12px;
   }
 }
@@ -380,7 +356,6 @@
   margin-top: 8px;
 }
 
-// 按钮样式
 .btn {
   display: inline-flex;
   align-items: center;
@@ -428,7 +403,6 @@
 }
 
 // ========================================
-// FileUpload 组件样式
 // ========================================
 
 .file-upload-area {
@@ -438,11 +412,10 @@
   text-align: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0.8) 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(240, 253, 250, 0.96) 100%);
   position: relative;
   overflow: hidden;
 
-  // 光晕效果
   &::before {
     content: '';
     position: absolute;
@@ -457,7 +430,7 @@
 
   &:hover {
     border-color: var(--asset-accent-purple);
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, var(--bg-primary) 100%);
 
     &::before {
       opacity: 1;
@@ -466,7 +439,7 @@
 
   &.dragging {
     border-color: var(--asset-accent-cyan);
-    background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(15, 23, 42, 0.9) 100%);
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, var(--bg-primary) 100%);
     box-shadow: 0 0 30px rgba(6, 182, 212, 0.2);
 
     &::before {
@@ -490,7 +463,6 @@
   }
 }
 
-// 文件列表
 .file-list {
   margin-top: 20px;
   display: flex;
@@ -603,7 +575,6 @@
 }
 
 // ========================================
-// 响应式设计
 // ========================================
 
 @media (max-width: 1024px) {
@@ -633,7 +604,6 @@
 }
 
 // ========================================
-// 动画效果
 // ========================================
 
 @keyframes fadeInUp {
@@ -656,13 +626,11 @@
   }
 }
 
-// 卡片加载动画
 .asset-card {
   animation: fadeInUp 0.5s ease-out;
   animation-fill-mode: both;
 }
 
-// 为每个卡片添加递增的动画延迟
 .asset-list .asset-card:nth-child(1) {
   animation-delay: 0.05s;
 }
@@ -682,7 +650,6 @@
   animation-delay: 0.3s;
 }
 
-// 骨架屏效果
 .skeleton {
   background: linear-gradient(
     90deg,
