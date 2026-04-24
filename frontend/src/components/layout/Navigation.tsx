@@ -134,6 +134,7 @@ export function Navigation() {
     { key: '/dashboard', icon: LayoutDashboard, label: '总览' },
     { key: '/enterprises', icon: Building2, label: '企业管理' },
     { key: '/assets', icon: Files, label: '资产管理' },
+    { key: '/hardhat-wallets', icon: Wallet, label: 'Hardhat 钱包' },
     { key: '/nft', icon: Gem, label: 'NFT 铸造' },
     { key: '/approvals', icon: ClipboardCheck, label: '审批中心' },
     { key: '/blockchain-explorer', icon: Link2, label: '区块链浏览器' },

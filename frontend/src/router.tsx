@@ -21,6 +21,7 @@ import History from './pages/Approval/History';
 import ApprovalDetail from './pages/Approval/Detail';
 import BlockchainExplorer from './pages/BlockchainExplorer';
 import NFTHistoryPage from './pages/NFT/ownership/History';
+import HardhatWalletsPage from './pages/HardhatWallets';
 
 /**
  * 应用路由配置
@@ -75,6 +76,10 @@ export const router = createBrowserRouter([
       {
         path: 'assets',
         element: <Assets />,
+      },
+      {
+        path: 'hardhat-wallets',
+        element: <HardhatWalletsPage />,
       },
       {
         path: 'nft',

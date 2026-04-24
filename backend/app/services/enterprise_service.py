@@ -30,6 +30,7 @@ from app.schemas.enterprise import (
     EnterpriseResponse,
     EnterpriseDetailResponse,
     EnterpriseListResponse,
+    BoundWalletEnterpriseResponse,
     MemberResponse,
     InviteMemberRequest,
     UpdateMemberRoleRequest,
@@ -290,6 +291,30 @@ class EnterpriseService:
             page_size=page_size,
             pages=pages,
         )
+
+    async def get_bound_wallet_enterprises(self) -> List[BoundWalletEnterpriseResponse]:
+        """
+        获取所有已绑定企业钱包的企业列表。
+
+        Returns:
+            List[BoundWalletEnterpriseResponse]: 已绑定钱包的企业列表。
+        """
+        enterprises = await self.enterprise_repo.get_bound_wallet_enterprises()
+        items: List[BoundWalletEnterpriseResponse] = []
+        for enterprise in enterprises:
+            member_count = await self.enterprise_repo.get_member_count(enterprise.id)
+            items.append(
+                BoundWalletEnterpriseResponse(
+                    enterprise_id=str(enterprise.id),
+                    enterprise_name=enterprise.name,
+                    wallet_address=(enterprise.wallet_address or "").lower(),
+                    is_active=enterprise.is_active,
+                    is_verified=enterprise.is_verified,
+                    member_count=member_count,
+                )
+            )
+
+        return items
     
     async def update_enterprise(
         self,

@@ -11,6 +11,7 @@ from app.schemas.enterprise import (
     EnterpriseUpdateRequest,
     EnterpriseDetailResponse,
     EnterpriseListResponse,
+    BoundWalletEnterpriseResponse,
     MemberResponse,
     InviteMemberRequest,
     UpdateMemberRoleRequest,
@@ -65,6 +66,26 @@ async def get_my_enterprises(
     return ApiResponse(
         code="SUCCESS",
         message="获取企业列表成功",
+        data=result,
+    )
+
+
+@router.get(
+    "/bound-wallets",
+    response_model=ApiResponse[list[BoundWalletEnterpriseResponse]],
+    summary="获取已绑定企业钱包列表",
+    description="获取系统内所有已绑定企业钱包的企业列表（需登录）",
+)
+async def get_bound_wallet_enterprises(
+    db: DBSession,
+    current_user_id: CurrentUserId,
+) -> ApiResponse[list[BoundWalletEnterpriseResponse]]:
+    """获取所有已绑定企业钱包的企业列表。"""
+    service = EnterpriseService(db)
+    result = await service.get_bound_wallet_enterprises()
+    return ApiResponse(
+        code="SUCCESS",
+        message="获取已绑定企业钱包列表成功",
         data=result,
     )
 

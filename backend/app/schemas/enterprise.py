@@ -155,6 +155,15 @@ class EnterpriseListResponse(BaseModel):
     pages: int = Field(..., description="Total pages")
 
 
+class BoundWalletEnterpriseResponse(BaseModel):
+    enterprise_id: str = Field(..., description="Enterprise ID")
+    enterprise_name: str = Field(..., description="Enterprise name")
+    wallet_address: str = Field(..., description="Bound wallet address")
+    is_active: bool = Field(..., description="Active flag")
+    is_verified: bool = Field(..., description="Verified flag")
+    member_count: int = Field(default=0, description="Member count")
+
+
 class InviteMemberRequest(BaseModel):
     user_id: Optional[str] = Field(None, description="Invited user ID")
     email: Optional[str] = Field(None, max_length=255, description="Invited user email")

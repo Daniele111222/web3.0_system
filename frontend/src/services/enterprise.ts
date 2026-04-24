@@ -27,6 +27,15 @@ export interface WalletBindChallengeResponse {
   expires_at: string;
 }
 
+export interface BoundWalletEnterprise {
+  enterprise_id: string;
+  enterprise_name: string;
+  wallet_address: string;
+  is_active: boolean;
+  is_verified: boolean;
+  member_count: number;
+}
+
 function handleApiResponse<T>(response: ApiResponse<T>): T {
   if (response.code !== 'SUCCESS') {
     throw new Error(response.message || 'Operation failed');
@@ -95,6 +104,13 @@ export const enterpriseService = {
     const response = await apiClient.post<ApiResponse<WalletBindChallengeResponse>>(
       `/enterprises/${enterpriseId}/wallet/challenge`,
       data
+    );
+    return handleApiResponse(response.data);
+  },
+
+  async getBoundWalletEnterprises(): Promise<BoundWalletEnterprise[]> {
+    const response = await apiClient.get<ApiResponse<BoundWalletEnterprise[]>>(
+      '/enterprises/bound-wallets'
     );
     return handleApiResponse(response.data);
   },
