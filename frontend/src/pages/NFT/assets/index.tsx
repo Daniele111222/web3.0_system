@@ -49,10 +49,7 @@ const NFTAssetsPage: React.FC = () => {
   const boundWalletAddress = useAuthStore((state) => state.user?.wallet_address || '');
   const connectedWalletAddress = useWeb3Store((state) => state.account || '');
   const preferredWalletAddress =
-    connectedWalletAddress ||
-    boundWalletAddress ||
-    localStorage.getItem('wallet_address') ||
-    '';
+    connectedWalletAddress || boundWalletAddress || localStorage.getItem('wallet_address') || '';
 
   const {
     loading: mintLoading,
@@ -242,7 +239,7 @@ const NFTAssetsPage: React.FC = () => {
           closable
           onClose={clearAssetsError}
           className={styles.errorAlert}
-          style={{ marginBottom: 24 }}
+          style={{ marginBottom: 'var(--space-6)' }}
         />
       )}
 
@@ -254,12 +251,16 @@ const NFTAssetsPage: React.FC = () => {
           closable
           onClose={clearError}
           className={styles.errorAlert}
-          style={{ marginBottom: 24 }}
+          style={{ marginBottom: 'var(--space-6)' }}
         />
       )}
 
       {/* 搜索和筛选 */}
-      <Card className={styles.filterCard} bordered={false} style={{ marginBottom: 24 }}>
+      <Card
+        className={styles.filterCard}
+        bordered={false}
+        style={{ marginBottom: 'var(--space-6)' }}
+      >
         <div className={styles.filterRow}>
           <Search
             placeholder="搜索资产名称、类型或创建者..."

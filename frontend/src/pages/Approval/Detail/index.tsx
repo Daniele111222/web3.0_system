@@ -175,7 +175,7 @@ export default function ApprovalDetail() {
     return (
       <div className="approval-detail-page empty">
         <Empty description="审批记录不存在" />
-        <Button onClick={handleBack} type="primary" style={{ marginTop: 16 }}>
+        <Button onClick={handleBack} type="primary" style={{ marginTop: 'var(--space-4)' }}>
           返回列表
         </Button>
       </div>
@@ -215,7 +215,7 @@ export default function ApprovalDetail() {
                 border: `1px solid ${typeInfo.color}30`,
               }}
             >
-              <TypeIcon size={12} style={{ marginRight: 4 }} />
+              <TypeIcon size={12} style={{ marginRight: 'var(--space-1)' }} />
               {typeInfo.label}
             </Tag>
             <Tag className="status-tag pending">待审批</Tag>

@@ -82,7 +82,9 @@ function normalizeApprovalDetail(item: Record<string, unknown>): ApprovalDetail 
       operator_role: String(data.operator_role ?? ''),
       comment: typeof data.comment === 'string' ? data.comment : '',
       attachments: normalizeAttachments(
-        Array.isArray(data.attachments) ? (data.attachments as Array<Record<string, unknown>>) : null
+        Array.isArray(data.attachments)
+          ? (data.attachments as Array<Record<string, unknown>>)
+          : null
       ),
       created_at: String(data.created_at ?? ''),
     };

@@ -421,9 +421,7 @@ const NFTPage: React.FC = () => {
                 }
                 navigate(`/blockchain-explorer?txHash=${encodeURIComponent(target.tx_hash)}`);
                 void navigator.clipboard.writeText(target.tx_hash).catch(() => undefined);
-                message.info(
-                  `当前链 ${chainId || '-'} 使用内置区块链浏览器，已为你打开对应交易`
-                );
+                message.info(`当前链 ${chainId || '-'} 使用内置区块链浏览器，已为你打开对应交易`);
               }}
               loading={mintLoading}
             />
@@ -626,7 +624,7 @@ const NFTPage: React.FC = () => {
             value={mintAddress}
             onChange={(e) => setMintAddress(e.target.value)}
           />
-          <Divider style={{ margin: '8px 0' }} />
+          <Divider style={{ margin: 'var(--space-2) 0' }} />
           <Space direction="vertical" style={{ width: '100%' }}>
             <Button
               icon={<SafetyOutlined />}

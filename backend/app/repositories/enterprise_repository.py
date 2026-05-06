@@ -174,6 +174,23 @@ class EnterpriseRepository:
         enterprises = list(result.scalars().all())
         
         return enterprises, total
+
+    async def get_bound_wallet_enterprises(self) -> List[Enterprise]:
+        """
+        获取所有已绑定企业钱包的企业列表。
+
+        Returns:
+            List[Enterprise]: 已绑定钱包的企业列表。
+        """
+        result = await self.db.execute(
+            select(Enterprise)
+            .where(
+                Enterprise.wallet_address.is_not(None),
+                Enterprise.wallet_address != "",
+            )
+            .order_by(Enterprise.updated_at.desc(), Enterprise.created_at.desc())
+        )
+        return list(result.scalars().all())
     
     async def update(
         self,

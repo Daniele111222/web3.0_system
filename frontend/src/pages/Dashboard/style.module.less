@@ -46,7 +46,7 @@
 // 主容器
 .ownership-dashboard-page {
   min-height: 100vh;
-  padding: 24px;
+  padding: var(--space-6);
   background: var(--bg-primary);
   position: relative;
   overflow-x: hidden;
@@ -74,8 +74,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 32px;
-    padding: 32px 40px;
+    margin-bottom: var(--space-8);
+    padding: var(--space-8) var(--space-10);
     background:
       linear-gradient(135deg, rgba(26, 26, 37, 0.9), rgba(18, 18, 26, 0.98)),
       linear-gradient(135deg, rgba(0, 212, 170, 0.15), rgba(124, 58, 237, 0.15));
@@ -127,7 +127,7 @@
     .header-content {
       display: flex;
       align-items: center;
-      gap: 24px;
+      gap: var(--space-6);
       position: relative;
       z-index: 1;
 
@@ -138,7 +138,7 @@
         justify-content: center;
 
         .header-icon {
-          font-size: 48px;
+          font-size: var(--text-48);
           color: var(--color-primary);
           filter: drop-shadow(0 0 16px rgba(0, 212, 170, 0.8));
           animation: pulse-glow 3s ease-in-out infinite;
@@ -163,8 +163,8 @@
 
       .header-text {
         .page-title {
-          margin: 0;
-          font-size: 36px;
+          margin: var(--space-0);
+          font-size: var(--text-4xl);
           font-weight: 800;
           color: var(--text-primary);
           letter-spacing: 1px;
@@ -190,8 +190,8 @@
         }
 
         .page-subtitle {
-          margin: 16px 0 0 0;
-          font-size: 15px;
+          margin: var(--space-4) var(--space-0) var(--space-0) var(--space-0);
+          font-size: var(--text-base);
           color: var(--text-tertiary);
           letter-spacing: 0.5px;
           font-weight: 400;
@@ -205,7 +205,7 @@
         border: 1px solid rgba(0, 212, 170, 0.4);
         color: var(--color-primary);
         font-weight: 500;
-        padding: 8px 20px;
+        padding: var(--space-2) var(--space-5);
         height: auto;
         border-radius: var(--radius-md);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -237,8 +237,8 @@
         }
 
         .refresh-icon {
-          font-size: 14px;
-          margin-right: 6px;
+          font-size: var(--text-sm);
+          margin-right: var(--space-1-5);
           transition: transform 0.3s ease;
         }
 
@@ -247,7 +247,7 @@
         }
 
         .button-text {
-          font-size: 14px;
+          font-size: var(--text-sm);
           letter-spacing: 0.5px;
         }
       }
@@ -256,12 +256,12 @@
 
   // 统计卡片区 - 简化版本，避免复杂嵌套
   :global(.stats-section) {
-    margin-bottom: 32px;
+    margin-bottom: var(--space-8);
   }
 
   // 筛选卡片
   :global(.filter-card) {
-    margin-bottom: 24px;
+    margin-bottom: var(--space-6);
   }
 
   // 表格卡片
@@ -313,7 +313,7 @@
 // 统计卡片
 .stat-card {
   position: relative;
-  padding: 28px 24px;
+  padding: var(--space-7) var(--space-6);
   background:
     linear-gradient(145deg, rgba(26, 26, 37, 0.95), rgba(18, 18, 26, 0.98)),
     linear-gradient(145deg, rgba(0, 212, 170, 0.08), rgba(124, 58, 237, 0.08));
@@ -365,12 +365,12 @@
   justify-content: center;
   width: 48px;
   height: 48px;
-  margin-bottom: 12px;
+  margin-bottom: var(--space-3);
 }
 
 // 统计图标
 .stat-icon {
-  font-size: 24px;
+  font-size: var(--text-2xl);
   color: var(--color-primary);
   filter: drop-shadow(0 0 8px rgba(0, 212, 170, 0.6));
   position: relative;
@@ -393,7 +393,7 @@
 
 // 统计标题
 .stat-title {
-  font-size: 13px;
+  font-size: var(--text-xs-plus);
   color: var(--text-tertiary);
   letter-spacing: 0.5px;
   text-transform: uppercase;
@@ -404,9 +404,9 @@
 .stat-trend {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 8px;
-  font-size: 12px;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  font-size: var(--text-xs);
 }
 
 // 趋势上升

@@ -5,7 +5,7 @@
 
 /* ==================== 页面整体 ==================== */
 .pending-list-page {
-  padding: 0;
+  padding: var(--space-0);
   animation: pageFadeIn 0.4s ease-out;
 }
 
@@ -25,8 +25,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px 0;
-  margin-bottom: 8px;
+  padding: var(--space-6) var(--space-0);
+  margin-bottom: var(--space-2);
 }
 
 .header-content {
@@ -34,10 +34,10 @@
 }
 
 .page-title {
-  font-size: 28px;
+  font-size: var(--text-28);
   font-weight: 700;
   color: #ffffff;
-  margin: 0 0 6px;
+  margin: var(--space-0) var(--space-0) var(--space-1-5);
   background: linear-gradient(135deg, #ffffff 0%, #a0aec0 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -45,9 +45,9 @@
 }
 
 .page-subtitle {
-  font-size: 14px;
+  font-size: var(--text-sm);
   color: rgba(255, 255, 255, 0.5);
-  margin: 0;
+  margin: var(--space-0);
 }
 
 .refresh-btn {
@@ -71,25 +71,25 @@
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 16px;
-  margin-bottom: 20px;
+  margin-bottom: var(--space-5);
   backdrop-filter: blur(10px);
 
   .ant-card-body {
-    padding: 18px 24px;
+    padding: var(--space-4-5) var(--space-6);
   }
 }
 
 .filter-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: var(--space-4);
   align-items: center;
 }
 
 .filter-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
 
   &.filter-search {
     margin-left: auto;
@@ -97,7 +97,7 @@
 }
 
 .filter-label {
-  font-size: 13px;
+  font-size: var(--text-xs-plus);
   color: rgba(255, 255, 255, 0.6);
   white-space: nowrap;
 }
@@ -159,7 +159,7 @@
   backdrop-filter: blur(10px);
 
   .ant-card-body {
-    padding: 16px;
+    padding: var(--space-4);
   }
 
   .ant-spin-container {
@@ -170,12 +170,12 @@
 /* 审批列表样式 */
 .approval-list {
   .ant-list-item {
-    padding: 0;
+    padding: var(--space-0);
     border: none;
-    margin-bottom: 16px;
+    margin-bottom: var(--space-4);
 
     &:last-child {
-      margin-bottom: 0;
+      margin-bottom: var(--space-0);
     }
   }
 }
@@ -185,7 +185,7 @@
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
-  padding: 20px 24px !important;
+  padding: var(--space-5) var(--space-6) !important;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -218,7 +218,7 @@
   }
 
   .ant-list-item-meta-avatar {
-    margin-right: 16px;
+    margin-right: var(--space-4);
   }
 
   .ant-list-item-meta-content {
@@ -227,12 +227,12 @@
   }
 
   .ant-list-item-meta-title {
-    margin-bottom: 8px;
+    margin-bottom: var(--space-2);
   }
 
   .ant-list-item-action {
-    margin-top: 0;
-    margin-left: 16px;
+    margin-top: var(--space-0);
+    margin-left: var(--space-4);
     align-self: center;
   }
 }
@@ -253,16 +253,16 @@
 .approval-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 4px;
+  gap: var(--space-3);
+  margin-bottom: var(--space-1);
 }
 
 .approval-id {
   font-family: 'Monaco', 'Menlo', monospace;
-  font-size: 14px;
+  font-size: var(--text-sm);
   color: rgba(255, 255, 255, 0.9);
   background: rgba(255, 255, 255, 0.08);
-  padding: 4px 10px;
+  padding: var(--space-1) var(--space-2-5);
   border-radius: 6px;
 }
 
@@ -270,29 +270,29 @@
 .approval-content {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .approval-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
 
   .label {
-    font-size: 13px;
+    font-size: var(--text-xs-plus);
     color: rgba(255, 255, 255, 0.45);
     min-width: 80px;
   }
 
   .value {
-    font-size: 13px;
+    font-size: var(--text-xs-plus);
     color: rgba(255, 255, 255, 0.85);
 
     &.target-id {
       font-family: 'Monaco', 'Menlo', monospace;
-      font-size: 12px;
+      font-size: var(--text-xs);
       background: rgba(255, 255, 255, 0.05);
-      padding: 2px 8px;
+      padding: var(--space-0-5) var(--space-2);
       border-radius: 4px;
     }
   }
@@ -302,16 +302,16 @@
 .approval-meta {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-top: 8px;
-  padding-top: 8px;
+  gap: var(--space-4);
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 
   .meta-item {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 12px;
+    gap: var(--space-1-5);
+    font-size: var(--text-xs);
     color: rgba(255, 255, 255, 0.5);
 
     svg {
@@ -328,10 +328,10 @@
 .approval-item .action-btn {
   width: 36px;
   height: 36px;
-  padding: 0;
+  padding: var(--space-0);
   border-radius: 10px;
   transition: all 0.25s ease;
-  margin-left: 4px;
+  margin-left: var(--space-1);
 
   &.view {
     color: rgba(255, 255, 255, 0.5);
@@ -372,7 +372,7 @@
 
 /* 分页样式 */
 .approval-list .ant-pagination {
-  margin-top: 20px;
+  margin-top: var(--space-5);
   display: flex;
   justify-content: center;
 
@@ -416,7 +416,7 @@
 
 /* 空状态 */
 .ant-empty {
-  padding: 60px 0;
+  padding: var(--space-15) var(--space-0);
 
   .ant-empty-description {
     color: rgba(255, 255, 255, 0.5);
@@ -428,7 +428,7 @@
   .page-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 16px;
+    gap: var(--space-4);
   }
 
   .filter-row {
@@ -437,8 +437,8 @@
 
     .filter-item {
       &.filter-search {
-        margin-left: 0;
-        margin-top: 8px;
+        margin-left: var(--space-0);
+        margin-top: var(--space-2);
       }
     }
   }
@@ -446,20 +446,20 @@
 
 @media (max-width: 768px) {
   .page-title {
-    font-size: 22px;
+    font-size: var(--text-22);
   }
 
   .approval-item {
-    padding: 16px !important;
+    padding: var(--space-4) !important;
     flex-direction: column;
 
     .ant-list-item-meta-avatar {
-      margin-bottom: 12px;
+      margin-bottom: var(--space-3);
     }
 
     .ant-list-item-action {
-      margin-left: 0;
-      margin-top: 16px;
+      margin-left: var(--space-0);
+      margin-top: var(--space-4);
       width: 100%;
       justify-content: flex-end;
     }
@@ -473,9 +473,9 @@
     flex-wrap: wrap;
 
     .meta-item.status {
-      margin-left: 0;
+      margin-left: var(--space-0);
       width: 100%;
-      margin-top: 8px;
+      margin-top: var(--space-2);
     }
   }
 }

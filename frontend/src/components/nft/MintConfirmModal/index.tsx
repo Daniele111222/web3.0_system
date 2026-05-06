@@ -108,7 +108,7 @@ export const MintConfirmModal: React.FC<MintConfirmModalProps> = ({
           onChange={(event) => onMintAddressChange(event.target.value)}
         />
 
-        <Divider style={{ margin: '8px 0' }} />
+        <Divider style={{ margin: 'var(--space-2) 0' }} />
 
         <Space direction="vertical" style={{ width: '100%' }}>
           <Button
@@ -150,9 +150,9 @@ export const MintConfirmModal: React.FC<MintConfirmModalProps> = ({
           />
         ) : null}
 
-        <Divider style={{ margin: '8px 0' }} />
+        <Divider style={{ margin: 'var(--space-2) 0' }} />
         <Text strong>IPFS 元数据预览</Text>
-        <pre style={{ margin: 0, maxHeight: 220, overflow: 'auto' }}>
+        <pre style={{ margin: 'var(--space-0)', maxHeight: 220, overflow: 'auto' }}>
           {JSON.stringify(metadataPreview, null, 2)}
         </pre>
       </Space>

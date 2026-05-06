@@ -179,7 +179,7 @@ export default function History() {
               borderColor: `${config.color}40`,
             }}
           >
-            <Icon size={12} style={{ marginRight: 4 }} />
+            <Icon size={12} style={{ marginRight: 'var(--space-1)' }} />
             {config.label}
           </Tag>
         );
@@ -226,7 +226,7 @@ export default function History() {
               borderColor: `${config.color}40`,
             }}
           >
-            <Icon size={12} style={{ marginRight: 4 }} />
+            <Icon size={12} style={{ marginRight: 'var(--space-1)' }} />
             {config.label}
           </Tag>
         );

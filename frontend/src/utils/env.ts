@@ -4,4 +4,3 @@ export const getIpnftContractAddress = () =>
     import.meta.env.VITE_CONTRACT_ADDRESS ||
     ''
   ).trim();
-

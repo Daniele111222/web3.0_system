@@ -1,7 +1,7 @@
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { useAuthStore } from '../../store';
-import { Menu, Dropdown } from 'antd';
+import { useAuthStore, useEnterpriseStore } from '../../store';
+import { Menu, Dropdown, message } from 'antd';
 import {
   LayoutDashboard,
   Building2,
@@ -25,6 +25,7 @@ export function Navigation() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAuthenticated, clearAuth } = useAuthStore();
+  const { currentEnterprise } = useEnterpriseStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -133,6 +134,7 @@ export function Navigation() {
     { key: '/dashboard', icon: LayoutDashboard, label: '总览' },
     { key: '/enterprises', icon: Building2, label: '企业管理' },
     { key: '/assets', icon: Files, label: '资产管理' },
+    { key: '/hardhat-wallets', icon: Wallet, label: 'Hardhat 钱包' },
     { key: '/nft', icon: Gem, label: 'NFT 铸造' },
     { key: '/approvals', icon: ClipboardCheck, label: '审批中心' },
     { key: '/blockchain-explorer', icon: Link2, label: '区块链浏览器' },
@@ -148,7 +150,7 @@ export function Navigation() {
     {
       key: 'wallet',
       icon: <Wallet size={14} />,
-      label: '钱包地址',
+      label: '企业钱包',
     },
     { type: 'divider' as const },
     {
@@ -163,9 +165,23 @@ export function Navigation() {
     ({ key }: { key: string }) => {
       if (key === 'logout') {
         handleLogout();
+        return;
+      }
+
+      if (key === 'wallet') {
+        const enterpriseId =
+          currentEnterprise?.id || window.localStorage.getItem('current_enterprise_id');
+
+        if (!enterpriseId) {
+          message.info('请先选择一个企业，再绑定企业钱包');
+          navigate('/enterprises');
+          return;
+        }
+
+        navigate(`/enterprises/${enterpriseId}?tab=settings&wallet=bind`);
       }
     },
-    [handleLogout]
+    [currentEnterprise?.id, handleLogout, navigate]
   );
 
   // 未认证用户不显示导航

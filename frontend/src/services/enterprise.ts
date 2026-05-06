@@ -10,6 +10,32 @@ import type {
 } from '../types';
 import type { ApiResponse } from '../types';
 
+export interface BindEnterpriseWalletRequest {
+  wallet_address: string;
+  signature: string;
+  challenge_token: string;
+}
+
+export interface WalletBindChallengeRequest {
+  wallet_address: string;
+}
+
+export interface WalletBindChallengeResponse {
+  challenge_token: string;
+  wallet_address: string;
+  message: string;
+  expires_at: string;
+}
+
+export interface BoundWalletEnterprise {
+  enterprise_id: string;
+  enterprise_name: string;
+  wallet_address: string;
+  is_active: boolean;
+  is_verified: boolean;
+  member_count: number;
+}
+
 function handleApiResponse<T>(response: ApiResponse<T>): T {
   if (response.code !== 'SUCCESS') {
     throw new Error(response.message || 'Operation failed');
@@ -60,6 +86,35 @@ export const enterpriseService = {
     return handleApiResponse(response.data);
   },
 
+  async bindWallet(
+    enterpriseId: string,
+    data: BindEnterpriseWalletRequest
+  ): Promise<EnterpriseDetail> {
+    const response = await apiClient.post<ApiResponse<EnterpriseDetail>>(
+      `/enterprises/${enterpriseId}/wallet`,
+      data
+    );
+    return handleApiResponse(response.data);
+  },
+
+  async createWalletBindChallenge(
+    enterpriseId: string,
+    data: WalletBindChallengeRequest
+  ): Promise<WalletBindChallengeResponse> {
+    const response = await apiClient.post<ApiResponse<WalletBindChallengeResponse>>(
+      `/enterprises/${enterpriseId}/wallet/challenge`,
+      data
+    );
+    return handleApiResponse(response.data);
+  },
+
+  async getBoundWalletEnterprises(): Promise<BoundWalletEnterprise[]> {
+    const response = await apiClient.get<ApiResponse<BoundWalletEnterprise[]>>(
+      '/enterprises/bound-wallets'
+    );
+    return handleApiResponse(response.data);
+  },
+
   async deleteEnterprise(enterpriseId: string): Promise<void> {
     const response = await apiClient.delete<ApiResponse<Record<string, unknown>>>(
       `/enterprises/${enterpriseId}`
@@ -74,10 +129,7 @@ export const enterpriseService = {
     return handleApiResponse(response.data);
   },
 
-  async inviteMember(
-    enterpriseId: string,
-    data: InviteMemberRequest
-  ): Promise<EnterpriseMember> {
+  async inviteMember(enterpriseId: string, data: InviteMemberRequest): Promise<EnterpriseMember> {
     const response = await apiClient.post<ApiResponse<EnterpriseMember>>(
       `/enterprises/${enterpriseId}/members`,
       data

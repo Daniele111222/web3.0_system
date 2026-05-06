@@ -11,10 +11,13 @@ from app.schemas.enterprise import (
     EnterpriseUpdateRequest,
     EnterpriseDetailResponse,
     EnterpriseListResponse,
+    BoundWalletEnterpriseResponse,
     MemberResponse,
     InviteMemberRequest,
     UpdateMemberRoleRequest,
     BindWalletRequest,
+    WalletBindChallengeRequest,
+    WalletBindChallengeResponse,
 )
 from app.schemas.response import ApiResponse
 
@@ -63,6 +66,26 @@ async def get_my_enterprises(
     return ApiResponse(
         code="SUCCESS",
         message="获取企业列表成功",
+        data=result,
+    )
+
+
+@router.get(
+    "/bound-wallets",
+    response_model=ApiResponse[list[BoundWalletEnterpriseResponse]],
+    summary="获取已绑定企业钱包列表",
+    description="获取系统内所有已绑定企业钱包的企业列表（需登录）",
+)
+async def get_bound_wallet_enterprises(
+    db: DBSession,
+    current_user_id: CurrentUserId,
+) -> ApiResponse[list[BoundWalletEnterpriseResponse]]:
+    """获取所有已绑定企业钱包的企业列表。"""
+    service = EnterpriseService(db)
+    result = await service.get_bound_wallet_enterprises()
+    return ApiResponse(
+        code="SUCCESS",
+        message="获取已绑定企业钱包列表成功",
         data=result,
     )
 
@@ -237,10 +260,36 @@ async def remove_member(
 
 
 @router.post(
+    "/{enterprise_id}/wallet/challenge",
+    response_model=ApiResponse[WalletBindChallengeResponse],
+    summary="生成企业钱包绑定挑战",
+    description="生成一次性的企业钱包绑定签名消息（仅企业所有者可操作）",
+)
+async def create_enterprise_wallet_bind_challenge(
+    enterprise_id: str,
+    data: WalletBindChallengeRequest,
+    db: DBSession,
+    current_user_id: CurrentUserId,
+) -> ApiResponse[WalletBindChallengeResponse]:
+    """生成企业钱包绑定 challenge。"""
+    service = EnterpriseService(db)
+    result = await service.create_wallet_bind_challenge(
+        UUID(enterprise_id),
+        data.wallet_address,
+        UUID(current_user_id),
+    )
+    return ApiResponse(
+        code="SUCCESS",
+        message="钱包绑定挑战生成成功",
+        data=result,
+    )
+
+
+@router.post(
     "/{enterprise_id}/wallet",
     response_model=ApiResponse[EnterpriseDetailResponse],
     summary="绑定企业钱包",
-    description="将区块链钱包地址绑定到企业（仅企业所有者和管理员可操作）",
+    description="使用一次性挑战完成企业钱包绑定（仅企业所有者可操作）",
 )
 async def bind_enterprise_wallet(
     enterprise_id: str,
@@ -254,7 +303,7 @@ async def bind_enterprise_wallet(
         UUID(enterprise_id),
         data.wallet_address,
         data.signature,
-        data.message,
+        data.challenge_token,
         UUID(current_user_id),
     )
     await db.commit()

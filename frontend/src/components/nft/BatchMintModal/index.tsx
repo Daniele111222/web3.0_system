@@ -256,7 +256,12 @@ export const BatchMintModal: React.FC<BatchMintModalProps> = ({
         </Checkbox>
       </div>
       {selectionError && (
-        <Alert message={selectionError} type="warning" showIcon style={{ marginBottom: 12 }} />
+        <Alert
+          message={selectionError}
+          type="warning"
+          showIcon
+          style={{ marginBottom: 'var(--space-3)' }}
+        />
       )}
 
       {/* 资产列表 */}

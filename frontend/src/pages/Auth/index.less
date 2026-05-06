@@ -6,8 +6,8 @@
 
 // Reset & Base Styles
 * {
-  margin: 0;
-  padding: 0;
+  margin: var(--space-0);
+  padding: var(--space-0);
   box-sizing: border-box;
 }
 
@@ -170,17 +170,17 @@
   z-index: 10;
   display: grid;
   grid-template-columns: 1fr 480px;
-  gap: 4rem;
+  gap: var(--space-16);
   width: 100%;
   max-width: 1400px;
-  padding: 2rem;
+  padding: var(--space-8);
   align-items: center;
   min-height: 100vh;
 
   @media (max-width: 1200px) {
     grid-template-columns: 1fr;
-    gap: 2rem;
-    padding: 1.5rem;
+    gap: var(--space-8);
+    padding: var(--space-6);
   }
 }
 
@@ -189,8 +189,8 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 2.5rem;
-  padding-right: 2rem;
+  gap: var(--space-10);
+  padding-right: var(--space-8);
 
   @media (max-width: 1200px) {
     display: none;
@@ -299,7 +299,7 @@
 
 .brand-text {
   h1 {
-    font-size: 4rem;
+    font-size: var(--text-64);
     font-weight: 800;
     background: linear-gradient(
       135deg,
@@ -311,20 +311,20 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
     letter-spacing: -2px;
-    margin-bottom: 1rem;
+    margin-bottom: var(--space-4);
     text-shadow: 0 0 80px rgba(0, 212, 170, 0.3);
   }
 
   .brand-tagline {
-    font-size: 1.5rem;
+    font-size: var(--text-2xl);
     font-weight: 500;
     color: var(--text-secondary);
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--space-2);
     letter-spacing: 2px;
   }
 
   .brand-subtitle {
-    font-size: 0.875rem;
+    font-size: var(--text-sm);
     font-weight: 400;
     color: var(--text-muted);
     letter-spacing: 1px;
@@ -392,8 +392,8 @@
 .auth-tabs {
   position: relative;
   display: flex;
-  padding: 0.5rem;
-  gap: 0.5rem;
+  padding: var(--space-2);
+  gap: var(--space-2);
   border-bottom: 1px solid var(--border-secondary);
 
   .tabs-bg {
@@ -414,12 +414,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.875rem;
+  gap: var(--space-2);
+  padding: var(--space-3-5);
   border: none;
   background: transparent;
   color: var(--text-tertiary);
-  font-size: 0.9375rem;
+  font-size: var(--text-base);
   font-weight: 500;
   cursor: pointer;
   border-radius: var(--radius-md);
@@ -487,11 +487,11 @@
   overflow: hidden;
 
   .form-content {
-    padding: 2rem;
+    padding: var(--space-8);
     animation: form-fade-in 0.4s ease;
 
     @media (max-width: 480px) {
-      padding: 1.5rem;
+      padding: var(--space-6);
     }
   }
 
@@ -526,19 +526,19 @@
 .auth-footer {
   position: relative;
   z-index: 10;
-  padding: 2rem;
+  padding: var(--space-8);
   text-align: center;
 
   .footer-badges {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 1rem;
+    gap: var(--space-4);
     flex-wrap: wrap;
-    margin-bottom: 1.5rem;
+    margin-bottom: var(--space-6);
 
     @media (max-width: 640px) {
-      gap: 0.5rem;
+      gap: var(--space-2);
     }
 
     .divider {
@@ -555,9 +555,9 @@
   .badge {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--space-2);
     color: var(--text-muted);
-    font-size: 0.75rem;
+    font-size: var(--text-xs);
     font-weight: 500;
     letter-spacing: 0.5px;
     text-transform: uppercase;
@@ -570,7 +570,7 @@
 
   .copyright {
     color: var(--text-muted);
-    font-size: 0.75rem;
+    font-size: var(--text-xs);
     letter-spacing: 0.5px;
   }
 }
@@ -585,12 +585,12 @@
 
 .form-header {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: var(--space-8);
 
   .form-icon {
     width: 48px;
     height: 48px;
-    margin: 0 auto 1rem;
+    margin: var(--space-0) auto var(--space-4);
     background: linear-gradient(135deg, rgba(0, 212, 170, 0.2), rgba(124, 58, 237, 0.2));
     border: 1px solid rgba(0, 212, 170, 0.3);
     border-radius: var(--radius-lg);
@@ -618,15 +618,15 @@
   }
 
   h2 {
-    font-size: 1.75rem;
+    font-size: var(--text-28);
     font-weight: 700;
     color: var(--text-primary);
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--space-2);
     letter-spacing: -0.5px;
   }
 
   .form-subtitle {
-    font-size: 0.9375rem;
+    font-size: var(--text-base);
     color: var(--text-tertiary);
     font-weight: 400;
   }
@@ -646,19 +646,19 @@
 .error-message {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.875rem 1rem;
+  gap: var(--space-2);
+  padding: var(--space-3-5) var(--space-4);
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: var(--radius-md);
   color: #f87171;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 500;
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--space-6);
   animation: shake 0.5s ease;
 
   .error-icon {
-    font-size: 1rem;
+    font-size: var(--text-md);
     flex-shrink: 0;
   }
 }
@@ -682,7 +682,7 @@
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: var(--space-5);
 }
 
 .form-group {
@@ -713,11 +713,11 @@
   label {
     display: inline-flex;
     align-items: center;
-    gap: 0.375rem;
-    font-size: 0.875rem;
+    gap: var(--space-1-5);
+    font-size: var(--text-sm);
     font-weight: 600;
     color: #ffffff;
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--space-2);
     transition: color var(--transition-base);
     vertical-align: middle;
 
@@ -740,7 +740,7 @@
 
     .required {
       color: var(--color-accent-pink);
-      margin-left: 0.125rem;
+      margin-left: var(--space-0-5);
     }
   }
 
@@ -754,11 +754,11 @@
 
     input {
       width: 100%;
-      padding: 0.875rem 1rem;
+      padding: var(--space-3-5) var(--space-4);
       background: transparent;
       border: none;
       color: var(--text-primary);
-      font-size: 0.9375rem;
+      font-size: var(--text-base);
       font-family: inherit;
       outline: none;
 
@@ -792,15 +792,15 @@
 
   .field-hint {
     display: block;
-    margin-top: 0.375rem;
-    font-size: 0.75rem;
+    margin-top: var(--space-1-5);
+    font-size: var(--text-xs);
     color: var(--text-muted);
   }
 
   .field-error {
     display: block;
-    margin-top: 0.375rem;
-    font-size: 0.75rem;
+    margin-top: var(--space-1-5);
+    font-size: var(--text-xs);
     color: #f87171;
   }
 }
@@ -810,15 +810,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 0.5rem 0;
+  margin: var(--space-2) var(--space-0);
 }
 
 .remember-me {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
   cursor: pointer;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   color: var(--text-tertiary);
   transition: color var(--transition-base);
 
@@ -865,11 +865,11 @@
   background: none;
   border: none;
   color: var(--color-primary-light);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-base);
-  padding: 0;
+  padding: var(--space-0);
 
   &:hover {
     color: var(--color-primary);
@@ -883,14 +883,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
   width: 100%;
-  padding: 1rem 1.5rem;
+  padding: var(--space-4) var(--space-6);
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
   border: none;
   border-radius: var(--radius-md);
   color: #000;
-  font-size: 0.9375rem;
+  font-size: var(--text-base);
   font-weight: 600;
   cursor: pointer;
   overflow: hidden;
@@ -958,8 +958,8 @@
 
 // Password Requirements
 .password-requirements {
-  margin-top: 0.75rem;
-  padding: 1rem;
+  margin-top: var(--space-3);
+  padding: var(--space-4);
   background: var(--bg-secondary);
   border: 1px solid var(--border-secondary);
   border-radius: var(--radius-md);
@@ -967,9 +967,9 @@
   .requirement {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    font-size: 0.75rem;
-    padding: 0.25rem 0;
+    gap: var(--space-2);
+    font-size: var(--text-xs);
+    padding: var(--space-1) var(--space-0);
     transition: all var(--transition-fast);
 
     &.neutral {
@@ -995,7 +995,7 @@
     .requirement-icon {
       width: 16px;
       text-align: center;
-      font-size: 0.625rem;
+      font-size: var(--text-2xs);
     }
   }
 }
@@ -1005,8 +1005,8 @@
   .footer-line {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    margin-bottom: 1rem;
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
 
     span {
       flex: 1;
@@ -1016,19 +1016,19 @@
 
     p {
       color: var(--text-tertiary);
-      font-size: 0.875rem;
+      font-size: var(--text-sm);
       white-space: nowrap;
     }
   }
 
   .btn-link {
     width: 100%;
-    padding: 0.875rem;
+    padding: var(--space-3-5);
     background: transparent;
     border: 1px solid var(--border-primary);
     border-radius: var(--radius-md);
     color: var(--text-secondary);
-    font-size: 0.9375rem;
+    font-size: var(--text-base);
     font-weight: 500;
     cursor: pointer;
     transition: all var(--transition-base);
@@ -1050,7 +1050,7 @@
 // Responsive Adjustments
 @media (max-width: 768px) {
   .auth-container {
-    padding: 1rem;
+    padding: var(--space-4);
   }
 
   .brand-section {
@@ -1062,12 +1062,12 @@
   }
 
   .form-content {
-    padding: 1.5rem;
+    padding: var(--space-6);
   }
 
   .tab-btn {
     .tab-text {
-      font-size: 0.875rem;
+      font-size: var(--text-sm);
     }
   }
 }

@@ -430,7 +430,7 @@ export default function BlockchainExplorer() {
 
   if (connectionError) {
     return (
-      <div style={{ padding: 24 }}>
+      <div style={{ padding: 'var(--space-6)' }}>
         <Alert
           message="区块链连接失败"
           type="error"
@@ -447,10 +447,10 @@ export default function BlockchainExplorer() {
   }
 
   return (
-    <div style={{ padding: 24, maxWidth: 1400, margin: '0 auto' }}>
+    <div style={{ padding: 'var(--space-6)', maxWidth: 1400, margin: '0 auto' }}>
       <Space direction="vertical" size={16} style={{ width: '100%' }}>
         <div>
-          <Title level={2} style={{ marginBottom: 4 }}>
+          <Title level={2} style={{ marginBottom: 'var(--space-1)' }}>
             <LinkOutlined /> 区块链浏览器
           </Title>
           <Text type="secondary">公开访问 | RPC: {RPC_URL}</Text>
@@ -474,7 +474,7 @@ export default function BlockchainExplorer() {
         )}
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: 48 }}>
+          <div style={{ textAlign: 'center', padding: 'var(--space-12)' }}>
             <Spin size="large" />
           </div>
         ) : (
@@ -560,7 +560,7 @@ export default function BlockchainExplorer() {
             </Card>
 
             <Card title="Token 查询工具">
-              <Space style={{ marginBottom: 16 }} wrap>
+              <Space style={{ marginBottom: 'var(--space-4)' }} wrap>
                 <Input
                   placeholder="请输入 Token ID"
                   value={tokenIdInput}
@@ -611,10 +611,10 @@ export default function BlockchainExplorer() {
                     <Text strong>IPFS 元数据</Text>
                     <pre
                       style={{
-                        marginTop: 8,
+                        marginTop: 'var(--space-2)',
                         maxHeight: 360,
                         overflow: 'auto',
-                        padding: 12,
+                        padding: 'var(--space-3)',
                         background: '#f7f7f7',
                         borderRadius: 6,
                       }}
@@ -629,7 +629,7 @@ export default function BlockchainExplorer() {
             </Card>
 
             <Card title="转移历史查询">
-              <Space style={{ marginBottom: 16 }} wrap>
+              <Space style={{ marginBottom: 'var(--space-4)' }} wrap>
                 <Input
                   placeholder="输入地址或 Token ID"
                   value={transferQuery}
@@ -647,7 +647,7 @@ export default function BlockchainExplorer() {
             </Card>
 
             <Divider />
-            <Paragraph type="secondary" style={{ marginBottom: 0 }}>
+            <Paragraph type="secondary" style={{ marginBottom: 'var(--space-0)' }}>
               区块浏览器外链：{txExplorerBaseUrl || '当前网络未配置外链'}
             </Paragraph>
           </>

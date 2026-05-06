@@ -146,7 +146,7 @@ export const InviteMemberDialog = ({
           <div className="modal-body">
             {/* 全局错误提示 */}
             {errors.general && (
-              <div className="form-error" style={{ marginBottom: '1rem' }}>
+              <div className="form-error" style={{ marginBottom: 'var(--space-4)' }}>
                 <AlertCircle size={14} />
                 {errors.general}
               </div>

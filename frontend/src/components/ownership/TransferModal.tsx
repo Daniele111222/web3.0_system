@@ -84,7 +84,7 @@ const TransferModal: React.FC<TransferModalProps> = ({ visible, asset, onClose, 
             description="NFT 转移一旦确认将不可撤销。请确保接收方地址正确。"
             type="warning"
             showIcon
-            style={{ marginBottom: 16 }}
+            style={{ marginBottom: 'var(--space-4)' }}
           />
 
           <Form.Item label="当前资产">
@@ -123,9 +123,9 @@ const TransferModal: React.FC<TransferModalProps> = ({ visible, asset, onClose, 
       )}
 
       {result && (
-        <div style={{ textAlign: 'center', padding: '20px 0' }}>
-          <CheckCircleOutlined style={{ fontSize: 48, color: '#52c41a' }} />
-          <p style={{ marginTop: 16, fontSize: 16 }}>转移成功</p>
+        <div style={{ textAlign: 'center', padding: 'var(--space-5) 0' }}>
+          <CheckCircleOutlined style={{ fontSize: 'var(--text-48)', color: '#52c41a' }} />
+          <p style={{ marginTop: 'var(--space-4)', fontSize: 'var(--text-md)' }}>转移成功</p>
           <Text type="secondary">交易哈希:</Text>
           <br />
           <Text copyable style={{ fontFamily: 'monospace' }}>

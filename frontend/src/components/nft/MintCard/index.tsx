@@ -234,7 +234,7 @@ export const MintCard: React.FC<MintCardProps> = ({
   return (
     <Card
       className={`mint-card ${isMinting ? 'minting' : ''} ${isMinted ? 'minted' : ''}`}
-      bodyStyle={{ padding: 0 }}
+      bodyStyle={{ padding: 'var(--space-0)' }}
       bordered={false}
     >
       {/* 卡片头部 - 缩略图和状态 */}

@@ -138,10 +138,7 @@ const NFTMintingPage: React.FC = () => {
   const boundWalletAddress = useAuthStore((state) => state.user?.wallet_address || '');
   const connectedWalletAddress = useWeb3Store((state) => state.account || '');
   const preferredWalletAddress =
-    connectedWalletAddress ||
-    boundWalletAddress ||
-    localStorage.getItem('wallet_address') ||
-    '';
+    connectedWalletAddress || boundWalletAddress || localStorage.getItem('wallet_address') || '';
 
   useEffect(() => {
     fetchAssets();
@@ -211,7 +208,11 @@ const NFTMintingPage: React.FC = () => {
       </div>
 
       {/* 任务统计 */}
-      <Card className={styles.statsCard} bordered={false} style={{ marginBottom: 24 }}>
+      <Card
+        className={styles.statsCard}
+        bordered={false}
+        style={{ marginBottom: 'var(--space-6)' }}
+      >
         <Row gutter={[24, 24]}>
           <Col xs={12} md={6}>
             <div className={styles.statItem}>
