@@ -1,16 +1,16 @@
 .page {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding: 8px 0 24px;
+  gap: var(--space-5);
+  padding: var(--space-2) var(--space-0) var(--space-6);
 }
 
 .hero {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 16px;
-  padding: 24px 28px;
+  gap: var(--space-4);
+  padding: var(--space-6) var(--space-7);
   border-radius: 16px;
   background:
     linear-gradient(135deg, rgba(6, 182, 212, 0.16), rgba(16, 185, 129, 0.1)),
@@ -20,24 +20,24 @@
 }
 
 .heroTitle {
-  margin: 0 !important;
+  margin: var(--space-0) !important;
 }
 
 .heroMeta {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
 }
 
 .heroActions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .statsRow {
-  margin: 0 !important;
+  margin: var(--space-0) !important;
 }
 
 .statCard {
@@ -51,7 +51,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--space-3);
   width: 100%;
 }
 
@@ -65,19 +65,19 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
 }
 
 .toolbarGroup {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: var(--space-3);
   align-items: center;
 }
 
 .emptyBlock {
-  padding: 32px 12px;
+  padding: var(--space-8) var(--space-3);
 }
 
 .statusTag {
@@ -91,7 +91,7 @@
 
 .hint {
   display: block;
-  margin-top: 8px;
+  margin-top: var(--space-2);
 }
 
 @media (max-width: 992px) {
@@ -112,10 +112,10 @@
 
 @media (max-width: 576px) {
   .page {
-    gap: 16px;
+    gap: var(--space-4);
   }
 
   .hero {
-    padding: 20px;
+    padding: var(--space-5);
   }
 }

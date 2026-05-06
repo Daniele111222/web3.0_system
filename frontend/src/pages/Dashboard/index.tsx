@@ -164,7 +164,7 @@ const Dashboard: React.FC = () => {
         <div>
           <Text strong>{record.asset_name}</Text>
           <br />
-          <Text type="secondary" style={{ fontSize: 12 }}>
+          <Text type="secondary" style={{ fontSize: 'var(--text-xs)' }}>
             {record.asset_type} | Token #{record.token_id}
           </Text>
         </div>
@@ -190,7 +190,7 @@ const Dashboard: React.FC = () => {
       key: 'owner_address',
       width: 180,
       render: (addr: string) => (
-        <Text code style={{ fontSize: 11 }}>
+        <Text code style={{ fontSize: 'var(--text-xxs)' }}>
           {addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : '-'}
         </Text>
       ),
@@ -277,7 +277,7 @@ const Dashboard: React.FC = () => {
       <Row
         gutter={[24, 24]}
         className={styles.statsSection}
-        style={{ marginTop: '24px', marginBottom: '24px' }}
+        style={{ marginTop: 'var(--space-6)', marginBottom: 'var(--space-6)' }}
       >
         <Col xs={12} sm={6}>
           <Card className={`${styles.statCard} ${styles.statCardTotal}`}>

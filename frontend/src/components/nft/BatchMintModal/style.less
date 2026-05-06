@@ -35,11 +35,11 @@
   .ant-modal-header {
     background: transparent;
     border-bottom: 1px solid rgba(15, 23, 42, 0.08);
-    padding: 20px 24px;
+    padding: var(--space-5) var(--space-6);
   }
 
   .ant-modal-body {
-    padding: 0;
+    padding: var(--space-0);
     max-height: 70vh;
     overflow-y: auto;
 
@@ -80,16 +80,16 @@
 .modal-header {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
 
   .header-icon {
-    font-size: 24px;
+    font-size: var(--text-2xl);
     color: @primary-glow;
     filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.5));
   }
 
   span {
-    font-size: 18px;
+    font-size: var(--text-lg);
     font-weight: 600;
     color: @text-primary;
     letter-spacing: 0.5px;
@@ -100,14 +100,14 @@
 // ============================================
 
 .batch-mint-content {
-  padding: 20px 24px;
+  padding: var(--space-5) var(--space-6);
 }
 
 // ============================================
 // ============================================
 
 .batch-mint-search {
-  margin-bottom: 16px;
+  margin-bottom: var(--space-4);
 
   .ant-input-affix-wrapper {
     background: rgba(15, 23, 42, 0.05);
@@ -141,10 +141,10 @@
 .batch-mint-select-all {
   display: flex;
   align-items: center;
-  padding: 12px 16px;
+  padding: var(--space-3) var(--space-4);
   background: rgba(15, 23, 42, 0.035);
   border-radius: 8px;
-  margin-bottom: 12px;
+  margin-bottom: var(--space-3);
 
   .ant-checkbox-wrapper {
     color: @text-secondary;
@@ -171,7 +171,7 @@
 .batch-mint-asset-list {
   max-height: 300px;
   overflow-y: auto;
-  margin-bottom: 16px;
+  margin-bottom: var(--space-4);
 
   &::-webkit-scrollbar {
     width: 4px;
@@ -185,7 +185,7 @@
   .ant-list {
     .ant-list-items {
       .ant-list-item {
-        padding: 12px 16px;
+        padding: var(--space-3) var(--space-4);
         border-bottom: 1px solid rgba(15, 23, 42, 0.05);
         transition: all 0.2s ease;
         cursor: pointer;
@@ -206,19 +206,19 @@
             .ant-list-item-meta-title {
               color: @text-primary;
               font-weight: 500;
-              margin-bottom: 2px;
+              margin-bottom: var(--space-0-5);
             }
 
             .ant-list-item-meta-description {
               color: @text-secondary;
-              font-size: 12px;
+              font-size: var(--text-xs);
             }
           }
         }
 
         .ant-tag {
-          font-size: 11px;
-          padding: 2px 8px;
+          font-size: var(--text-xxs);
+          padding: var(--space-0-5) var(--space-2);
           border-radius: 4px;
         }
       }
@@ -226,7 +226,7 @@
   }
 
   .ant-empty {
-    padding: 40px 0;
+    padding: var(--space-10) var(--space-0);
 
     .ant-empty-description {
       color: @text-secondary;
@@ -241,13 +241,13 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 16px;
+  padding-top: var(--space-4);
   border-top: 1px solid rgba(15, 23, 42, 0.08);
 
   .ant-btn {
     min-width: 120px;
     height: 40px;
-    font-size: 14px;
+    font-size: var(--text-sm);
     font-weight: 500;
     border-radius: 8px;
 
@@ -274,31 +274,31 @@
 
 .batch-mint-confirm {
   .confirm-section {
-    margin-bottom: 24px;
+    margin-bottom: var(--space-6);
 
     .ant-typography {
       color: @text-primary;
-      margin-bottom: 12px;
+      margin-bottom: var(--space-3);
     }
 
     .confirm-stats {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      gap: var(--space-3);
 
       .stat-item {
         background: rgba(15, 23, 42, 0.035);
-        padding: 12px 16px;
+        padding: var(--space-3) var(--space-4);
         border-radius: 8px;
         border: 1px solid rgba(15, 23, 42, 0.05);
 
         .ant-typography {
           display: block;
-          margin-bottom: 4px;
+          margin-bottom: var(--space-1);
         }
 
         .stat-value {
-          font-size: 20px;
+          font-size: var(--text-xl);
           color: @primary-glow;
         }
       }
@@ -327,8 +327,8 @@
 
     .error-text {
       display: block;
-      margin-top: 8px;
-      font-size: 12px;
+      margin-top: var(--space-2);
+      font-size: var(--text-xs);
     }
 
     .ant-alert {
@@ -343,7 +343,7 @@
 
       .ant-alert-description {
         color: @text-secondary;
-        font-size: 13px;
+        font-size: var(--text-xs-plus);
       }
 
       .ant-alert-icon {
@@ -355,14 +355,14 @@
   .confirm-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 12px;
-    padding-top: 16px;
+    gap: var(--space-3);
+    padding-top: var(--space-4);
     border-top: 1px solid rgba(15, 23, 42, 0.08);
 
     .ant-btn {
       min-width: 120px;
       height: 40px;
-      font-size: 14px;
+      font-size: var(--text-sm);
       font-weight: 500;
       border-radius: 8px;
 
@@ -386,11 +386,11 @@
 .batch-mint-result {
   .result-header {
     text-align: center;
-    padding: 24px 0;
+    padding: var(--space-6) var(--space-0);
 
     .result-icon {
-      font-size: 64px;
-      margin-bottom: 16px;
+      font-size: var(--text-64);
+      margin-bottom: var(--space-4);
 
       &.success {
         color: @success-glow;
@@ -404,12 +404,12 @@
     }
 
     .ant-typography {
-      margin-bottom: 8px;
+      margin-bottom: var(--space-2);
     }
   }
 
   .result-progress {
-    padding: 0 24px 24px;
+    padding: var(--space-0) var(--space-6) var(--space-6);
 
     .ant-progress {
       .ant-progress-outer {
@@ -428,7 +428,7 @@
   .result-list {
     max-height: 300px;
     overflow-y: auto;
-    padding: 0 24px;
+    padding: var(--space-0) var(--space-6);
 
     &::-webkit-scrollbar {
       width: 4px;
@@ -441,13 +441,13 @@
 
     .ant-list {
       .ant-list-item {
-        padding: 12px;
+        padding: var(--space-3);
         border-bottom: 1px solid rgba(15, 23, 42, 0.05);
 
         &.result-item {
           display: flex;
           align-items: flex-start;
-          gap: 12px;
+          gap: var(--space-3);
           border-radius: 8px;
           transition: background 0.2s ease;
 
@@ -464,7 +464,7 @@
           }
 
           .result-item-status {
-            font-size: 20px;
+            font-size: var(--text-xl);
 
             .success-icon {
               color: @success-glow;
@@ -481,7 +481,7 @@
 
             .asset-name {
               display: block;
-              margin-bottom: 4px;
+              margin-bottom: var(--space-1);
               white-space: nowrap;
               overflow: hidden;
               text-overflow: ellipsis;
@@ -490,22 +490,22 @@
             .success-details {
               display: flex;
               align-items: center;
-              gap: 8px;
+              gap: var(--space-2);
               flex-wrap: wrap;
 
               .ant-tag {
-                margin: 0;
-                font-size: 11px;
+                margin: var(--space-0);
+                font-size: var(--text-xxs);
               }
 
               .tx-hash {
-                font-size: 11px;
+                font-size: var(--text-xxs);
                 font-family: 'Courier New', monospace;
               }
             }
 
             .error-message {
-              font-size: 12px;
+              font-size: var(--text-xs);
             }
           }
         }
@@ -516,12 +516,12 @@
   .result-actions {
     display: flex;
     justify-content: center;
-    padding: 24px;
+    padding: var(--space-6);
 
     .ant-btn {
       min-width: 150px;
       height: 44px;
-      font-size: 15px;
+      font-size: var(--text-base);
       font-weight: 500;
       border-radius: 8px;
       background: linear-gradient(135deg, @primary-glow 0%, #0080ff 100%);
@@ -542,7 +542,7 @@
 @media (max-width: 768px) {
   .batch-mint-modal {
     .ant-modal-content {
-      margin: 10px;
+      margin: var(--space-2-5);
       border-radius: 12px;
     }
 
@@ -567,7 +567,7 @@
 
   .batch-mint-result {
     .result-list {
-      padding: 0 12px;
+      padding: var(--space-0) var(--space-3);
     }
   }
 }

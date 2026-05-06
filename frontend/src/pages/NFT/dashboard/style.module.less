@@ -93,7 +93,7 @@
 
 .nft-dashboard-page {
   min-height: 100vh;
-  padding: 32px;
+  padding: var(--space-8);
   background:
     radial-gradient(ellipse at 20% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
     radial-gradient(ellipse at 80% 80%, rgba(0, 245, 255, 0.1) 0%, transparent 50%),
@@ -128,8 +128,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 40px;
-    padding: 24px 28px;
+    margin-bottom: var(--space-10);
+    padding: var(--space-6) var(--space-7);
     background:
       linear-gradient(135deg, rgba(15, 23, 42, 0.05) 0%, rgba(15, 23, 42, 0.025) 100%),
       rgba(255, 255, 255, 0.86);
@@ -162,7 +162,7 @@
     .header-content {
       display: flex;
       align-items: center;
-      gap: 20px;
+      gap: var(--space-5);
 
       .header-icon {
         width: 56px;
@@ -170,7 +170,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 28px;
+        font-size: var(--text-28);
         color: @ds-aurora-cyan;
         background: linear-gradient(
           135deg,
@@ -187,10 +187,10 @@
 
       .header-text {
         .page-title {
-          font-size: 32px;
+          font-size: var(--text-32);
           font-weight: 700;
           color: @ds-text-primary;
-          margin: 0 0 6px 0;
+          margin: var(--space-0) var(--space-0) var(--space-1-5) var(--space-0);
           letter-spacing: -0.5px;
           background: linear-gradient(135deg, #122033 0%, #60a5fa 50%, #99f6e4 100%);
           -webkit-background-clip: text;
@@ -200,9 +200,9 @@
         }
 
         .page-subtitle {
-          font-size: 14px;
+          font-size: var(--text-sm);
           color: @ds-text-secondary;
-          margin: 0;
+          margin: var(--space-0);
           font-weight: 400;
           letter-spacing: 0.3px;
         }
@@ -213,7 +213,7 @@
   // ============================================
   // ============================================
   .stats-section {
-    margin-bottom: 40px;
+    margin-bottom: var(--space-10);
     position: relative;
     z-index: 1;
 
@@ -234,7 +234,7 @@
         position: absolute;
         inset: 0;
         border-radius: 20px;
-        padding: 1px;
+        padding: var(--space-px);
         background: linear-gradient(
           135deg,
           rgba(0, 245, 255, 0.3) 0%,
@@ -267,8 +267,8 @@
       .statContent {
         display: flex;
         align-items: center;
-        gap: 20px;
-        padding: 24px;
+        gap: var(--space-5);
+        padding: var(--space-6);
 
         .statIcon {
           width: 64px;
@@ -277,7 +277,7 @@
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 28px;
+          font-size: var(--text-28);
           position: relative;
           overflow: hidden;
 
@@ -309,9 +309,9 @@
           flex: 1;
 
           .statTitle {
-            font-size: 12px;
+            font-size: var(--text-xs);
             color: @ds-text-tertiary;
-            margin-bottom: 6px;
+            margin-bottom: var(--space-1-5);
             text-transform: uppercase;
             letter-spacing: 1.5px;
             font-weight: 500;
@@ -320,7 +320,7 @@
           .statValue {
             :global(.ant-statistic) {
               :global(.ant-statistic-content) {
-                font-size: 36px;
+                font-size: var(--text-4xl);
                 font-weight: 700;
                 font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
                 letter-spacing: -1px;
@@ -343,11 +343,11 @@
     z-index: 1;
 
     .section-title {
-      font-size: 14px;
+      font-size: var(--text-sm);
       font-weight: 600;
       color: @ds-text-secondary;
-      margin-bottom: 20px;
-      padding-bottom: 12px;
+      margin-bottom: var(--space-5);
+      padding-bottom: var(--space-3);
       border-bottom: 1px solid rgba(15, 23, 42, 0.06);
       text-transform: uppercase;
       letter-spacing: 1.5px;
@@ -398,8 +398,8 @@
       .action-content {
         display: flex;
         align-items: center;
-        padding: 24px;
-        gap: 16px;
+        padding: var(--space-6);
+        gap: var(--space-4);
 
         .action-icon {
           width: 48px;
@@ -407,7 +407,7 @@
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 24px;
+          font-size: var(--text-2xl);
           color: @ds-aurora-cyan;
           background: linear-gradient(
             135deg,
@@ -425,22 +425,22 @@
           flex: 1;
 
           h4 {
-            font-size: 16px;
+            font-size: var(--text-md);
             font-weight: 600;
             color: @ds-text-primary;
-            margin: 0 0 4px 0;
+            margin: var(--space-0) var(--space-0) var(--space-1) var(--space-0);
             letter-spacing: 0.3px;
           }
 
           p {
-            font-size: 13px;
+            font-size: var(--text-xs-plus);
             color: @ds-text-tertiary;
-            margin: 0;
+            margin: var(--space-0);
           }
         }
 
         .action-arrow {
-          font-size: 16px;
+          font-size: var(--text-md);
           color: @ds-text-tertiary;
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -454,24 +454,24 @@
 
 @media (max-width: 768px) {
   .nft-dashboard-page {
-    padding: 20px;
+    padding: var(--space-5);
 
     .page-header {
       flex-direction: column;
       align-items: flex-start;
-      gap: 20px;
-      padding: 20px;
+      gap: var(--space-5);
+      padding: var(--space-5);
 
       .header-content {
         .header-icon {
           width: 48px;
           height: 48px;
-          font-size: 24px;
+          font-size: var(--text-2xl);
         }
 
         .header-text {
           .page-title {
-            font-size: 24px;
+            font-size: var(--text-2xl);
           }
         }
       }
@@ -480,19 +480,19 @@
     .stats-section {
       .dashboard-stat-card {
         .stat-content {
-          padding: 20px;
+          padding: var(--space-5);
 
           .stat-icon {
             width: 52px;
             height: 52px;
-            font-size: 22px;
+            font-size: var(--text-22);
           }
 
           .stat-info {
             .stat-value {
               :global(.ant-statistic) {
                 :global(.ant-statistic-content) {
-                  font-size: 28px;
+                  font-size: var(--text-28);
                 }
               }
             }

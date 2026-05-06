@@ -221,7 +221,7 @@ export const MintHistory: React.FC<MintHistoryProps> = ({
         <Card
           size="small"
           className={`timeline-card ${isError ? 'has-error' : ''}`}
-          bodyStyle={{ padding: 12 }}
+          bodyStyle={{ padding: 'var(--space-3)' }}
         >
           <div className="timeline-header">
             <Space align="center">

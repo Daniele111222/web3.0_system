@@ -177,7 +177,7 @@ const NFTHistoryPage: React.FC = () => {
         <div className={styles.assetNameCell}>
           <Text strong>{text}</Text>
           <br />
-          <Text type="secondary" style={{ fontSize: 12 }}>
+          <Text type="secondary" style={{ fontSize: 'var(--text-xs)' }}>
             {record.asset_id}
           </Text>
         </div>
@@ -311,7 +311,11 @@ const NFTHistoryPage: React.FC = () => {
       </div>
 
       {/* 筛选栏 */}
-      <Card className={styles.filterCard} bordered={false} style={{ marginBottom: 24 }}>
+      <Card
+        className={styles.filterCard}
+        bordered={false}
+        style={{ marginBottom: 'var(--space-6)' }}
+      >
         <Space wrap>
           <Select
             placeholder="记录状态"

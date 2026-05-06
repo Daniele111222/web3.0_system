@@ -107,7 +107,7 @@
 // ============================================
 .nft-assets-page {
   min-height: 100%;
-  padding: 32px;
+  padding: var(--space-8);
   background:
     radial-gradient(ellipse at 10% 30%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
     radial-gradient(ellipse at 90% 70%, rgba(0, 245, 255, 0.08) 0%, transparent 50%),
@@ -121,8 +121,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 40px;
-    padding: 24px 28px;
+    margin-bottom: var(--space-10);
+    padding: var(--space-6) var(--space-7);
     background:
       linear-gradient(135deg, rgba(15, 23, 42, 0.05) 0%, rgba(15, 23, 42, 0.025) 100%),
       @ds-glass-bg;
@@ -159,7 +159,7 @@
     .header-content {
       display: flex;
       align-items: center;
-      gap: 20px;
+      gap: var(--space-5);
       position: relative;
       z-index: 1;
 
@@ -169,7 +169,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 28px;
+        font-size: var(--text-28);
         color: @aurora-cyan;
         background: linear-gradient(
           135deg,
@@ -188,10 +188,10 @@
 
       .header-text {
         .page-title {
-          font-size: 32px;
+          font-size: var(--text-32);
           font-weight: 700;
           color: @ds-text-primary;
-          margin: 0 0 6px 0;
+          margin: var(--space-0) var(--space-0) var(--space-1-5) var(--space-0);
           letter-spacing: -0.5px;
           background: linear-gradient(135deg, #122033 0%, #60a5fa 50%, #99f6e4 100%);
           -webkit-background-clip: text;
@@ -203,9 +203,9 @@
         }
 
         .page-subtitle {
-          font-size: 14px;
+          font-size: var(--text-sm);
           color: @ds-text-secondary;
-          margin: 0;
+          margin: var(--space-0);
           font-weight: 400;
           letter-spacing: 0.3px;
         }
@@ -222,8 +222,8 @@
     backdrop-filter: blur(20px);
     border: 1px solid @ds-glass-border;
     border-radius: 16px;
-    margin-bottom: 24px;
-    padding: 20px;
+    margin-bottom: var(--space-6);
+    padding: var(--space-5);
     position: relative;
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(15, 23, 42, 0.1);
@@ -245,7 +245,7 @@
 
     .filter-row {
       display: flex;
-      gap: 16px;
+      gap: var(--space-4);
       flex-wrap: wrap;
       align-items: center;
 
@@ -306,14 +306,14 @@
       :global {
         .ant-tabs-nav {
           border-bottom: 1px solid rgba(15, 23, 42, 0.06);
-          padding: 0 24px;
-          margin: 0;
+          padding: var(--space-0) var(--space-6);
+          margin: var(--space-0);
 
           .ant-tabs-tab {
             color: @ds-text-tertiary;
-            font-size: 14px;
+            font-size: var(--text-sm);
             font-weight: 500;
-            padding: 16px 20px;
+            padding: var(--space-4) var(--space-5);
             transition: all 0.3s ease;
 
             &:hover {
@@ -340,12 +340,12 @@
     }
 
     .empty-state {
-      padding: 80px 0;
+      padding: var(--space-20) var(--space-0);
 
       :global {
         .ant-empty-description {
           color: @ds-text-tertiary;
-          font-size: 14px;
+          font-size: var(--text-sm);
         }
 
         .ant-empty-image {
@@ -358,7 +358,7 @@
   // ============================================
   // ============================================
   .error-alert {
-    margin-bottom: 24px;
+    margin-bottom: var(--space-6);
     border-radius: 12px;
     border: 1px solid rgba(255, 77, 79, 0.3);
     background: rgba(255, 77, 79, 0.1);
@@ -381,31 +381,31 @@
 // ============================================
 @media (max-width: 768px) {
   .nft-assets-page {
-    padding: 20px;
+    padding: var(--space-5);
 
     .page-header {
       flex-direction: column;
       align-items: flex-start;
-      gap: 16px;
-      padding: 20px;
+      gap: var(--space-4);
+      padding: var(--space-5);
 
       .header-content {
         .header-icon {
           width: 48px;
           height: 48px;
-          font-size: 24px;
+          font-size: var(--text-2xl);
         }
 
         .header-text {
           .page-title {
-            font-size: 24px;
+            font-size: var(--text-2xl);
           }
         }
       }
     }
 
     .filter-card {
-      padding: 16px;
+      padding: var(--space-4);
 
       .filter-row {
         flex-direction: column;
@@ -421,11 +421,11 @@
       .assets-tabs {
         :global {
           .ant-tabs-nav {
-            padding: 0 16px;
+            padding: var(--space-0) var(--space-4);
 
             .ant-tabs-tab {
-              padding: 12px 14px;
-              font-size: 13px;
+              padding: var(--space-3) var(--space-3-5);
+              font-size: var(--text-xs-plus);
             }
           }
         }

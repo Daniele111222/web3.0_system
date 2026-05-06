@@ -156,7 +156,7 @@ const NFTContractsPage: React.FC = () => {
           type="error"
           closable
           className="error-alert"
-          style={{ marginBottom: 24 }}
+          style={{ marginBottom: 'var(--space-6)' }}
         />
       )}
 
@@ -217,7 +217,7 @@ const NFTContractsPage: React.FC = () => {
       <Card
         className="quick-actions-card"
         bordered={false}
-        style={{ marginTop: 24 }}
+        style={{ marginTop: 'var(--space-6)' }}
         title={
           <div className="card-title">
             <WalletOutlined />

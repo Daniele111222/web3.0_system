@@ -30,19 +30,19 @@
   .ant-card-head {
     background: transparent;
     border-bottom: 1px solid rgba(15, 23, 42, 0.07);
-    padding: 16px 20px;
+    padding: var(--space-4) var(--space-5);
 
     .ant-card-head-title {
-      padding: 0;
+      padding: var(--space-0);
     }
 
     .ant-card-extra {
-      padding: 0;
+      padding: var(--space-0);
     }
   }
 
   .ant-card-body {
-    padding: 20px;
+    padding: var(--space-5);
     background: transparent;
   }
 }
@@ -53,25 +53,25 @@
 .history-header {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2-5);
 
   .anticon {
-    font-size: 20px;
+    font-size: var(--text-xl);
     color: @primary-glow;
     filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.5));
   }
 
   span {
-    font-size: 16px;
+    font-size: var(--text-md);
     font-weight: 600;
     color: @text-primary;
     letter-spacing: 0.5px;
   }
 
   .asset-tag {
-    margin-left: 8px;
-    font-size: 11px;
-    padding: 2px 8px;
+    margin-left: var(--space-2);
+    font-size: var(--text-xxs);
+    padding: var(--space-0-5) var(--space-2);
   }
 }
 
@@ -80,7 +80,7 @@
 
 .filter-tabs {
   .ant-tabs-nav {
-    margin-bottom: 0;
+    margin-bottom: var(--space-0);
 
     &::before {
       display: none;
@@ -92,9 +92,9 @@
           background: rgba(15, 23, 42, 0.05);
           border: 1px solid rgba(15, 23, 42, 0.08);
           border-radius: 6px;
-          padding: 4px 12px;
-          margin: 0 4px;
-          font-size: 12px;
+          padding: var(--space-1) var(--space-3);
+          margin: var(--space-0) var(--space-1);
+          font-size: var(--text-xs);
           color: @text-secondary;
           transition: all 0.2s ease;
 
@@ -127,10 +127,10 @@
 
 .mint-timeline {
   .ant-timeline-item {
-    padding-bottom: 20px;
+    padding-bottom: var(--space-5);
 
     &:last-child {
-      padding-bottom: 0;
+      padding-bottom: var(--space-0);
     }
 
     .ant-timeline-item-tail {
@@ -175,7 +175,7 @@
     }
 
     .ant-timeline-item-content {
-      margin-left: 48px;
+      margin-left: var(--space-12);
 
       .timeline-card {
         background: rgba(15, 23, 42, 0.035);
@@ -194,31 +194,31 @@
         }
 
         .ant-card-body {
-          padding: 12px;
+          padding: var(--space-3);
         }
 
         .timeline-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 8px;
+          margin-bottom: var(--space-2);
 
           .ant-space {
             .ant-tag {
-              margin: 0;
-              font-size: 11px;
-              padding: 2px 8px;
+              margin: var(--space-0);
+              font-size: var(--text-xxs);
+              padding: var(--space-0-5) var(--space-2);
               border-radius: 4px;
 
               .anticon {
-                font-size: 10px;
-                margin-right: 4px;
+                font-size: var(--text-2xs);
+                margin-right: var(--space-1);
               }
             }
           }
 
           .timeline-time {
-            font-size: 11px;
+            font-size: var(--text-xxs);
             font-family: 'Courier New', monospace;
           }
         }
@@ -226,87 +226,87 @@
         .timeline-detail {
           display: flex;
           align-items: center;
-          gap: 6px;
-          margin-top: 6px;
+          gap: var(--space-1-5);
+          margin-top: var(--space-1-5);
 
           .ant-typography {
-            font-size: 12px;
-            margin: 0;
+            font-size: var(--text-xs);
+            margin: var(--space-0);
           }
 
           .tx-link {
-            padding: 0;
+            padding: var(--space-0);
             height: auto;
-            font-size: 11px;
+            font-size: var(--text-xxs);
             font-family: 'Courier New', monospace;
 
             .anticon {
-              font-size: 10px;
+              font-size: var(--text-2xs);
             }
           }
 
           .ant-tag {
-            margin: 0;
-            font-size: 11px;
-            padding: 1px 6px;
+            margin: var(--space-0);
+            font-size: var(--text-xxs);
+            padding: var(--space-px) var(--space-1-5);
           }
         }
 
         .timeline-error {
           display: flex;
           align-items: flex-start;
-          gap: 8px;
-          margin-top: 8px;
-          padding: 8px;
+          gap: var(--space-2);
+          margin-top: var(--space-2);
+          padding: var(--space-2);
           background: rgba(255, 68, 68, 0.1);
           border-radius: 6px;
           border-left: 2px solid @error-glow;
 
           .anticon {
             color: @error-glow;
-            font-size: 14px;
-            margin-top: 2px;
+            font-size: var(--text-sm);
+            margin-top: var(--space-0-5);
           }
 
           .ant-typography {
-            font-size: 12px;
-            line-height: 1.5;
-            margin: 0;
+            font-size: var(--text-xs);
+            line-height: var(--leading-normal);
+            margin: var(--space-0);
           }
         }
 
         .timeline-duration {
           display: flex;
           align-items: center;
-          gap: 6px;
-          margin-top: 8px;
-          padding-top: 8px;
+          gap: var(--space-1-5);
+          margin-top: var(--space-2);
+          padding-top: var(--space-2);
           border-top: 1px solid rgba(15, 23, 42, 0.05);
 
           .anticon {
-            font-size: 12px;
+            font-size: var(--text-xs);
             color: @text-muted;
           }
 
           .ant-typography {
-            font-size: 11px;
-            margin: 0;
+            font-size: var(--text-xxs);
+            margin: var(--space-0);
           }
         }
 
         .timeline-actions {
-          margin-top: 10px;
+          margin-top: var(--space-2-5);
           display: flex;
           justify-content: flex-end;
 
           .ant-btn {
             height: 28px;
-            padding: 0 12px;
-            font-size: 12px;
+            padding: var(--space-0) var(--space-3);
+            font-size: var(--text-xs);
             border-radius: 4px;
 
             .anticon {
-              font-size: 11px;
+              font-size: var(--text-xxs);
             }
           }
         }
@@ -319,7 +319,7 @@
 // ============================================
 
 .ant-empty {
-  padding: 40px 0;
+  padding: var(--space-10) var(--space-0);
 
   .ant-empty-image {
     height: 80px;
@@ -331,8 +331,8 @@
 
   .ant-empty-description {
     color: @text-secondary;
-    font-size: 14px;
-    margin-top: 16px;
+    font-size: var(--text-sm);
+    margin-top: var(--space-4);
   }
 }
 
@@ -348,6 +348,6 @@
 
   .ant-spin-text {
     color: @text-secondary;
-    margin-top: 12px;
+    margin-top: var(--space-3);
   }
 }

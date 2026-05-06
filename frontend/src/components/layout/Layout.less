@@ -61,15 +61,15 @@
   flex: 1;
   position: relative;
   z-index: 1;
-  padding-top: 70px; /* 导航栏高度 */
+  padding-top: var(--space-17-5); /* 导航栏高度 */
   min-height: calc(100vh - 70px);
 }
 
 /* 内容容器 */
 .content-container {
   max-width: 1600px;
-  margin: 0 auto;
-  padding: 2rem;
+  margin: var(--space-0) auto;
+  padding: var(--space-8);
   animation: contentFadeIn 0.5s ease-out;
 }
 
@@ -89,17 +89,17 @@
    页面标题区域
    ======================================== */
 .page-header {
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
+  margin-bottom: var(--space-8);
+  padding-bottom: var(--space-6);
   border-bottom: 1px solid var(--border-primary);
 }
 
 .page-title {
-  font-size: 1.875rem;
+  font-size: var(--text-3xl);
   font-weight: 700;
   color: var(--text-primary);
   letter-spacing: -0.5px;
-  margin: 0 0 0.5rem 0;
+  margin: var(--space-0) var(--space-0) var(--space-2) var(--space-0);
   background: var(--gradient-text);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -107,9 +107,9 @@
 }
 
 .page-subtitle {
-  font-size: 0.9375rem;
+  font-size: var(--text-base);
   color: var(--text-tertiary);
-  margin: 0;
+  margin: var(--space-0);
 }
 
 /* ========================================
@@ -118,8 +118,8 @@
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  gap: var(--space-6);
+  margin-bottom: var(--space-8);
 }
 
 .glass-card {
@@ -128,7 +128,7 @@
   -webkit-backdrop-filter: blur(14px);
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-xl);
-  padding: 1.5rem;
+  padding: var(--space-6);
   transition: all var(--transition-base);
   box-shadow: var(--shadow-card);
 }
@@ -146,76 +146,76 @@
 /* 平板设备 (768px - 1023px) */
 @media (max-width: 1023px) {
   .app-content {
-    padding-top: 70px;
+    padding-top: var(--space-17-5);
   }
 
   .content-container {
-    padding: 1.5rem;
+    padding: var(--space-6);
   }
 
   .page-title {
-    font-size: 1.625rem;
+    font-size: var(--text-26);
   }
 
   .card-grid {
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1rem;
+    gap: var(--space-4);
   }
 }
 
 /* 移动端设备 (小于 768px) */
 @media (max-width: 767px) {
   .app-content {
-    padding-top: 60px;
+    padding-top: var(--space-15);
     min-height: calc(100vh - 60px);
   }
 
   .content-container {
-    padding: 1rem;
+    padding: var(--space-4);
   }
 
   .page-header {
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
+    margin-bottom: var(--space-6);
+    padding-bottom: var(--space-4);
   }
 
   .page-title {
-    font-size: 1.375rem;
+    font-size: var(--text-22);
   }
 
   .page-subtitle {
-    font-size: 0.875rem;
+    font-size: var(--text-sm);
   }
 
   .card-grid {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: var(--space-4);
   }
 
   .glass-card {
-    padding: 1.25rem;
+    padding: var(--space-5);
   }
 }
 
 /* 超小屏幕 (小于 360px) */
 @media (max-width: 359px) {
   .content-container {
-    padding: 0.75rem;
+    padding: var(--space-3);
   }
 
   .page-title {
-    font-size: 1.25rem;
+    font-size: var(--text-xl);
   }
 }
 
 /* 大屏幕设备 (大于 1400px) */
 @media (min-width: 1401px) {
   .content-container {
-    padding: 2.5rem;
+    padding: var(--space-10);
   }
 
   .page-title {
-    font-size: 2rem;
+    font-size: var(--text-32);
   }
 }
 
@@ -268,7 +268,7 @@
   }
 
   .app-content {
-    padding-top: 0;
+    padding-top: var(--space-0);
     min-height: auto;
   }
 

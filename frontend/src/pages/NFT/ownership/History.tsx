@@ -144,7 +144,7 @@ const NFTHistoryPage: React.FC = () => {
                   <Descriptions.Item label="资产类型">{asset.asset_type}</Descriptions.Item>
                   <Descriptions.Item label="Token ID">#{asset.token_id}</Descriptions.Item>
                   <Descriptions.Item label="合约地址">
-                    <Text copyable style={{ fontFamily: 'monospace', fontSize: 12 }}>
+                    <Text copyable style={{ fontFamily: 'monospace', fontSize: 'var(--text-xs)' }}>
                       {asset.contract_address}
                     </Text>
                   </Descriptions.Item>
@@ -181,7 +181,7 @@ const NFTHistoryPage: React.FC = () => {
                       color: config.color,
                       label: new Date(record.timestamp).toLocaleString('zh-CN'),
                       children: (
-                        <Card size="small" style={{ marginBottom: 8 }}>
+                        <Card size="small" style={{ marginBottom: 'var(--space-2)' }}>
                           <Space direction="vertical" style={{ width: '100%' }}>
                             <Space>
                               {config.icon}
@@ -210,7 +210,7 @@ const NFTHistoryPage: React.FC = () => {
                                       copyable
                                       style={{
                                         fontFamily: 'monospace',
-                                        fontSize: 12,
+                                        fontSize: 'var(--text-xs)',
                                       }}
                                     >
                                       {formatTxHash(record.tx_hash)}
