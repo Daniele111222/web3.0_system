@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { ethers } from 'ethers';
 import {
   Card,
   Descriptions,
@@ -55,6 +56,7 @@ interface WalletBindFormData {
 }
 
 const ETHEREUM_ADDRESS_PATTERN = /^0x[a-fA-F0-9]{40}$/;
+const RPC_URL = import.meta.env.VITE_RPC_URL || 'http://127.0.0.1:8545';
 
 // 辅助函数：获取角色标签
 const getRoleBadge = (role: EnterpriseRole): React.ReactNode => {
@@ -124,6 +126,7 @@ export const EnterpriseDetail: React.FC<EnterpriseDetailProps> = ({ enterpriseId
   const [isWalletModalVisible, setIsWalletModalVisible] = useState(false);
   const [walletBindingLoading, setWalletBindingLoading] = useState(false);
   const [walletChallengeLoading, setWalletChallengeLoading] = useState(false);
+  const [walletSigningLoading, setWalletSigningLoading] = useState(false);
   const [walletChallenge, setWalletChallenge] = useState<WalletBindChallengeResponse | null>(null);
 
   // 检查当前用户是否是管理员或所有者
@@ -378,6 +381,40 @@ export const EnterpriseDetail: React.FC<EnterpriseDetailProps> = ({ enterpriseId
       message.success('签名消息已复制');
     } catch {
       message.warning('复制失败，请手动复制签名消息');
+    }
+  };
+
+  const handleSignWalletMessage = async () => {
+    if (!walletChallenge) {
+      message.warning('请先生成签名消息');
+      return;
+    }
+
+    try {
+      const values = await walletForm.validateFields(['wallet_address', 'message']);
+      const walletAddress = values.wallet_address.trim().toLowerCase();
+      const challengeMessage = values.message;
+
+      setWalletSigningLoading(true);
+      const provider = new ethers.JsonRpcProvider(RPC_URL);
+      const accounts = (await provider.send('eth_accounts', [])) as string[];
+      const activeAccount = accounts.find((address) => address.toLowerCase() === walletAddress);
+      if (!activeAccount) {
+        message.error('本地 Hardhat 节点中未找到该钱包地址，请确认地址来自本地账户');
+        return;
+      }
+
+      const signer = await provider.getSigner(activeAccount);
+      const signature = await signer.signMessage(challengeMessage);
+
+      walletForm.setFieldsValue({ signature });
+      message.success('签名成功，签名结果已自动填入');
+    } catch (err) {
+      if (err instanceof Error) {
+        message.error('签名失败：' + err.message);
+      }
+    } finally {
+      setWalletSigningLoading(false);
     }
   };
 
@@ -1039,7 +1076,7 @@ export const EnterpriseDetail: React.FC<EnterpriseDetailProps> = ({ enterpriseId
           type="info"
           showIcon
           message="仅企业创建人可绑定或更换企业钱包"
-          description="请填写钱包地址，并使用该钱包对下方消息签名后填入签名结果。"
+          description="请填写本地 Hardhat 钱包地址，生成签名消息后点击自动签名，系统会通过本地 RPC 节点完成签名并填入签名结果。"
         />
         <Form form={walletForm} layout="vertical" onFinish={handleBindEnterpriseWallet}>
           <Form.Item
@@ -1089,6 +1126,18 @@ export const EnterpriseDetail: React.FC<EnterpriseDetailProps> = ({ enterpriseId
             </Button>
           </div>
 
+          <div className="flex justify-end mb-4">
+            <Button
+              type="primary"
+              icon={<WalletOutlined />}
+              loading={walletSigningLoading}
+              onClick={handleSignWalletMessage}
+              disabled={!walletChallenge}
+            >
+              使用本地 Hardhat 钱包签名
+            </Button>
+          </div>
+
           {walletChallenge && (
             <div className="text-xs text-gray-500 mb-4">
               挑战过期时间：{new Date(walletChallenge.expires_at).toLocaleString('zh-CN')}
@@ -1108,7 +1157,7 @@ export const EnterpriseDetail: React.FC<EnterpriseDetailProps> = ({ enterpriseId
             label="签名结果"
             rules={[{ required: true, message: '请输入签名结果' }]}
           >
-            <TextArea rows={4} placeholder="0x..." autoComplete="off" />
+            <TextArea rows={4} placeholder="点击上方按钮自动填入 0x... 签名结果" autoComplete="off" />
           </Form.Item>
         </Form>
       </Modal>
