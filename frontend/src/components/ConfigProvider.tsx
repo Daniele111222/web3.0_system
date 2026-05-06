@@ -32,6 +32,10 @@ const customLightTheme = {
   borderRadiusLG: 10,
   borderRadiusXL: 14,
   borderRadiusXS: 4,
+  fontSize: 20,
+  fontSizeSM: 16,
+  fontSizeLG: 22,
+  fontSizeXL: 24,
 
   boxShadow: '0 8px 24px rgba(15, 23, 42, 0.08)',
   boxShadowSecondary: '0 14px 36px rgba(15, 23, 42, 0.12)',
@@ -178,7 +182,7 @@ const componentToken = {
     colorText: 'rgba(18, 32, 51, 0.52)',
     colorTextDescription: 'rgba(18, 32, 51, 0.44)',
     controlHeightLG: 120,
-    fontSize: 14,
+    fontSize: 20,
     lineHeight: 1.6,
   },
   Skeleton: {
