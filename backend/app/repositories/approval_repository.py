@@ -1,9 +1,11 @@
 """审批数据访问层。"""
+from datetime import datetime, timezone
 from typing import Optional, List, Tuple
 from uuid import UUID
-from sqlalchemy import select, and_, desc
+from sqlalchemy import select, and_, desc, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.asset import Asset
 from app.models.approval import (
     Approval, 
     ApprovalProcess, 
@@ -11,6 +13,7 @@ from app.models.approval import (
     ApprovalType,
     ApprovalStatus,
 )
+from app.models.enterprise import EnterpriseMember
 
 
 class ApprovalRepository:
@@ -24,6 +27,26 @@ class ApprovalRepository:
             session: 数据库会话
         """
         self.session = session
+
+    def _scope_to_user_enterprises(self, query, user_id: UUID):
+        enterprise_ids = select(EnterpriseMember.enterprise_id).where(
+            EnterpriseMember.user_id == user_id
+        )
+        asset_ids = select(Asset.id).where(Asset.enterprise_id.in_(enterprise_ids))
+
+        return query.where(
+            or_(
+                and_(
+                    Approval.target_type == "enterprise",
+                    Approval.target_id.in_(enterprise_ids),
+                ),
+                Approval.asset_id.in_(asset_ids),
+                and_(
+                    Approval.target_type == "asset",
+                    Approval.target_id.in_(asset_ids),
+                ),
+            )
+        )
     
     async def create_approval(self, approval: Approval) -> Approval:
         """
@@ -39,7 +62,11 @@ class ApprovalRepository:
         await self.session.flush()
         return approval
     
-    async def get_approval_by_id(self, approval_id: UUID) -> Optional[Approval]:
+    async def get_approval_by_id(
+        self,
+        approval_id: UUID,
+        visible_to_user_id: Optional[UUID] = None,
+    ) -> Optional[Approval]:
         """
         根据ID获取审批记录。
         
@@ -49,9 +76,11 @@ class ApprovalRepository:
         Returns:
             Optional[Approval]: 审批对象或None
         """
-        result = await self.session.execute(
-            select(Approval).where(Approval.id == approval_id)
-        )
+        query = select(Approval).where(Approval.id == approval_id)
+        if visible_to_user_id is not None:
+            query = self._scope_to_user_enterprises(query, visible_to_user_id)
+
+        result = await self.session.execute(query)
         return result.scalar_one_or_none()
     
     async def update_approval(self, approval: Approval) -> Approval:
@@ -104,6 +133,7 @@ class ApprovalRepository:
         approval_type: Optional[ApprovalType] = None,
         page: int = 1,
         page_size: int = 20,
+        visible_to_user_id: Optional[UUID] = None,
     ) -> Tuple[List[Approval], int]:
         """
         获取待审批列表。
@@ -121,15 +151,18 @@ class ApprovalRepository:
         
         if approval_type:
             query = query.where(Approval.type == approval_type)
+
+        if visible_to_user_id is not None:
+            query = self._scope_to_user_enterprises(query, visible_to_user_id)
         
         # 排序
         query = query.order_by(desc(Approval.created_at))
         
         # 计算总数
         count_result = await self.session.execute(
-            select(Approval).where(Approval.status == ApprovalStatus.PENDING)
+            select(func.count()).select_from(query.order_by(None).subquery())
         )
-        total = len(count_result.scalars().all())
+        total = count_result.scalar_one()
         
         # 分页
         skip = (page - 1) * page_size
@@ -144,6 +177,7 @@ class ApprovalRepository:
         page_size: int = 20,
         status: Optional[ApprovalStatus] = None,
         approval_type: Optional[ApprovalType] = None,
+        visible_to_user_id: Optional[UUID] = None,
     ) -> Tuple[List[Approval], int]:
         """Get processed approvals history."""
         completed_statuses = [
@@ -157,11 +191,15 @@ class ApprovalRepository:
             query = query.where(Approval.status == status)
         if approval_type:
             query = query.where(Approval.type == approval_type)
+        if visible_to_user_id is not None:
+            query = self._scope_to_user_enterprises(query, visible_to_user_id)
 
         query = query.order_by(desc(Approval.updated_at))
 
-        count_result = await self.session.execute(query)
-        total = len(count_result.scalars().all())
+        count_result = await self.session.execute(
+            select(func.count()).select_from(query.order_by(None).subquery())
+        )
+        total = count_result.scalar_one()
 
         skip = (page - 1) * page_size
         paged_query = query.offset(skip).limit(page_size)
