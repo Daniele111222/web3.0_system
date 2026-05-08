@@ -5,6 +5,7 @@ from uuid import UUID
 import hashlib
 import secrets
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from eth_account.messages import encode_defunct
 from web3 import Web3
@@ -38,6 +39,7 @@ from app.schemas.auth import (
     TokenResponse,
     UserResponse,
     AuthResponse,
+    UserProfileUpdateRequest,
 )
 from app.services.email_service import email_service
 
@@ -353,6 +355,36 @@ class AuthService:
         user = await self.user_repo.get_by_id(user_id)
         if not user:
             raise UserNotFoundError()
+        return self._user_to_response(user)
+
+    async def update_current_user(
+        self, user_id: UUID, data: UserProfileUpdateRequest
+    ) -> UserResponse:
+        """Update editable profile fields for the current user."""
+        user = await self.user_repo.get_by_id(user_id)
+        if not user:
+            raise UserNotFoundError()
+
+        update_data = data.model_dump(exclude_unset=True)
+
+        if "username" in update_data and update_data["username"] != user.username:
+            existing_user = await self.user_repo.get_by_username(update_data["username"])
+            if existing_user and existing_user.id != user_id:
+                raise UserExistsError("username")
+            user.username = update_data["username"]
+
+        if "full_name" in update_data:
+            user.full_name = update_data["full_name"]
+
+        if "avatar_url" in update_data:
+            user.avatar_url = update_data["avatar_url"]
+
+        try:
+            await self.db.flush()
+        except IntegrityError as exc:
+            raise UserExistsError("username") from exc
+
+        await self.db.refresh(user)
         return self._user_to_response(user)
     
     async def _create_tokens(

@@ -127,6 +127,36 @@ class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class UserProfileUpdateRequest(BaseModel):
+    """Editable current-user profile fields."""
+
+    username: Optional[str] = Field(None, min_length=3, max_length=50)
+    full_name: Optional[str] = Field(None, max_length=100)
+    avatar_url: Optional[str] = Field(None, max_length=500)
+
+    @field_validator("username")
+    @classmethod
+    def validate_username(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+
+        username = v.strip()
+        if not re.match(r"^[a-zA-Z][a-zA-Z0-9_]*$", username):
+            raise ValueError(
+                "Username must start with a letter and contain only letters, numbers, and underscores"
+            )
+        return username.lower()
+
+    @field_validator("full_name", "avatar_url")
+    @classmethod
+    def normalize_optional_string(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+
+        value = v.strip()
+        return value or None
+
+
 class AuthResponse(BaseModel):
     """包含用户信息和令牌的认证响应架构。"""
     

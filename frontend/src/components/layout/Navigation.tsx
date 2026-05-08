@@ -179,6 +179,11 @@ export function Navigation() {
         }
 
         navigate(`/enterprises/${enterpriseId}?tab=settings&wallet=bind`);
+        return;
+      }
+
+      if (key === 'profile') {
+        navigate('/profile');
       }
     },
     [currentEnterprise?.id, handleLogout, navigate]

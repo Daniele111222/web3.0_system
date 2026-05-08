@@ -22,6 +22,7 @@ import ApprovalDetail from './pages/Approval/Detail';
 import BlockchainExplorer from './pages/BlockchainExplorer';
 import NFTHistoryPage from './pages/NFT/ownership/History';
 import HardhatWalletsPage from './pages/HardhatWallets';
+import ProfilePage from './pages/Profile';
 
 /**
  * 应用路由配置
@@ -58,6 +59,10 @@ export const router = createBrowserRouter([
       {
         path: 'dashboard',
         element: <Dashboard />,
+      },
+      {
+        path: 'profile',
+        element: <ProfilePage />,
       },
       {
         path: 'dashboard/history/:tokenId',
