@@ -103,6 +103,7 @@ export interface TransferRequest {
   to_address: string;
   to_enterprise_id?: string;
   remarks?: string;
+  from_address?: string;
 }
 
 /** NFT 转移响应 */

@@ -2,7 +2,7 @@
 from datetime import datetime, date, timezone
 from enum import Enum
 from typing import Optional, List, TYPE_CHECKING
-from sqlalchemy import String, DateTime, ForeignKey, Enum as SQLEnum, Index, Text, Date, BigInteger, JSON, Boolean
+from sqlalchemy import String, DateTime, ForeignKey, Enum as SQLEnum, Index, Text, Date, BigInteger, JSON, Boolean, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
@@ -446,7 +446,6 @@ class Attachment(Base):
     ipfs_cid: Mapped[str] = mapped_column(
         String(100),
         nullable=False,
-        unique=True,
         index=True,
         comment="IPFS 内容标识符（CID）",
     )
@@ -473,6 +472,7 @@ class Attachment(Base):
     
     # 索引
     __table_args__ = (
+        UniqueConstraint("asset_id", "ipfs_cid", name="uq_attachments_asset_ipfs_cid"),
         Index("ix_attachments_asset_uploaded", "asset_id", "uploaded_at"),
     )
     

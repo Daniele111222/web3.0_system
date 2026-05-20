@@ -132,6 +132,16 @@ const NFTHistoryPage: React.FC = () => {
   const explorerBase = import.meta.env.VITE_BLOCK_EXPLORER_URL || explorerMap[chainId] || '';
   const enterpriseId = localStorage.getItem('current_enterprise_id') || '';
 
+  const normalizeTokenId = (value: number | string | null | undefined): number | null => {
+    if (typeof value === 'number' && Number.isInteger(value) && value > 0) {
+      return value;
+    }
+    if (typeof value === 'string' && /^[1-9]\d*$/.test(value)) {
+      return Number.parseInt(value, 10);
+    }
+    return null;
+  };
+
   const fetchMintHistory = useCallback(
     async (
       nextPage: number,
@@ -263,12 +273,13 @@ const NFTHistoryPage: React.FC = () => {
               size="small"
               disabled={!record.token_id}
               onClick={async () => {
-                if (!record.token_id) {
+                const normalizedTokenId = normalizeTokenId(record.token_id);
+                if (!normalizedTokenId) {
                   return;
                 }
                 try {
                   setHistoryLoading(true);
-                  const result = await nftService.getNFTHistory(record.token_id, 1, 50);
+                  const result = await nftService.getNFTHistory(normalizedTokenId, 1, 50);
                   setHistoryItems(result.items);
                   setHistoryVisible(true);
                 } catch (error) {

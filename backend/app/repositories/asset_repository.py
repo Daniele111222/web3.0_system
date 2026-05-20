@@ -30,10 +30,14 @@ class AssetRepository:
         Returns:
             Asset: 创建的资产
         """
-        self.db.add(asset)
-        await self.db.commit()
-        await self.db.refresh(asset)
-        return asset
+        try:
+            self.db.add(asset)
+            await self.db.commit()
+            await self.db.refresh(asset)
+            return asset
+        except Exception:
+            await self.db.rollback()
+            raise
     
     async def get_asset_by_id(self, asset_id: UUID) -> Optional[Asset]:
         """
@@ -132,9 +136,13 @@ class AssetRepository:
         Returns:
             Asset: 更新后的资产
         """
-        await self.db.commit()
-        await self.db.refresh(asset)
-        return asset
+        try:
+            await self.db.commit()
+            await self.db.refresh(asset)
+            return asset
+        except Exception:
+            await self.db.rollback()
+            raise
     
     async def delete_asset(self, asset: Asset) -> None:
         """
@@ -143,8 +151,12 @@ class AssetRepository:
         Args:
             asset: 资产对象
         """
-        await self.db.delete(asset)
-        await self.db.commit()
+        try:
+            await self.db.delete(asset)
+            await self.db.commit()
+        except Exception:
+            await self.db.rollback()
+            raise
     
     async def add_attachment(self, attachment: Attachment) -> Attachment:
         """
@@ -156,10 +168,14 @@ class AssetRepository:
         Returns:
             Attachment: 创建的附件
         """
-        self.db.add(attachment)
-        await self.db.commit()
-        await self.db.refresh(attachment)
-        return attachment
+        try:
+            self.db.add(attachment)
+            await self.db.commit()
+            await self.db.refresh(attachment)
+            return attachment
+        except Exception:
+            await self.db.rollback()
+            raise
     
     async def get_attachment_by_id(self, attachment_id: UUID) -> Optional[Attachment]:
         """
@@ -205,5 +221,21 @@ class AssetRepository:
         """
         result = await self.db.execute(
             select(Attachment).where(Attachment.ipfs_cid == ipfs_cid)
+        )
+        return result.scalar_one_or_none()
+
+    async def get_attachment_by_asset_and_cid(
+        self,
+        asset_id: UUID,
+        ipfs_cid: str,
+    ) -> Optional[Attachment]:
+        """
+        根据资产 ID 和 IPFS CID 获取附件。
+        """
+        result = await self.db.execute(
+            select(Attachment).where(
+                Attachment.asset_id == asset_id,
+                Attachment.ipfs_cid == ipfs_cid,
+            )
         )
         return result.scalar_one_or_none()

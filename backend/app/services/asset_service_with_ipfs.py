@@ -205,6 +205,8 @@ class AssetServiceWithIPFS:
                 ),
             )
 
+        seen_cids: set[str] = set()
+
         if files:
             for index, file in enumerate(files):
                 if not file or not file.filename:
@@ -220,6 +222,18 @@ class AssetServiceWithIPFS:
                         asset_name=created_asset.name,
                         asset_id=created_asset.id,
                     )
+
+                    cid = upload_result["cid"]
+                    if cid in seen_cids:
+                        logger.info(
+                            "asset_attachment_duplicate_skipped",
+                            extra={
+                                "asset_id": str(created_asset.id),
+                                "cid": cid,
+                                "file_name": file.filename or "",
+                            },
+                        )
+                        continue
                     
                     # 创建附件记录
                     attachment = Attachment(
@@ -227,14 +241,15 @@ class AssetServiceWithIPFS:
                         file_name=file.filename,
                         file_type=file.content_type or "application/octet-stream",
                         file_size=upload_result.get("size", 0),
-                        ipfs_cid=upload_result["cid"],
-                        is_primary=index == 0,
+                        ipfs_cid=cid,
+                        is_primary=not attachments,
                         uploaded_at=datetime.utcnow(),
                     )
                     
                     # 保存附件 - 使用 add_attachment 方法
                     saved_attachment = await self.asset_repo.add_attachment(attachment)
                     attachments.append(saved_attachment)
+                    seen_cids.add(cid)
                     logger.info(
                         "asset_attachment_persisted",
                         extra={

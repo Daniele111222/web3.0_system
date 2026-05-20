@@ -4,6 +4,7 @@
 """
 from typing import Optional, List
 from uuid import UUID
+import re
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from pydantic import BaseModel, Field
@@ -25,6 +26,13 @@ def parse_current_user_id(current_user_id: UUID) -> UUID:
         return UUID(str(current_user_id))
     except (TypeError, ValueError):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="无效的用户凭证")
+
+
+def parse_token_id(token_id: str) -> int:
+    token_id_str = str(token_id).strip()
+    if not re.fullmatch(r"[1-9]\d*", token_id_str):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="token_id 必须为整数")
+    return int(token_id_str)
 
 
 async def ensure_asset_member_access(db: AsyncSession, asset_id: UUID, current_user_id: UUID) -> Asset:
@@ -428,9 +436,10 @@ async def get_nft_history(
     """获取NFT权属变更历史。"""
     service = OwnershipService(db)
     try:
-        asset = await service.get_asset_by_token_id(int(token_id))
+        normalized_token_id = parse_token_id(token_id)
+        asset = await service.get_asset_by_token_id(normalized_token_id)
         records, total = await service.get_transfer_history(
-            token_id=int(token_id),
+            token_id=normalized_token_id,
             contract_address=(asset or {}).get("contract_address") or None,
             page=page,
             page_size=page_size,
@@ -442,8 +451,6 @@ async def get_nft_history(
             "page_size": page_size,
             "total_pages": (total + page_size - 1) // page_size,
         }
-    except ValueError:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="token_id 必须为整数")
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

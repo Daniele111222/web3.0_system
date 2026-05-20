@@ -33,6 +33,10 @@ const Assets = () => {
     fetchEnterprises();
   }, [fetchEnterprises]);
 
+  useEffect(() => {
+    setSelectedEnterpriseId(currentEnterprise?.id ?? null);
+  }, [currentEnterprise?.id]);
+
   /**
    * 处理企业选择变化
    */
@@ -171,7 +175,7 @@ const Assets = () => {
           <Select
             placeholder="请选择企业"
             style={{ width: 240 }}
-            value={selectedEnterpriseId}
+            value={selectedEnterpriseId ?? undefined}
             onChange={handleEnterpriseChange}
             allowClear
             options={enterprises.map((e) => ({

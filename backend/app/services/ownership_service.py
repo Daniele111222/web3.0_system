@@ -349,7 +349,7 @@ class OwnershipService:
         # 3. 链上转移
         try:
             blockchain = get_blockchain_client()
-            tx_hash = await blockchain.transfer_nft(
+            transfer_result = await blockchain.transfer_nft(
                 from_address=from_address,
                 to_address=to_address,
                 token_id=token_id,
@@ -358,7 +358,7 @@ class OwnershipService:
         except Exception as e:
             raise BlockchainException(f"链上转移失败: {str(e)}")
 
-        now = datetime.now(timezone.utc)
+        now = transfer_result.get("confirmed_at") or datetime.now(timezone.utc)
 
         # 4. 写入转移记录
         record = NFTTransferRecord(
@@ -372,7 +372,8 @@ class OwnershipService:
             to_enterprise_id=to_enterprise_id,
             to_enterprise_name=to_enterprise_name,
             operator_user_id=operator_id,
-            tx_hash=tx_hash,
+            tx_hash=transfer_result["tx_hash"],
+            block_number=transfer_result.get("block_number"),
             status=TransferStatus.CONFIRMED,
             remarks=remarks,
             confirmed_at=now,
@@ -389,7 +390,7 @@ class OwnershipService:
 
         return {
             "success": True,
-            "tx_hash": tx_hash,
+            "tx_hash": transfer_result["tx_hash"],
             "transfer_record_id": str(record.id),
             "token_id": token_id,
             "from_address": from_address,

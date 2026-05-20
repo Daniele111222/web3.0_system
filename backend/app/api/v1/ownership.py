@@ -75,6 +75,7 @@ class TransferRequest(BaseModel):
     to_address: str = Field(..., description="Recipient wallet address")
     to_enterprise_id: Optional[UUID] = Field(None, description="Recipient enterprise ID")
     remarks: Optional[str] = Field(None, description="Transfer remarks")
+    from_address: Optional[str] = Field(None, description="Sender wallet address")
 
 
 class UpdateOwnershipStatusRequest(BaseModel):
@@ -222,6 +223,11 @@ async def transfer_nft(
 ):
     service = OwnershipService(db)
     try:
+        asset = await service.get_asset_by_token_id(request.token_id)
+        if not asset:
+            raise NotFoundException("Asset not found")
+        if request.from_address and asset.get("owner_address") and request.from_address.lower() != asset["owner_address"].lower():
+            raise BadRequestException("from_address must match current owner_address")
         result = await service.transfer_nft(
             token_id=request.token_id,
             to_address=request.to_address,

@@ -1,6 +1,7 @@
 """用于 Web3 交互的区块链客户端。"""
 import logging
 import json
+from datetime import datetime, timezone
 from typing import Optional, Dict, Any
 from eth_account import Account
 from eth_account.messages import encode_defunct
@@ -414,7 +415,7 @@ class BlockchainClient:
         to_address: str,
         token_id: int,
         reason: str = "",
-    ) -> str:
+    ) -> Dict[str, Any]:
         """调用合约 transferNFT 执行链上转移。
 
         使用合约自定义的 transferNFT 函数（带 reason 参数），
@@ -445,13 +446,21 @@ class BlockchainClient:
                 checksum_to,
                 token_id,
                 reason,
-            ).transact({'from': self.deployer_address})
+            ).transact({'from': checksum_from})
 
-            self.w3.eth.wait_for_transaction_receipt(tx_hash)
+            receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
+            if receipt.status != 1:
+                raise BlockchainConnectionError(
+                    f"NFT 转移交易执行失败，tx={tx_hash.hex()}"
+                )
             logger.info(
                 f"NFT #{token_id} transferred: {from_address} -> {to_address}, tx={tx_hash.hex()}"
             )
-            return tx_hash.hex()
+            return {
+                "tx_hash": tx_hash.hex(),
+                "block_number": receipt.blockNumber,
+                "confirmed_at": datetime.now(timezone.utc),
+            }
 
         except Exception as e:
             logger.error(f"NFT 转移失败: {e}")

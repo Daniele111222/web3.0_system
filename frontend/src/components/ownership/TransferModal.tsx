@@ -39,6 +39,7 @@ const TransferModal: React.FC<TransferModalProps> = ({ visible, asset, onClose, 
     try {
       const res = await ownershipService.transferNFT({
         token_id: asset.token_id,
+        from_address: asset.owner_address,
         to_address: values.to_address,
         remarks: values.remarks,
       });

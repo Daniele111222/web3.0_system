@@ -43,10 +43,15 @@ export function useEnterprise() {
       try {
         const response = await enterpriseService.getMyEnterprises(page, pageSize);
         setEnterprises(response.items);
-        // 如果当前没有选中企业且列表不为空，自动设置第一个企业为当前企业
+        // 优先恢复本地保存的当前企业，避免刷新后选择器只有 id 没有展示名称
         if (!currentEnterprise && response.items.length > 0) {
+          const storedEnterpriseId = localStorage.getItem('current_enterprise_id');
+          const selectedEnterprise =
+            response.items.find((enterprise) => enterprise.id === storedEnterpriseId) ??
+            response.items[0];
+
           setCurrentEnterprise({
-            ...response.items[0],
+            ...selectedEnterprise,
             members: [],
           } as import('../types').EnterpriseDetail);
         }

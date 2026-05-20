@@ -1,7 +1,8 @@
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { useAuthStore, useEnterpriseStore } from '../../store';
-import { Menu, Dropdown, message } from 'antd';
+import { useAuthStore } from '../../store';
+import { useEnterprise } from '../../hooks/useEnterprise';
+import { Menu, Dropdown, Select, message } from 'antd';
 import {
   LayoutDashboard,
   Building2,
@@ -14,6 +15,7 @@ import {
   ClipboardCheck,
   Link2,
 } from 'lucide-react';
+import type { EnterpriseDetail } from '../../types';
 import './Navigation.less';
 
 /**
@@ -25,11 +27,40 @@ export function Navigation() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAuthenticated, clearAuth } = useAuthStore();
-  const { currentEnterprise } = useEnterpriseStore();
+  const {
+    enterprises,
+    currentEnterprise,
+    isLoading: isEnterpriseLoading,
+    fetchEnterprises,
+    setCurrentEnterprise,
+  } = useEnterprise();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const selectedEnterpriseId =
+    currentEnterprise?.id || window.localStorage.getItem('current_enterprise_id') || undefined;
+  const selectedEnterpriseName =
+    currentEnterprise?.name ||
+    enterprises.find((enterprise) => enterprise.id === selectedEnterpriseId)?.name;
+  const enterpriseOptions = selectedEnterpriseId
+    ? [
+        {
+          value: selectedEnterpriseId,
+          label: selectedEnterpriseName || selectedEnterpriseId,
+        },
+        ...enterprises
+          .filter((enterprise) => enterprise.id !== selectedEnterpriseId)
+          .map((enterprise) => ({
+            value: enterprise.id,
+            label: enterprise.name || '未命名企业',
+          })),
+      ]
+    : enterprises.map((enterprise) => ({
+        value: enterprise.id,
+        label: enterprise.name || '未命名企业',
+      }));
 
   // 监听滚动事件，更新导航栏样式
   useEffect(() => {
@@ -128,6 +159,40 @@ export function Navigation() {
   }, [location.pathname]);
 
   /**
+   * 打开菜单时加载企业列表，便于直接切换当前企业
+   */
+  useEffect(() => {
+    if ((!isMobileMenuOpen && !isUserDropdownOpen) || enterprises.length > 0) {
+      return;
+    }
+
+    fetchEnterprises(1, 100).catch((err) => {
+      console.error('加载企业列表失败:', err);
+      message.error('加载企业列表失败');
+    });
+  }, [enterprises.length, fetchEnterprises, isMobileMenuOpen, isUserDropdownOpen]);
+
+  /**
+   * 只有本地企业 id 但缺少详情时，补齐当前企业名称和信息
+   */
+  useEffect(() => {
+    if (currentEnterprise || !selectedEnterpriseId) {
+      return;
+    }
+
+    const enterprise = enterprises.find((item) => item.id === selectedEnterpriseId);
+
+    if (!enterprise) {
+      return;
+    }
+
+    setCurrentEnterprise({
+      ...enterprise,
+      members: enterprise.members || [],
+    } as EnterpriseDetail);
+  }, [currentEnterprise, enterprises, selectedEnterpriseId, setCurrentEnterprise]);
+
+  /**
    * 导航项配置
    */
   const navItems = [
@@ -182,6 +247,30 @@ export function Navigation() {
       }
     },
     [currentEnterprise?.id, handleLogout, navigate]
+  );
+
+  const handleEnterpriseChange = useCallback(
+    (enterpriseId: string) => {
+      const enterprise = enterprises.find((item) => item.id === enterpriseId);
+
+      if (!enterprise) {
+        message.warning('未找到该企业，请刷新企业列表后重试');
+        return;
+      }
+
+      setCurrentEnterprise({
+        ...enterprise,
+        members: enterprise.members || [],
+      } as EnterpriseDetail);
+
+      setIsUserDropdownOpen(false);
+      message.success(`已切换到 ${enterprise.name}`);
+
+      if (location.pathname.startsWith('/enterprises/') && location.pathname !== '/enterprises') {
+        navigate(`/enterprises/${enterpriseId}${location.search}`, { replace: true });
+      }
+    },
+    [enterprises, location.pathname, location.search, navigate, setCurrentEnterprise]
   );
 
   // 未认证用户不显示导航
@@ -242,8 +331,43 @@ export function Navigation() {
               items: userMenuItems,
               onClick: handleUserMenuClick,
             }}
+            open={isUserDropdownOpen}
+            onOpenChange={setIsUserDropdownOpen}
             trigger={['click']}
             placement="bottomRight"
+            popupRender={(menu) => (
+              <div className="user-dropdown-panel">
+                <div className="user-enterprise-switcher">
+                  <div className="user-enterprise-label">
+                    <Building2 size={14} />
+                    <span>当前企业</span>
+                  </div>
+                  <div className="enterprise-select-field">
+                    <Select
+                      showSearch
+                      allowClear={false}
+                      className="user-enterprise-select"
+                      popupClassName="user-enterprise-select-popup"
+                      placeholder="选择当前企业"
+                      value={selectedEnterpriseId}
+                      loading={isEnterpriseLoading}
+                      disabled={isEnterpriseLoading && enterprises.length === 0}
+                      optionFilterProp="label"
+                      optionLabelProp="label"
+                      onChange={handleEnterpriseChange}
+                      options={enterpriseOptions}
+                      notFoundContent={isEnterpriseLoading ? '正在加载企业...' : '暂无可选企业'}
+                    />
+                    {selectedEnterpriseId && (
+                      <span className="enterprise-select-value">
+                        {selectedEnterpriseName || selectedEnterpriseId}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                {menu}
+              </div>
+            )}
           >
             <button className="user-dropdown-trigger">
               <div className="user-avatar">
@@ -295,6 +419,36 @@ export function Navigation() {
             {user?.wallet_address && (
               <span className="wallet-address">
                 {user.wallet_address.slice(0, 6)}...{user.wallet_address.slice(-4)}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* 移动端当前企业选择 */}
+        <div className="mobile-enterprise-switcher">
+          <div className="mobile-enterprise-label">
+            <Building2 size={16} />
+            <span>当前企业</span>
+          </div>
+          <div className="enterprise-select-field">
+            <Select
+              showSearch
+              allowClear={false}
+              className="mobile-enterprise-select"
+              popupClassName="mobile-enterprise-select-popup"
+              placeholder="选择当前企业"
+              value={selectedEnterpriseId}
+              loading={isEnterpriseLoading}
+              disabled={isEnterpriseLoading && enterprises.length === 0}
+              optionFilterProp="label"
+              optionLabelProp="label"
+              onChange={handleEnterpriseChange}
+              options={enterpriseOptions}
+              notFoundContent={isEnterpriseLoading ? '正在加载企业...' : '暂无可选企业'}
+            />
+            {selectedEnterpriseId && (
+              <span className="enterprise-select-value">
+                {selectedEnterpriseName || selectedEnterpriseId}
               </span>
             )}
           </div>

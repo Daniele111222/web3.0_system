@@ -249,12 +249,15 @@ class AssetService:
                 detail="只能为草稿状态的资产添加附件",
             )
         
-        # 检查 CID 是否已存在
-        existing_attachment = await self.asset_repo.get_attachment_by_cid(data.ipfs_cid)
+        # 检查当前资产是否已存在相同 CID 的附件
+        existing_attachment = await self.asset_repo.get_attachment_by_asset_and_cid(
+            asset_id,
+            data.ipfs_cid,
+        )
         if existing_attachment:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="该文件已存在",
+                detail="该资产下已存在相同附件",
             )
 
         existing_attachments = await self.asset_repo.get_attachments_by_asset(asset_id)
