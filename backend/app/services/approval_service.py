@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from typing import Optional, List, Tuple
 from uuid import UUID
 
+from sqlalchemy import and_, or_, select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import (
@@ -19,9 +20,9 @@ from app.models.approval import (
     ApprovalStatus,
     ApprovalAction,
 )
-from app.models.enterprise import Enterprise, EnterpriseMember
+from app.models.enterprise import Enterprise, EnterpriseMember, MemberRole
 from app.models.user import User
-from app.models.asset import AssetStatus
+from app.models.asset import Asset, AssetStatus
 from app.repositories.approval_repository import (
     ApprovalRepository,
     ApprovalProcessRepository,
@@ -104,6 +105,49 @@ class ApprovalService:
         self.process_repo = ApprovalProcessRepository(db)
         self.notification_repo = ApprovalNotificationRepository(db)
         self.enterprise_repo = EnterpriseRepository(db)
+
+    def _visible_to_user_id(self, current_user: User) -> Optional[UUID]:
+        return None if current_user.is_superuser else current_user.id
+
+    async def _get_approval_enterprise_id(self, approval: Approval) -> Optional[UUID]:
+        if approval.target_type == "enterprise":
+            return approval.target_id
+
+        if approval.asset_id:
+            asset_repo = AssetRepository(self.db)
+            asset = await asset_repo.get_asset_by_id(approval.asset_id)
+            return asset.enterprise_id if asset else None
+
+        if approval.target_type == "asset":
+            asset_repo = AssetRepository(self.db)
+            asset = await asset_repo.get_asset_by_id(approval.target_id)
+            return asset.enterprise_id if asset else None
+
+        return None
+
+    async def _ensure_can_process_approval(
+        self,
+        approval: Approval,
+        current_user: User,
+    ) -> str:
+        if current_user.is_superuser:
+            return "superuser"
+
+        enterprise_id = await self._get_approval_enterprise_id(approval)
+        if enterprise_id is None:
+            raise ApprovalPermissionDeniedError()
+
+        role_result = await self.db.execute(
+            select(EnterpriseMember.role).where(
+                EnterpriseMember.enterprise_id == enterprise_id,
+                EnterpriseMember.user_id == current_user.id,
+            )
+        )
+        role = role_result.scalar_one_or_none()
+        if role not in (MemberRole.OWNER, MemberRole.ADMIN):
+            raise ApprovalPermissionDeniedError()
+
+        return role.value
     
     # ========================================================================
     # 审批申请相关方法
@@ -246,6 +290,7 @@ class ApprovalService:
         comment: str,
         attachments: Optional[List[dict]] = None,
         operator_role: str = "admin",
+        current_user: Optional[User] = None,
     ) -> Approval:
         """
         处理审批操作（通过/拒绝/退回）。
@@ -271,6 +316,9 @@ class ApprovalService:
         approval = await self.approval_repo.get_approval_by_id(approval_id)
         if not approval:
             raise ApprovalNotFoundError()
+
+        if current_user is not None:
+            operator_role = await self._ensure_can_process_approval(approval, current_user)
         
         # 2. 检查审批状态
         if approval.status != ApprovalStatus.PENDING:
@@ -479,6 +527,7 @@ class ApprovalService:
     async def get_approval_detail(
         self,
         approval_id: UUID,
+        current_user: Optional[User] = None,
     ) -> Approval:
         """
         获取审批详情。
@@ -492,7 +541,15 @@ class ApprovalService:
         Raises:
             ApprovalNotFoundError: 审批记录不存在
         """
-        approval = await self.approval_repo.get_approval_by_id(approval_id)
+        visible_to_user_id = (
+            self._visible_to_user_id(current_user)
+            if current_user is not None
+            else None
+        )
+        approval = await self.approval_repo.get_approval_by_id(
+            approval_id,
+            visible_to_user_id=visible_to_user_id,
+        )
         if not approval:
             raise ApprovalNotFoundError()
         return approval
@@ -502,6 +559,7 @@ class ApprovalService:
         page: int = 1,
         page_size: int = 20,
         approval_type: Optional[ApprovalType] = None,
+        current_user: Optional[User] = None,
     ) -> Tuple[List[Approval], int]:
         """
         获取待审批列表。
@@ -518,51 +576,62 @@ class ApprovalService:
             page=page,
             page_size=page_size,
             approval_type=approval_type,
+            visible_to_user_id=(
+                self._visible_to_user_id(current_user)
+                if current_user is not None
+                else None
+            ),
         )
     
-    async def get_statistics(self) -> dict:
+    async def get_statistics(self, current_user: Optional[User] = None) -> dict:
         """
         获取审批统计数据。
         
         Returns:
             dict: 统计数据，包括待处理、已通过、已拒绝等数量
         """
-        from sqlalchemy import select, func
-        from app.models.approval import Approval, ApprovalStatus
-        
         # 统计各状态的审批数量
         stats = {}
-        
-        # 待处理
-        pending_result = await self.db.execute(
-            select(func.count(Approval.id)).where(Approval.status == ApprovalStatus.PENDING)
+        visible_to_user_id = (
+            self._visible_to_user_id(current_user)
+            if current_user is not None
+            else None
         )
-        stats["pending"] = pending_result.scalar() or 0
-        
-        # 已通过
-        approved_result = await self.db.execute(
-            select(func.count(Approval.id)).where(Approval.status == ApprovalStatus.APPROVED)
-        )
-        stats["approved"] = approved_result.scalar() or 0
-        
-        # 已拒绝
-        rejected_result = await self.db.execute(
-            select(func.count(Approval.id)).where(Approval.status == ApprovalStatus.REJECTED)
-        )
-        stats["rejected"] = rejected_result.scalar() or 0
-        
-        # 已退回
-        returned_result = await self.db.execute(
-            select(func.count(Approval.id)).where(Approval.status == ApprovalStatus.RETURNED)
-        )
-        stats["returned"] = returned_result.scalar() or 0
-        
-        # 总计
-        total_result = await self.db.execute(
-            select(func.count(Approval.id))
-        )
-        stats["total"] = total_result.scalar() or 0
-        
+
+        def build_count_query(status_filter: Optional[ApprovalStatus] = None):
+            query = select(func.count(Approval.id))
+            if status_filter is not None:
+                query = query.where(Approval.status == status_filter)
+            if visible_to_user_id is not None:
+                enterprise_ids = select(EnterpriseMember.enterprise_id).where(
+                    EnterpriseMember.user_id == visible_to_user_id
+                )
+                asset_ids = select(Asset.id).where(Asset.enterprise_id.in_(enterprise_ids))
+                query = query.where(
+                    or_(
+                        and_(
+                            Approval.target_type == "enterprise",
+                            Approval.target_id.in_(enterprise_ids),
+                        ),
+                        Approval.asset_id.in_(asset_ids),
+                        and_(
+                            Approval.target_type == "asset",
+                            Approval.target_id.in_(asset_ids),
+                        ),
+                    )
+                )
+            return query
+
+        for key, status_filter in (
+            ("pending", ApprovalStatus.PENDING),
+            ("approved", ApprovalStatus.APPROVED),
+            ("rejected", ApprovalStatus.REJECTED),
+            ("returned", ApprovalStatus.RETURNED),
+            ("total", None),
+        ):
+            result = await self.db.execute(build_count_query(status_filter))
+            stats[key] = result.scalar() or 0
+
         return stats
     
     async def get_approval_history(
@@ -571,6 +640,7 @@ class ApprovalService:
         page_size: int = 20,
         status: Optional[ApprovalStatus] = None,
         approval_type: Optional[ApprovalType] = None,
+        current_user: Optional[User] = None,
     ) -> Tuple[List[Approval], int]:
         """
         获取审批历史记录。
@@ -591,6 +661,11 @@ class ApprovalService:
             page_size=page_size,
             status=status,
             approval_type=approval_type,
+            visible_to_user_id=(
+                self._visible_to_user_id(current_user)
+                if current_user is not None
+                else None
+            ),
         )
     
     async def get_user_approvals(

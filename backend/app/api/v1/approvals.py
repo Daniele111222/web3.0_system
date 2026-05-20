@@ -158,13 +158,16 @@ async def process_approval(
                 data=None,
             )
         
+        comment = request.comment or ""
+
         approval = await service.process_approval(
             approval_id=approval_id,
             operator_id=current_user.id,
             action=action,
-            comment=request.comment,
+            comment=comment,
             attachments=[att.dict() for att in request.attachments] if request.attachments else None,
             operator_role="admin",  # 假设当前用户是管理员
+            current_user=current_user,
         )
         
         action_messages = {
@@ -203,7 +206,7 @@ async def get_approval_statistics(
     try:
         service = ApprovalService(db)
         
-        stats = await service.get_statistics()
+        stats = await service.get_statistics(current_user=current_user)
         
         return ApiResponse(
             code="SUCCESS",
@@ -264,6 +267,7 @@ async def get_pending_approvals(
             page=page,
             page_size=page_size,
             approval_type=type_enum,
+            current_user=current_user,
         )
         
         total_pages = (total + page_size - 1) // page_size if total > 0 else 0
@@ -335,6 +339,7 @@ async def get_approval_history(
             page_size=page_size,
             status=status_enum,
             approval_type=type_enum,
+            current_user=current_user,
         )
 
         total_pages = (total + page_size - 1) // page_size if total > 0 else 0
@@ -385,7 +390,7 @@ async def get_approval_detail(
         service = ApprovalService(db)
         
         # 获取审批详情
-        approval = await service.get_approval_detail(approval_id)
+        approval = await service.get_approval_detail(approval_id, current_user=current_user)
         
         # 获取流程历史
         processes = await service.process_repo.get_processes_by_approval(approval_id)
